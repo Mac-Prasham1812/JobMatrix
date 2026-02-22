@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_glass_card"
+    android:elevation="6dp">
+
+    <TextView
+        android:id="@+id/tvJobTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Job Title"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#0A2540"/>
+
+    <TextView
+        android:id="@+id/tvCompany"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Company: Company Name"
+        android:textSize="13sp"
+        android:textColor="#374151"
+        android:layout_marginTop="2dp"/>
+
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Category: Development"
+        android:textSize="12sp"
+        android:textColor="#6B7280"
+        android:layout_marginTop="2dp"/>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Active"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="#16A34A"
+        android:layout_marginTop="6dp"/>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/btnEditJob"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Edit"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:background="@drawable/btn_success_ripple"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackgroundBorderless"
+            android:elevation="4dp"/>
+
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggleStatus"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Deactivate"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:background="@drawable/btn_warning_ripple"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="4dp"
+            android:layout_marginStart="6dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnViewApplicants"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Applicants"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:background="@drawable/btn_primary_ripple"
+            android:clickable="true"
+            android:focusable="true"
+            android:elevation="4dp"
+            android:layout_marginStart="6dp"/>
+
+    </LinearLayout>
+
+</LinearLayout>

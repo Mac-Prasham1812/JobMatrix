@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_admin_gradient"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="View Applications"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/off_white"
+        android:layout_marginBottom="12dp"/>
+
+    <ProgressBar
+        android:id="@+id/progressApplications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/tvEmptyApplications"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No applications found"
+        android:textColor="#0A2540"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerApplications"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp"/>
+</LinearLayout>

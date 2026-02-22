@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Internet permission for Firebase -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher_logo"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_logo_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.JobMatrix"
+        tools:targetApi="31">
+
+        <!-- ================= AUTH MODULE ================= -->
+
+        <activity
+            android:name="com.example.jobmatrix.auth.RegisterActivity"
+            android:exported="true">
+            <!-- App starts from Register -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.example.jobmatrix.auth.LoginActivity"
+            android:exported="false" />
+
+
+        <!-- ================= STUDENT MODULE ================= -->
+
+        <activity
+            android:name="com.example.jobmatrix.student.StudentDashboardActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+        <activity
+            android:name="com.example.jobmatrix.student.SearchActivity"
+            android:exported="false"
+            android:launchMode="singleTop" />
+
+
+        <!-- ================= EMPLOYER MODULE ================= -->
+
+        <activity
+            android:name="com.example.jobmatrix.employer.EmployerDashboardActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+        <activity
+            android:name="com.example.jobmatrix.employer.EditJobActivity"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+
+
+        <!-- ================= ADMIN MODULE ================= -->
+
+        <activity
+            android:name="com.example.jobmatrix.admin.AdminDashboardActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+
+        <activity
+            android:name="com.example.jobmatrix.admin.AdminStudentsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+
+        <activity
+            android:name="com.example.jobmatrix.admin.AdminEmployersActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+
+        <activity
+            android:name="com.example.jobmatrix.admin.AdminApplicationsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+
+        <activity
+            android:name="com.example.jobmatrix.admin.AdminJobsActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            tools:ignore="Instantiatable" />
+
+
+        <activity android:name="com.example.jobmatrix.admin.EditJobActivity" />
+
+        <activity android:name="com.example.jobmatrix.admin.AdminAllApplicationsActivity" />
+
+
+
+
+
+        <activity
+            android:name="com.example.jobmatrix.employer.AddJobActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="com.example.jobmatrix.student.ApplyJobActivity"
+            android:exported="false" />
+
+
+        <activity
+            android:name="com.example.jobmatrix.employer.EmployerApplicationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="com.example.jobmatrix.student.JobDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="com.example.jobmatrix.student.NotificationActivity"
+            android:exported="false" />
+
+
+
+        <!-- ================= PROFILE AND LOGOUT ================= -->
+        <activity
+            android:name="com.example.jobmatrix.profile.ProfileActivity"
+            tools:ignore="Instantiatable" />
+
+    </application>
+
+</manifest>

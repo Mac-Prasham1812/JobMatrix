@@ -1,0 +1,5 @@
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#66B91C1C">
+    <item android:drawable="@drawable/admin_btn_danger_glass"/>
+
+</ripple>

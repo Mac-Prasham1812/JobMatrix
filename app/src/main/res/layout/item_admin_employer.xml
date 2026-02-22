@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_card"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvEmployerName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Employer Name"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#0A2540"/>
+
+    <TextView
+        android:id="@+id/tvEmployerEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="employer@email.com"
+        android:textColor="#374151"
+        android:textSize="13sp"/>
+
+    <TextView
+        android:id="@+id/tvCompanyName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Company Name"
+        android:textSize="13sp"
+        android:textColor="#2563EB"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"/>
+
+    <Button
+        android:id="@+id/btnDeleteEmployer"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:text="Delete Employer"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        android:background="@drawable/btn_danger_ripple"
+        android:backgroundTint="@null"
+        android:elevation="4dp"
+        android:layout_marginTop="10dp"/>
+
+
+</LinearLayout>

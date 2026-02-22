@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Normal Chip -->
+    <style name="Chip">
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingVertical">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_chip</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+
+    <style name="ChipActive">
+        <item name="android:paddingHorizontal">16dp</item>
+        <item name="android:paddingVertical">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_chip_active</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+
+    <style name="BottomIcon">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:padding">8dp</item>
+    </style>
+
+
+<!--    For employer side UI (activity_edit_job.xml)-->
+
+    <style name="EditTextStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:background">@drawable/bg_edittext</item>
+        <item name="android:textColor">#111111</item>
+        <item name="android:textColorHint">#9E9E9E</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:layout_marginBottom">14dp</item>
+    </style>
+
+
+    <!--    For Admin Dashboard side UI-->
+
+    <style name="AdminGlassCard">
+        <item name="android:background">@drawable/bg_glass_card</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="AdminActionCard">
+        <item name="android:background">@drawable/bg_glass_card</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+    </style>
+
+
+    <!--    For Admin Dashboard View Application CHIPS UI-->
+    <style name="AdminChip">
+        <item name="android:background">@drawable/bg_chip_admin</item>
+        <item name="android:textColor">#2563EB</item>
+        <item name="android:paddingHorizontal">14dp</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AdminChipActive">
+        <item name="android:background">@drawable/bg_chip_admin_active</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:paddingHorizontal">14dp</item>
+        <item name="android:paddingVertical">6dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+
+</resources>

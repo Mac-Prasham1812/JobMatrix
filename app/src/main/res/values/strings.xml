@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">JobMatrix</string>
+    <string-array name="roles_array">
+        <item>User</item>
+        <item>Employer</item>
+    </string-array>
+
+
+
+</resources>
+

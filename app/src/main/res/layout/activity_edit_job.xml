@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_admin_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Job"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/off_white"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Update your job details below"
+            android:textSize="16sp"
+            android:textColor="@color/off_white"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:contentPadding="16dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Job Title -->
+                <EditText
+                    android:id="@+id/etTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Job Title"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Company -->
+                <EditText
+                    android:id="@+id/etCompany"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Company Name"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Location -->
+                <EditText
+                    android:id="@+id/etLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Location"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Category -->
+                <EditText
+                    android:id="@+id/etCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Category"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Salary -->
+                <EditText
+                    android:id="@+id/etSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Salary"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Experience -->
+                <EditText
+                    android:id="@+id/etExperience"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:hint="Experience"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Overview -->
+                <EditText
+                    android:id="@+id/etCompanyOverview"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:background="@drawable/bg_edittext"
+                    android:padding="14dp"
+                    android:textSize="16sp"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:hint="Company / Job overview"
+                    android:textColor="#000000"
+                    android:textColorHint="#888888" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Button -->
+        <Button
+            android:id="@+id/btnUpdateJob"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="UPDATE JOB"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:backgroundTint="#1565C0"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="20dp" />
+
+    </LinearLayout>
+</ScrollView>

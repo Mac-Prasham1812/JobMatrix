@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Row : Profile + Student Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Profile Circle -->
+            <TextView
+                android:id="@+id/tvProfile"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:gravity="center"
+                android:text=""
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_profile_circle"/>
+
+            <!-- Student Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvStudentName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"/>
+
+                <TextView
+                    android:id="@+id/tvStudentEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#666666"/>
+
+                <TextView
+                    android:id="@+id/tvStudentPhone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textColor="#666666"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold"
+            android:textSize="14sp"/>
+
+        <!-- Shortlist & Reject Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnShortlist"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Shortlist"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#2E7D32"/>
+
+            <Button
+                android:id="@+id/btnReject"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginStart="8dp"
+                android:text="Reject"
+                android:textAllCaps="false"
+                android:textSize="13sp"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#C62828"/>
+        </LinearLayout>
+
+        <!-- View Resume Button -->
+        <Button
+            android:id="@+id/btnViewResume"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:text="VIEW RESUME"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:backgroundTint="#1565C0"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

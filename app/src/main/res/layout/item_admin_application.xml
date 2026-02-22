@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_glass_card"
+    android:padding="12dp"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/tvJobTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Job Title"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:textColor="#0A2540"/>
+
+    <TextView
+        android:id="@+id/tvCompany"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Company"
+        android:textSize="13sp"
+        android:textColor="#374151"/>
+
+    <TextView
+        android:id="@+id/tvStudent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Student Name"
+        android:textSize="12sp"
+        android:textColor="#6B7280"/>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Applied"
+        android:textStyle="bold"
+        android:textColor="#2563EB"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"/>
+
+    <Button
+        android:id="@+id/btnDeleteApplication"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:text="Delete Application"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        android:background="@drawable/btn_danger_ripple"
+        android:backgroundTint="@null"
+        android:elevation="4dp"
+        android:layout_marginTop="10dp"/>
+
+
+</LinearLayout>

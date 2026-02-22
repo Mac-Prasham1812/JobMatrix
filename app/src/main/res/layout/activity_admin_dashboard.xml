@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_admin_gradient">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Welcome, Admin"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/off_white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="JobMatrix Control Center"
+                    android:textSize="16sp"
+                    android:textColor="@color/off_white" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivAdminProfile"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/profile"
+                android:padding="4dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:tint="@color/off_white" />
+        </LinearLayout>
+
+
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:layout_marginBottom="24dp">
+
+            <!-- Students -->
+            <LinearLayout
+                style="@style/AdminGlassCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:layout_columnWeight="1">
+
+                <TextView
+                    android:text="Students"
+                    android:textColor="#0A2540"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvTotalStudents"
+                    android:text="0"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/progressStudents"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="6dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_blue_glass" />
+            </LinearLayout>
+
+            <!-- Employers -->
+            <LinearLayout
+                style="@style/AdminGlassCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:layout_columnWeight="1">
+
+                <TextView
+                    android:text="Employers"
+                    android:textColor="#0A2540"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvTotalEmployers"
+                    android:text="0"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/progressEmployers"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="6dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_blue_glass" />
+            </LinearLayout>
+
+            <!-- Jobs -->
+            <LinearLayout
+                style="@style/AdminGlassCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:layout_columnWeight="1">
+
+                <TextView
+                    android:text="Jobs"
+                    android:textColor="#0A2540"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvTotalJobs"
+                    android:text="0"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/progressJobsMini"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="6dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_blue_glass" />
+            </LinearLayout>
+
+            <!-- Applications -->
+            <LinearLayout
+                style="@style/AdminGlassCard"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:layout_columnWeight="1">
+
+                <TextView
+                    android:text="Applications"
+                    android:textColor="#0A2540"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tvTotalApplications"
+                    android:text="0"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="#2563EB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ProgressBar
+                    android:id="@+id/progressApplications"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="6dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/progress_blue_glass" />
+            </LinearLayout>
+        </GridLayout>
+
+
+        <LinearLayout
+            android:id="@+id/btnManageStudents"
+            style="@style/AdminActionCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_students"
+                app:tint="#2563EB" />
+
+            <TextView
+                android:text="  Manage Students"
+                android:textColor="#0A2540"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnManageEmployers"
+            style="@style/AdminActionCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_employers"
+                app:tint="#2563EB" />
+
+            <TextView
+                android:text="  Manage Employers"
+                android:textColor="#0A2540"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnManageJobs"
+            style="@style/AdminActionCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_jobs"
+                app:tint="#2563EB" />
+
+            <TextView
+                android:text="  Manage Jobs"
+                android:textColor="#0A2540"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/btnViewApplications"
+            style="@style/AdminActionCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_applications"
+                app:tint="#2563EB" />
+
+            <TextView
+                android:text="  View Applications"
+                android:textColor="#0A2540"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
