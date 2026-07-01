@@ -3,13 +3,16 @@ package com.example.jobmatrix.student
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.JobModel
 import com.example.jobmatrix.profile.ProfileActivity
+import com.example.jobmatrix.settings.SettingsActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
@@ -22,6 +25,7 @@ class StudentDashboardActivity : AppCompatActivity() {
     private lateinit var navHome: ImageView
     private lateinit var navSearch: ImageView
     private lateinit var ivNotification: ImageView
+    private lateinit var ivSettings: ImageView
 
     // RecyclerView
     private lateinit var recyclerView: RecyclerView
@@ -45,6 +49,7 @@ class StudentDashboardActivity : AppCompatActivity() {
         navHome = findViewById(R.id.navHome)
         navSearch = findViewById(R.id.navSearch)
         ivNotification = findViewById(R.id.ivNotification)
+        ivSettings = findViewById(R.id.ivSettings)
 
         setActiveNav(navHome)
 
@@ -54,6 +59,10 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         setGreeting()
         loadUserName()
+
+        // Header entrance animation
+        val headerAnim = AnimationUtils.loadAnimation(this, R.anim.anim_header_entrance)
+        (findViewById<View>(R.id.ivSettings).parent as View).startAnimation(headerAnim)
 
         // Shimmer RecyclerView
         rvShimmer = findViewById(R.id.rvShimmer)
@@ -89,6 +98,10 @@ class StudentDashboardActivity : AppCompatActivity() {
         navProfile.setOnClickListener {
             setActiveNav(navProfile)
             startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
+        ivSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 

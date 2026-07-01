@@ -7,11 +7,12 @@ import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.jobmatrix.employer.EmployerDashboardActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 
-class RegisterActivity : AppCompatActivity() {
+class EmployerRegisterActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -33,6 +34,10 @@ class RegisterActivity : AppCompatActivity() {
         val registerContainer = findViewById<LinearLayout>(R.id.registerContainer)
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
+        // Relabel for employer context
+        etName.hint = "Company / HR Name"
+        etPhone.hint = "Company Phone"
+
         // Entrance animations
         logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
         registerContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_card_entrance))
@@ -49,7 +54,6 @@ class RegisterActivity : AppCompatActivity() {
             val phone = etPhone.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            // Validation
             if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty()) {
                 showToast("Please fill all fields")
                 return@setOnClickListener
@@ -67,14 +71,16 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // UI state
             progressBar.visibility = View.VISIBLE
             btnRegister.isEnabled = false
 
-            // Firebase Auth
+            // Firebase Auth — creates a brand new user, result.user is guaranteed
+            // to be THIS new account, never a stale/previous session's user.
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { result ->
 
+                    // Pulled directly from the AuthResult, never from auth.currentUser.
+                    // This is what prevents the UID-mismatch bug seen with manual entries.
                     val uid = result.user!!.uid
 
                     val userMap = hashMapOf(
@@ -82,17 +88,19 @@ class RegisterActivity : AppCompatActivity() {
                         "name" to name,
                         "email" to email,
                         "phone" to phone,
-                        "role" to "Student",   // fixed role
+                        "role" to "Employer",   // fixed role
                         "createdAt" to System.currentTimeMillis()
                     )
 
-                    //  Firestore
+                    // Document ID is the same uid — guarantees doc ID and uid field
+                    // always match, which is exactly what was broken with the
+                    // manually-created Firestore entry.
                     db.collection("users").document(uid).set(userMap)
                         .addOnSuccessListener {
                             progressBar.visibility = View.GONE
                             showToast("Registration successful")
 
-                            startActivity(Intent(this, LoginActivity::class.java))
+                            startActivity(Intent(this, EmployerDashboardActivity::class.java))
                             finish()
                         }
                         .addOnFailureListener {

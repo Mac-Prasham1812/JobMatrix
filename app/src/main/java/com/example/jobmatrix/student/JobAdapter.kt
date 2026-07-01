@@ -4,6 +4,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -34,11 +35,27 @@ class JobAdapter(private var jobList: List<JobModel>) :
         val job = jobList[position]
 
         holder.tvTitle.text = job.title
-        holder.tvCompany.text = "Company: ${job.company}"
-        holder.tvCategory.text = "Category: ${job.category}"
+        holder.tvCompany.text = job.company
+        holder.tvCategory.text = job.category
         holder.tvExperience.text = "Experience: ${job.experience}"
         holder.tvSalary.text = job.salary
-        holder.tvLocation.text = "Location: ${job.location}"
+        holder.tvLocation.text = job.location
+
+        // Subtle staggered fade-up as each card binds, capped so it doesn't
+        // keep re-triggering oddly on fast scroll past the first screenful.
+        if (position < 8) {
+            holder.itemView.alpha = 0f
+            holder.itemView.translationY = 24f
+            holder.itemView.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setStartDelay((position * 60).toLong())
+                .setDuration(280)
+                .start()
+        } else {
+            holder.itemView.alpha = 1f
+            holder.itemView.translationY = 0f
+        }
 
         // Open Job Details
         holder.itemView.setOnClickListener {
@@ -76,16 +93,15 @@ class JobAdapter(private var jobList: List<JobModel>) :
                 ApplyJobActivity::class.java
             )
 
-            // PASSING ALL REQUIRED DATA
             intent.putExtra("jobId", job.jobId)
-            intent.putExtra("jobTitle", job.title)        // IMPORTANT
-            intent.putExtra("companyName", job.company)  // IMPORTANT
+            intent.putExtra("jobTitle", job.title)
+            intent.putExtra("companyName", job.company)
 
             holder.itemView.context.startActivity(intent)
         }
     }
 
-        override fun getItemCount(): Int = jobList.size
+    override fun getItemCount(): Int = jobList.size
 
     fun updateList(newList: List<JobModel>) {
         jobList = newList
