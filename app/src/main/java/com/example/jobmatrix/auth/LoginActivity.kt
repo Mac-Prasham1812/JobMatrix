@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.jobmatrix.admin.AdminDashboardActivity
@@ -30,10 +31,23 @@ class LoginActivity : AppCompatActivity() {
         val btnLogin = findViewById<Button>(R.id.btnLogin)
         val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val tvRegisterLink = findViewById<TextView>(R.id.tvRegisterLink)
+        val tvEmployerRegisterLink = findViewById<TextView>(R.id.tvEmployerRegisterLink)
+        val loginContainer = findViewById<LinearLayout>(R.id.loginContainer)
+        val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
-        // Navigate to Register
+        // Entrance animations
+        logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
+        loginContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_card_entrance))
+
+        // Navigate to Register (Student)
         tvRegisterLink.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
+            finish()
+        }
+
+        // Navigate to Register (Employer)
+        tvEmployerRegisterLink.setOnClickListener {
+            startActivity(Intent(this, EmployerRegisterActivity::class.java))
             finish()
         }
 

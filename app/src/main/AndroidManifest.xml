@@ -133,6 +133,11 @@
             android:name="com.example.jobmatrix.profile.ProfileActivity"
             tools:ignore="Instantiatable" />
 
+        <activity android:name="com.example.jobmatrix.auth.EmployerRegisterActivity"/>
+
+        <activity android:name="com.example.jobmatrix.settings.SettingsActivity" />
+
+
     </application>
 
 </manifest>
