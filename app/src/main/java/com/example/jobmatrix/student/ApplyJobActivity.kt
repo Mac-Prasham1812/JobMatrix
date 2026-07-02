@@ -1,5 +1,6 @@
 package com.example.jobmatrix.student
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -12,33 +13,29 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.example.jobmatrix.network.RetrofitClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.jobmatrix.app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class ApplyJobActivity : AppCompatActivity() {
 
-    // ---- Cloudinary config ----
-    private val cloudName = "dthjujdnc"
-    private val uploadPreset = "jobmatrix_unsigned"
     private val maxFileSizeBytes = 5 * 1024 * 1024L // 5 MB
 
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
-    private val client = OkHttpClient()
 
     private lateinit var jobId: String
     private lateinit var jobTitle: String
@@ -55,7 +52,7 @@ class ApplyJobActivity : AppCompatActivity() {
     private lateinit var btnSubmit: Button
 
     private var selectedFileUri: Uri? = null
-    private var uploadedResumeUrl: String? = null
+    private var uploadedResumeKey: String? = null
     private var isUploading = false
     private var isCheckingExisting = true
 
@@ -122,6 +119,7 @@ class ApplyJobActivity : AppCompatActivity() {
             }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun showAlreadyApplied() {
         layoutPickFile.visibility = View.GONE
         layoutFileChip.visibility = View.GONE
@@ -140,6 +138,7 @@ class ApplyJobActivity : AppCompatActivity() {
         pickPdfLauncher.launch(intent)
     }
 
+    @SuppressLint("SetTextI18n")
     private fun handleFilePicked(uri: Uri) {
         val fileSize = getFileSize(uri)
 
@@ -149,7 +148,7 @@ class ApplyJobActivity : AppCompatActivity() {
         }
 
         selectedFileUri = uri
-        uploadedResumeUrl = null
+        uploadedResumeKey = null
 
         val fileName = getFileName(uri) ?: "resume.pdf"
         tvFileName.text = fileName
@@ -162,9 +161,10 @@ class ApplyJobActivity : AppCompatActivity() {
         tvSubmitHint.text = "Ready to submit"
     }
 
+    @SuppressLint("SetTextI18n")
     private fun clearSelectedFile() {
         selectedFileUri = null
-        uploadedResumeUrl = null
+        uploadedResumeKey = null
 
         layoutFileChip.visibility = View.GONE
         layoutPickFile.visibility = View.VISIBLE
@@ -195,6 +195,7 @@ class ApplyJobActivity : AppCompatActivity() {
         return name
     }
 
+    @SuppressLint("DefaultLocale")
     private fun formatFileSize(bytes: Long): String {
         val kb = bytes / 1024.0
         return if (kb < 1024) {
@@ -253,12 +254,12 @@ class ApplyJobActivity : AppCompatActivity() {
     private fun proceedWithUpload(uri: Uri, studentId: String) {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                val resumeUrl = uploadedResumeUrl ?: withContext(Dispatchers.IO) {
-                    uploadToCloudinary(uri)
+                val resumeKey = uploadedResumeKey ?: withContext(Dispatchers.IO) {
+                    uploadToBackend(uri)
                 }
-                uploadedResumeUrl = resumeUrl
+                uploadedResumeKey = resumeKey
 
-                saveApplication(studentId, resumeUrl)
+                saveApplication(studentId, resumeKey)
             } catch (e: Exception) {
                 isUploading = false
                 setUploadingUi(false)
@@ -271,6 +272,7 @@ class ApplyJobActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setUploadingUi(uploading: Boolean) {
         layoutProgress.visibility = if (uploading) View.VISIBLE else View.GONE
         btnSubmit.isEnabled = !uploading
@@ -278,10 +280,23 @@ class ApplyJobActivity : AppCompatActivity() {
         tvUploadStatus.text = "Uploading resume..."
     }
 
+    // Fetches a fresh Firebase ID token as a suspend call.
+    private suspend fun getIdToken(): String = suspendCancellableCoroutine { cont ->
+        val user = auth.currentUser
+        if (user == null) {
+            cont.resumeWithException(Exception("User not logged in"))
+            return@suspendCancellableCoroutine
+        }
+        user.getIdToken(true)
+            .addOnSuccessListener { result -> cont.resume(result.token ?: "") }
+            .addOnFailureListener { e -> cont.resumeWithException(e) }
+    }
+
     // Runs on IO dispatcher — copies the picked file to a temp file, then
-    // uploads it to Cloudinary's unsigned upload endpoint, returning the
-    // secure CDN URL of the uploaded PDF.
-    private fun uploadToCloudinary(uri: Uri): String {
+    // uploads it to our own backend (which stores it in Backblaze B2),
+    // returning the file `key` (NOT a URL — URLs are fetched fresh later
+    // via GET /resume/:key when needed).
+    private suspend fun uploadToBackend(uri: Uri): String {
         val tempFile = File(cacheDir, "resume_${System.currentTimeMillis()}.pdf")
 
         contentResolver.openInputStream(uri)?.use { input ->
@@ -290,35 +305,21 @@ class ApplyJobActivity : AppCompatActivity() {
             }
         } ?: throw Exception("Could not read selected file")
 
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("upload_preset", uploadPreset)
-            .addFormDataPart(
-                "file",
-                tempFile.name,
-                tempFile.asRequestBody("application/pdf".toMediaTypeOrNull())
-            )
-            .build()
+        val requestFile = tempFile.asRequestBody("application/pdf".toMediaTypeOrNull())
+        val body = MultipartBody.Part.createFormData("resume", tempFile.name, requestFile)
+        val token = "Bearer ${getIdToken()}"
 
-        val request = Request.Builder()
-            .url("https://api.cloudinary.com/v1_1/$cloudName/raw/upload")
-            .post(requestBody)
-            .build()
+        val response = RetrofitClient.api.uploadResume(token, body)
+        tempFile.delete()
 
-        client.newCall(request).execute().use { response ->
-            tempFile.delete()
-
-            if (!response.isSuccessful) {
-                throw Exception("Cloudinary upload failed (${response.code})")
-            }
-
-            val body = response.body?.string() ?: throw Exception("Empty response from Cloudinary")
-            val json = JSONObject(body)
-            return json.getString("secure_url")
+        if (!response.isSuccessful) {
+            throw Exception("Upload failed (${response.code()})")
         }
+
+        return response.body()?.key ?: throw Exception("No key returned from server")
     }
 
-    private fun saveApplication(studentId: String, resumeUrl: String) {
+    private fun saveApplication(studentId: String, resumeKey: String) {
         val applicationId = db.collection("applications").document().id
 
         val applicationData = hashMapOf(
@@ -327,7 +328,7 @@ class ApplyJobActivity : AppCompatActivity() {
             "jobTitle" to jobTitle,
             "companyName" to companyName,
             "studentId" to studentId,
-            "resumeLink" to resumeUrl,
+            "resumeKey" to resumeKey,
             "status" to "Applied",
             "hasNotification" to false,
             "isRead" to false,
