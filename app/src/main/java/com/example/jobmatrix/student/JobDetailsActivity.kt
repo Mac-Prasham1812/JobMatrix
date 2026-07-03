@@ -1,5 +1,6 @@
 package com.example.jobmatrix.student
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -24,6 +25,7 @@ class JobDetailsActivity : AppCompatActivity() {
     private lateinit var tvLocation: TextView
 
     private var jobId: String? = null
+    private var currentJob: JobModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +54,8 @@ class JobDetailsActivity : AppCompatActivity() {
         btnApply.setOnClickListener {
             val intent = Intent(this, ApplyJobActivity::class.java)
             intent.putExtra("jobId", jobId)
+            intent.putExtra("jobTitle", currentJob?.title ?: "")
+            intent.putExtra("companyName", currentJob?.company ?: "")
             startActivity(intent)
         }
     }
@@ -63,6 +67,7 @@ class JobDetailsActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val job = doc.toObject(JobModel::class.java)
                 if (job != null) {
+                    currentJob = job
                     bindJob(job)
                 }
             }
@@ -71,6 +76,7 @@ class JobDetailsActivity : AppCompatActivity() {
             }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun bindJob(job: JobModel) {
         tvTitle.text = job.title
         tvCompany.text = "Company: ${job.company}"
