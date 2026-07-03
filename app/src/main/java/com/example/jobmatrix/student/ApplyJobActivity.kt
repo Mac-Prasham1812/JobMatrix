@@ -158,7 +158,7 @@ class ApplyJobActivity : AppCompatActivity() {
         layoutFileChip.visibility = View.VISIBLE
 
         btnSubmit.isEnabled = true
-        tvSubmitHint.text = "Ready to submit"
+        this.tvSubmitHint.text = "Ready to submit"
     }
 
     @SuppressLint("SetTextI18n")
@@ -319,6 +319,10 @@ class ApplyJobActivity : AppCompatActivity() {
         return response.body()?.key ?: throw Exception("No key returned from server")
     }
 
+    // NOTE: Firestore field name stays "resumeLink" for compatibility with
+    // existing employer/admin screens, but the value stored is now the B2
+    // file key, not a direct URL. A fresh signed URL must be fetched via
+    // GET /resume/:key before opening it anywhere.
     private fun saveApplication(studentId: String, resumeKey: String) {
         val applicationId = db.collection("applications").document().id
 
@@ -328,7 +332,7 @@ class ApplyJobActivity : AppCompatActivity() {
             "jobTitle" to jobTitle,
             "companyName" to companyName,
             "studentId" to studentId,
-            "resumeKey" to resumeKey,
+            "resumeLink" to resumeKey,
             "status" to "Applied",
             "hasNotification" to false,
             "isRead" to false,

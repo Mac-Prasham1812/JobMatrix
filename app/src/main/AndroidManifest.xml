@@ -14,8 +14,7 @@
         android:roundIcon="@mipmap/ic_launcher_logo_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.JobMatrix"
-        tools:targetApi="31"
-        android:usesCleartextTraffic="true">
+        tools:targetApi="31">
 
 
 
