@@ -3,24 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_auth_gradient">
-
-    <!-- Decorative background shapes -->
-    <View
-        android:layout_width="220dp"
-        android:layout_height="220dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="-60dp"
-        android:layout_marginEnd="-60dp"
-        android:background="@drawable/shape_soft_circle"/>
-
-    <View
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_gravity="bottom|start"
-        android:layout_marginBottom="-40dp"
-        android:layout_marginStart="-40dp"
-        android:background="@drawable/shape_soft_circle"/>
+    android:background="@color/color_bg_screen">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -37,76 +20,84 @@
             <!-- App mark -->
             <LinearLayout
                 android:id="@+id/logoMark"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/bg_glass_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
                 android:gravity="center"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="28dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_logo_bars"
+                    app:tint="@color/color_accent"
+                    android:layout_marginBottom="6dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="J"
-                    android:textSize="28sp"
+                    android:text="JobMatrix"
+                    android:textSize="30sp"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF"/>
+                    android:textColor="@color/color_accent"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Where talent meets opportunity"
+                    android:textSize="13sp"
+                    android:textColor="@color/color_text_secondary"
+                    android:layout_marginTop="4dp"/>
             </LinearLayout>
 
-            <!-- Glass Card -->
+            <!-- Card -->
             <LinearLayout
                 android:id="@+id/loginContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_glass_card"
-                android:padding="28dp"
-                android:elevation="8dp"
-                android:translationZ="8dp">
+                android:orientation="vertical">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Welcome Back"
-                    android:textSize="26sp"
-                    android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:layout_marginBottom="4dp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Login to continue JobMatrix"
-                    android:textSize="14sp"
-                    android:textColor="#CCE3F2FD"
-                    android:layout_marginBottom="28dp"/>
-
-                <!-- Email -->
-                <EditText
-                    android:id="@+id/etEmail"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
-                    android:hint="Email Address"
-                    android:inputType="textEmailAddress"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/input_state_selector"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#CCFFFFFF"
-                    android:layout_marginBottom="14dp"/>
+                    android:layout_height="wrap_content"
+                    style="@style/InputLayoutStyle"
+                    android:layout_marginBottom="14dp">
 
-                <!-- Password -->
-                <EditText
-                    android:id="@+id/etPassword"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Email address"
+                        android:inputType="textEmailAddress"
+                        android:textColor="@color/color_text_primary"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
-                    android:layout_height="54dp"
-                    android:hint="Password"
-                    android:inputType="textPassword"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/input_state_selector"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#CCFFFFFF"
-                    android:layout_marginBottom="24dp"/>
+                    android:layout_height="wrap_content"
+                    style="@style/InputLayoutStyle"
+                    app:endIconMode="password_toggle"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Password"
+                        android:inputType="textPassword"
+                        android:textColor="@color/color_text_primary"/>
+
+                    <TextView
+                        android:id="@+id/tvForgotPassword"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="Forgot password?"
+                        android:textColor="@color/color_accent"
+                        android:textSize="13sp"
+                        android:padding="6dp"
+                        android:layout_marginBottom="10dp"/>
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Login Button -->
                 <com.google.android.material.button.MaterialButton
@@ -118,23 +109,76 @@
                     android:textAllCaps="true"
                     android:textStyle="bold"
                     android:textSize="15sp"
-                    android:textColor="#1565C0"
+                    android:textColor="#FFFFFF"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    app:backgroundTint="@android:color/white"
+                    app:backgroundTint="@null"
+                    android:background="@drawable/bg_button"
                     app:cornerRadius="16dp"
-                    app:rippleColor="#331565C0"
-                    android:elevation="3dp"/>
+                    android:elevation="2dp"/>
 
-                <!-- Progress -->
-                <ProgressBar
-                    android:id="@+id/progressBar"
-                    android:layout_width="wrap_content"
+
+                <!-- Divider -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="18dp"
-                    android:visibility="gone"
-                    android:indeterminateTint="#FFFFFF"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="22dp">
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"
+                        android:background="@color/color_divider"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="or continue with"
+                        android:textSize="12sp"
+                        android:textColor="@color/color_text_hint"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"/>
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"
+                        android:background="@color/color_divider"/>
+                </LinearLayout>
+
+                <!-- Social buttons -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:gravity="center"
+                        android:text="G  Google"
+                        android:textStyle="bold"
+                        android:textColor="@color/color_text_primary"
+                        android:background="@drawable/bg_input"
+                        android:id="@+id/tvGoogleLogin"/>
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="50dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:gravity="center"
+                        android:text="f  Facebook"
+                        android:textStyle="bold"
+                        android:textColor="@color/color_text_primary"
+                        android:background="@drawable/bg_input"
+                        android:id="@+id/tvFacebookLogin"/>
+                </LinearLayout>
 
                 <!-- Register Link (Student) -->
                 <TextView
@@ -142,12 +186,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:text="Don't have an account? Register"
-                    android:textColor="#FFFFFF"
+                    android:text="Don't have an account? Sign up"
+                    android:textColor="@color/color_text_primary"
                     android:textStyle="bold"
                     android:textSize="14sp"
                     android:padding="8dp"
-                    android:layout_marginTop="20dp"/>
+                    android:layout_marginTop="24dp"/>
 
                 <!-- Register Link (Employer) -->
                 <TextView
@@ -156,7 +200,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:text="Hiring? Register as Employer"
-                    android:textColor="#CCE3F2FD"
+                    android:textColor="@color/color_accent"
                     android:textSize="13sp"
                     android:padding="8dp"/>
 
