@@ -6,7 +6,19 @@
     <color name="black">#000000</color>
     <color name="green">#4CAF50</color>
     <color name="blue">#1565C0</color>
-<!--    <color name="green">#2E7D32</color>-->
+    <!--    <color name="green">#2E7D32</color>-->
     <color name="red">#C62828</color>
+
+    <!-- Semantic theme tokens (light) -->
+    <color name="color_bg_screen">#F8FAFC</color>
+    <color name="color_surface">#FFFFFF</color>
+    <color name="color_text_primary">#101526</color>
+    <color name="color_text_secondary">#64748B</color>
+    <color name="color_text_hint">#94A3B8</color>
+    <color name="color_input_bg">#FFFFFF</color>
+    <color name="color_divider">#E2E8F0</color>
+    <color name="color_accent">#2563EB</color>
+    <color name="color_input_stroke">#DDDDDD</color>
+    <color name="color_input_stroke_focused">@color/color_accent</color>
 
 </resources>

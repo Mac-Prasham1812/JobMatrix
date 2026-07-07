@@ -13,10 +13,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import com.example.jobmatrix.network.RetrofitClient
+import com.jobmatrix.app.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.jobmatrix.app.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,6 +43,9 @@ class ApplyJobActivity : AppCompatActivity() {
     private lateinit var jobTitle: String
     private lateinit var companyName: String
 
+    private lateinit var cardResume: CardView
+    private lateinit var layoutAlreadyApplied: CardView
+    private lateinit var layoutInfoNote: LinearLayout
     private lateinit var layoutPickFile: LinearLayout
     private lateinit var layoutFileChip: LinearLayout
     private lateinit var layoutProgress: LinearLayout
@@ -55,6 +60,7 @@ class ApplyJobActivity : AppCompatActivity() {
     private var uploadedResumeKey: String? = null
     private var isUploading = false
     private var isCheckingExisting = true
+    private var canSubmit = false
 
     private val pickPdfLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -71,6 +77,9 @@ class ApplyJobActivity : AppCompatActivity() {
         jobTitle = intent.getStringExtra("jobTitle") ?: ""
         companyName = intent.getStringExtra("companyName") ?: ""
 
+        cardResume = findViewById(R.id.cardResume)
+        layoutAlreadyApplied = findViewById(R.id.layoutAlreadyApplied)
+        layoutInfoNote = findViewById(R.id.layoutInfoNote)
         layoutPickFile = findViewById(R.id.layoutPickFile)
         layoutFileChip = findViewById(R.id.layoutFileChip)
         layoutProgress = findViewById(R.id.layoutProgress)
@@ -81,18 +90,33 @@ class ApplyJobActivity : AppCompatActivity() {
         btnRemoveFile = findViewById(R.id.btnRemoveFile)
         btnSubmit = findViewById(R.id.btnSubmitApplication)
 
+        setSubmitButtonState(false)
+
         layoutPickFile.setOnClickListener { openFilePicker() }
 
         btnRemoveFile.setOnClickListener { clearSelectedFile() }
 
-        btnSubmit.setOnClickListener { submitApplication() }
+        btnSubmit.setOnClickListener {
+            if (canSubmit) submitApplication()
+        }
 
         checkExistingApplication()
     }
 
+    // Manages the submit button's enabled look in code instead of using
+    // android:enabled, since the platform Button theme auto-dims disabled
+    // buttons (background + text) regardless of custom drawable colors.
+    private fun setSubmitButtonState(enabled: Boolean) {
+        canSubmit = enabled
+        btnSubmit.background = ContextCompat.getDrawable(
+            this,
+            if (enabled) R.drawable.bg_button else R.drawable.bg_button_disable
+        )
+    }
+
     // Checks whether the current student has already applied to this exact
     // job. If so, the picker/submit UI is replaced with an "already applied"
-    // message instead of letting them submit a duplicate.
+    // card instead of letting them submit a duplicate.
     private fun checkExistingApplication() {
         val studentId = auth.currentUser?.uid
         if (studentId == null || jobId.isEmpty()) {
@@ -119,15 +143,12 @@ class ApplyJobActivity : AppCompatActivity() {
             }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun showAlreadyApplied() {
-        layoutPickFile.visibility = View.GONE
-        layoutFileChip.visibility = View.GONE
-        layoutProgress.visibility = View.GONE
-
-        btnSubmit.isEnabled = false
-        btnSubmit.text = "ALREADY APPLIED"
-        tvSubmitHint.text = "You have already applied to this job."
+        cardResume.visibility = View.GONE
+        layoutInfoNote.visibility = View.GONE
+        btnSubmit.visibility = View.GONE
+        tvSubmitHint.visibility = View.GONE
+        layoutAlreadyApplied.visibility = View.VISIBLE
     }
 
     private fun openFilePicker() {
@@ -157,8 +178,8 @@ class ApplyJobActivity : AppCompatActivity() {
         layoutPickFile.visibility = View.GONE
         layoutFileChip.visibility = View.VISIBLE
 
-        btnSubmit.isEnabled = true
-        this.tvSubmitHint.text = "Ready to submit"
+        setSubmitButtonState(true)
+        tvSubmitHint.text = "Ready to submit"
     }
 
     @SuppressLint("SetTextI18n")
@@ -169,7 +190,7 @@ class ApplyJobActivity : AppCompatActivity() {
         layoutFileChip.visibility = View.GONE
         layoutPickFile.visibility = View.VISIBLE
 
-        btnSubmit.isEnabled = false
+        setSubmitButtonState(false)
         tvSubmitHint.text = "Select a PDF resume to continue"
     }
 
@@ -275,7 +296,7 @@ class ApplyJobActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun setUploadingUi(uploading: Boolean) {
         layoutProgress.visibility = if (uploading) View.VISIBLE else View.GONE
-        btnSubmit.isEnabled = !uploading
+        setSubmitButtonState(!uploading && selectedFileUri != null)
         btnRemoveFile.isEnabled = !uploading
         tvUploadStatus.text = "Uploading resume..."
     }

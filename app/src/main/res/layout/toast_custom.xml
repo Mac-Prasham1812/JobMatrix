@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_toast"
+    android:padding="14dp">
+
+    <TextView
+        android:id="@+id/tvToastMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/color_text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"/>
+</LinearLayout>
