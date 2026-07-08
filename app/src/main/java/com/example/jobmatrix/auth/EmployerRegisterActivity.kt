@@ -3,11 +3,11 @@ package com.example.jobmatrix.auth
 import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
-import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.jobmatrix.employer.EmployerDashboardActivity
+import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
@@ -24,21 +24,18 @@ class EmployerRegisterActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        val etName = findViewById<EditText>(R.id.etName)
-        val etEmail = findViewById<EditText>(R.id.etEmail)
-        val etPhone = findViewById<EditText>(R.id.etPhone)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
+        val etName = findViewById<TextInputEditText>(R.id.etName)
+        val etEmail = findViewById<TextInputEditText>(R.id.etEmail)
+        val etPhone = findViewById<TextInputEditText>(R.id.etPhone)
+        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
         val tvLoginLink = findViewById<TextView>(R.id.tvLoginLink)
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val registerContainer = findViewById<LinearLayout>(R.id.registerContainer)
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
-        // Relabel for employer context
-        etName.hint = "Company / HR Name"
-        etPhone.hint = "Company Phone"
+        findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilName).hint = "Company / HR Name"
+        findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.tilPhone).hint = "Company Phone"
 
-        // Entrance animations
         logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
         registerContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_card_entrance))
 
@@ -71,16 +68,12 @@ class EmployerRegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            progressBar.visibility = View.VISIBLE
+            btnRegister.text = "Registering..."
             btnRegister.isEnabled = false
 
-            // Firebase Auth — creates a brand new user, result.user is guaranteed
-            // to be THIS new account, never a stale/previous session's user.
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener { result ->
 
-                    // Pulled directly from the AuthResult, never from auth.currentUser.
-                    // This is what prevents the UID-mismatch bug seen with manual entries.
                     val uid = result.user!!.uid
 
                     val userMap = hashMapOf(
@@ -88,29 +81,24 @@ class EmployerRegisterActivity : AppCompatActivity() {
                         "name" to name,
                         "email" to email,
                         "phone" to phone,
-                        "role" to "Employer",   // fixed role
+                        "role" to "Employer",
                         "createdAt" to System.currentTimeMillis()
                     )
 
-                    // Document ID is the same uid — guarantees doc ID and uid field
-                    // always match, which is exactly what was broken with the
-                    // manually-created Firestore entry.
                     db.collection("users").document(uid).set(userMap)
                         .addOnSuccessListener {
-                            progressBar.visibility = View.GONE
                             showToast("Registration successful")
-
                             startActivity(Intent(this, EmployerDashboardActivity::class.java))
                             finish()
                         }
                         .addOnFailureListener {
-                            progressBar.visibility = View.GONE
+                            btnRegister.text = "REGISTER"
                             btnRegister.isEnabled = true
                             showToast("Failed to save user data")
                         }
                 }
                 .addOnFailureListener { e ->
-                    progressBar.visibility = View.GONE
+                    btnRegister.text = "REGISTER"
                     btnRegister.isEnabled = true
                     showToast(e.message ?: "Registration failed")
                 }
@@ -118,6 +106,12 @@ class EmployerRegisterActivity : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }

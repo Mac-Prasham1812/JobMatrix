@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
+import com.google.android.material.textfield.TextInputEditText
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -23,13 +24,12 @@ class RegisterActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        val etName = findViewById<EditText>(R.id.etName)
-        val etEmail = findViewById<EditText>(R.id.etEmail)
-        val etPhone = findViewById<EditText>(R.id.etPhone)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
+        val etName = findViewById<TextInputEditText>(R.id.etName)
+        val etEmail = findViewById<TextInputEditText>(R.id.etEmail)
+        val etPhone = findViewById<TextInputEditText>(R.id.etPhone)
+        val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
         val btnRegister = findViewById<Button>(R.id.btnRegister)
         val tvLoginLink = findViewById<TextView>(R.id.tvLoginLink)
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
         val registerContainer = findViewById<LinearLayout>(R.id.registerContainer)
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
@@ -68,7 +68,7 @@ class RegisterActivity : AppCompatActivity() {
             }
 
             // UI state
-            progressBar.visibility = View.VISIBLE
+            btnRegister.text = "Registering..."
             btnRegister.isEnabled = false
 
             // Firebase Auth
@@ -89,20 +89,18 @@ class RegisterActivity : AppCompatActivity() {
                     //  Firestore
                     db.collection("users").document(uid).set(userMap)
                         .addOnSuccessListener {
-                            progressBar.visibility = View.GONE
                             showToast("Registration successful")
-
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
                         }
                         .addOnFailureListener {
-                            progressBar.visibility = View.GONE
+                            btnRegister.text = "REGISTER"
                             btnRegister.isEnabled = true
                             showToast("Failed to save user data")
                         }
                 }
                 .addOnFailureListener { e ->
-                    progressBar.visibility = View.GONE
+                    btnRegister.text = "REGISTER"
                     btnRegister.isEnabled = true
                     showToast(e.message ?: "Registration failed")
                 }
@@ -110,6 +108,12 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }
