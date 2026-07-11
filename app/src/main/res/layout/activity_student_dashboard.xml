@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F4F6FA">
+    android:background="@color/color_bg_screen"
+    android:fitsSystemWindows="true">
 
     <!-- TOP HEADER -->
     <LinearLayout
@@ -15,9 +16,8 @@
         android:paddingEnd="12dp"
         android:paddingTop="22dp"
         android:paddingBottom="22dp"
-        android:gravity="center_vertical"
-        android:background="@drawable/bg_auth_gradient"
-        android:elevation="6dp">
+        android:gravity="center_vertical">
+<!--        android:background="@color/color_surface"-->
 
         <LinearLayout
             android:layout_width="0dp"
@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:text="Good Morning"
                 android:textSize="14sp"
-                android:textColor="#CCE3F2FD" />
+                android:textColor="@color/color_text_secondary"/>
 
             <TextView
                 android:id="@+id/tvUserName"
@@ -40,8 +40,8 @@
                 android:text="User"
                 android:textSize="21sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:layout_marginTop="2dp" />
+                android:textColor="@color/color_text_primary"
+                android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <ImageView
@@ -50,12 +50,162 @@
             android:layout_height="44dp"
             android:padding="10dp"
             android:src="@drawable/ic_settings"
-            app:tint="#FFFFFF"
+            app:tint="@color/color_accent"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="Settings"/>
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your application pipeline"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_text_primary"
+        android:paddingStart="16dp"
+        android:paddingTop="16dp"/>
+
+    <!-- APPLICATION PIPELINE -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:weightSum="3">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_pipeline_card"
+            android:padding="12dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="7dp"
+                android:src="@drawable/ic_document"
+                android:background="@drawable/bg_circle_blue"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tvAppliedCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/color_accent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Applied"
+                android:textSize="12sp"
+                android:textColor="@color/color_text_secondary"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_pipeline_card"
+            android:padding="12dp"
+            android:layout_marginEnd="6dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="7dp"
+                android:src="@drawable/ic_eye"
+                android:background="@drawable/bg_circle_orange"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tvInReviewCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#F59E0B"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="In Review"
+                android:textSize="12sp"
+                android:textColor="@color/color_text_secondary"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_pipeline_card"
+            android:padding="12dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="7dp"
+                android:src="@drawable/ic_check"
+                android:background="@drawable/bg_circle_green"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tvShortlistedCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#16A34A"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shortlisted"
+                android:textSize="12sp"
+                android:textColor="@color/color_text_secondary"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingHorizontal="16dp"-->
+<!--        android:paddingTop="12dp"-->
+<!--        android:gravity="center_vertical">-->
+
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="Matched for you"-->
+<!--            android:textSize="14sp"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textColor="@color/color_text_primary"/>-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tvViewAll"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="View all"-->
+<!--            android:textSize="13sp"-->
+<!--            android:textColor="@color/color_accent"/>-->
+<!--    </LinearLayout>-->
 
     <!-- SHIMMER JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -64,7 +214,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="16dp"
-        android:visibility="visible" />
+        android:visibility="visible"/>
 
     <!-- JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -75,57 +225,119 @@
         android:padding="16dp"
         android:clipToPadding="false"
         android:paddingBottom="80dp"
-        android:visibility="gone" />
+        android:visibility="gone"/>
 
     <!-- BOTTOM NAVBAR -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
         android:orientation="horizontal"
-        android:background="#FFFFFF"
+        android:background="@color/color_surface"
         android:elevation="10dp"
+        android:paddingBottom="8dp"
         android:weightSum="4">
 
-        <ImageView
+        <LinearLayout
             android:id="@+id/navHome"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/home"
-            android:padding="12dp"
-            app:tint="@color/nav_icon_selector"
-            android:alpha="1.0"
-            android:focusableInTouchMode="true"/>
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <ImageView
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/home"
+                app:tint="@color/nav_icon_selector"
+                android:duplicateParentState="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textSize="10sp"
+                android:textColor="@color/nav_icon_selector"
+                android:layout_marginTop="2dp"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/navSearch"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/search"
-            android:padding="12dp"
-            app:tint="@color/nav_icon_selector"
-            android:alpha="1.0"/>
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <ImageView
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/search"
+                app:tint="@color/nav_icon_selector"
+                android:duplicateParentState="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:textSize="10sp"
+                android:textColor="@color/nav_icon_selector"
+                android:layout_marginTop="2dp"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/ivNotification"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/notification"
-            android:padding="12dp"
-            app:tint="@color/nav_icon_selector"
-            android:alpha="1.0"/>
+            android:orientation="vertical"
+            android:gravity="center">
 
-        <ImageView
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/notification"
+                app:tint="@color/nav_icon_selector"
+                android:duplicateParentState="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notifications"
+                android:textSize="10sp"
+                android:textColor="@color/nav_icon_selector"
+                android:layout_marginTop="2dp"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
+
+
+
+        <LinearLayout
             android:id="@+id/navProfile"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:src="@drawable/profile"
-            android:padding="12dp"
-            app:tint="@color/nav_icon_selector"
-            android:alpha="1.0"/>
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/profile"
+                app:tint="@color/nav_icon_selector"
+                android:duplicateParentState="true"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Profile"
+                android:textSize="10sp"
+                android:textColor="@color/nav_icon_selector"
+                android:layout_marginTop="2dp"
+                android:duplicateParentState="true"/>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
