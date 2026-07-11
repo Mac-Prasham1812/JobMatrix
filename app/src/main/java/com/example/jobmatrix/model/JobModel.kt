@@ -13,7 +13,8 @@ data class JobModel(
     val employerId: String = "",
     val companyOverview: String = "",
     val status: String = "Active",
-    val createdAt: Any? = null
+    val createdAt: Any? = null,
+    val matchScore: Int = 0
 )
 
 

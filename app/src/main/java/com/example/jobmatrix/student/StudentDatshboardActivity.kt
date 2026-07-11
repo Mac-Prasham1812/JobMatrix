@@ -21,10 +21,10 @@ import java.util.Calendar
 class StudentDashboardActivity : AppCompatActivity() {
 
     // Navbar
-    private lateinit var navProfile: ImageView
-    private lateinit var navHome: ImageView
-    private lateinit var navSearch: ImageView
-    private lateinit var ivNotification: ImageView
+    private lateinit var navProfile: LinearLayout
+    private lateinit var navHome: LinearLayout
+    private lateinit var navSearch: LinearLayout
+    private lateinit var ivNotification: LinearLayout
     private lateinit var ivSettings: ImageView
 
     // RecyclerView
@@ -79,6 +79,7 @@ class StudentDashboardActivity : AppCompatActivity() {
         showShimmer()
         loadJobs()
         checkNotifications()
+        loadPipelineCounts()
 
         // Navbar clicks
         navHome.setOnClickListener {
@@ -196,13 +197,26 @@ class StudentDashboardActivity : AppCompatActivity() {
         super.onResume()
         setActiveNav(navHome)
     }
-
-    private fun setActiveNav(selected: ImageView) {
+    private fun setActiveNav(selected: LinearLayout) {
         val navItems = listOf(navHome, navSearch, ivNotification, navProfile)
-
         for (item in navItems) {
             item.isSelected = false
         }
         selected.isSelected = true
+    }
+
+    private fun loadPipelineCounts() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("applications").whereEqualTo("studentId", uid)
+            .get()
+            .addOnSuccessListener { docs ->
+                val applied = docs.count { it.getString("status") == "Applied" }
+                val shortlisted = docs.count { it.getString("status") == "Shortlisted" }
+                val rejected = docs.count { it.getString("status") == "Rejected" }
+
+                findViewById<TextView>(R.id.tvAppliedCount).text = applied.toString()
+                findViewById<TextView>(R.id.tvInReviewCount).text = rejected.toString()
+                findViewById<TextView>(R.id.tvShortlistedCount).text = shortlisted.toString()
+            }
     }
 }
