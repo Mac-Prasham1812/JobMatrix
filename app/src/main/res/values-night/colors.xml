@@ -15,4 +15,5 @@
     <color name="badge_green">#16A34A</color>
     <color name="badge_teal">#0D9488</color>
     <color name="badge_orange">#EA580C</color>
+    <color name="color_chip_bg">#1E293B</color>
 </resources>

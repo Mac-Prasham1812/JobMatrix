@@ -5,6 +5,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +15,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 
 class SearchActivity : AppCompatActivity() {
+
+    private var filterLocation = ""
+    private var filterExperience = "Any"
+    private var filterMinSalary = 0f
+    private var filterMaxSalary = 15f
 
     private lateinit var etSearch: EditText
     private lateinit var recyclerView: RecyclerView
@@ -34,6 +40,8 @@ class SearchActivity : AppCompatActivity() {
 
     private var currentCategory = "All"
     private val db = FirebaseFirestore.getInstance()
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,9 +102,15 @@ class SearchActivity : AppCompatActivity() {
             setActiveChip(chipMarketing)
             applyCombinedFilter()
         }
+
+        findViewById<ImageView>(R.id.ivFilterIcon).setOnClickListener {
+            showFilterBottomSheet()
+        }
     }
 
     private fun loadJobs() {
+        showShimmer()
+
         db.collection("jobs")
             .whereEqualTo("status", "Active")
             .get()
@@ -111,6 +125,8 @@ class SearchActivity : AppCompatActivity() {
 
                 jobList.addAll(allJobsList)
                 jobAdapter.updateList(jobList)
+
+                hideShimmer()
                 tvNoResult.visibility = View.GONE
             }
     }
@@ -144,8 +160,19 @@ class SearchActivity : AppCompatActivity() {
                 val title = job.title.lowercase()
                 val company = job.company.lowercase()
                 val location = job.location.lowercase()
+
+                val matchesLocation = filterLocation.isEmpty() || job.location.lowercase().contains(filterLocation.lowercase())
                 val salary = job.salary.lowercase()           // e.g. "4 LPA"
+
+                val salaryNum = job.salary.filter { it.isDigit() || it == '.' }.toFloatOrNull() ?: 0f
+                val matchesSalary = salaryNum in filterMinSalary..filterMaxSalary
                 val experience = job.experience.lowercase()   // e.g. "Fresher", "2 Years"
+
+                val matchesExperience = filterExperience == "Any" ||
+                        (filterExperience == "Fresher" && job.experience.contains("Fresher", ignoreCase = true)) ||
+                        (filterExperience == "1 Year" && job.experience.contains("1", ignoreCase = true)) ||
+                        (filterExperience == "2+ Years" && (job.experience.contains("2") || job.experience.contains("3") || job.experience.contains("4") || job.experience.contains("5")))
+
 
                 val matchesSearch =
                     title.contains(searchText) ||
@@ -154,7 +181,7 @@ class SearchActivity : AppCompatActivity() {
                             salary.contains(searchText) ||
                             experience.contains(searchText)
 
-                matchesCategory && matchesSearch
+                matchesCategory && matchesSearch && matchesLocation && matchesExperience && matchesSalary
             }
 
             jobList.clear()
@@ -187,10 +214,75 @@ class SearchActivity : AppCompatActivity() {
 
         for (chip in chips) {
             chip.setBackgroundResource(R.drawable.bg_chip)
-            chip.setTextColor(resources.getColor(android.R.color.black))
+            chip.setTextColor(resources.getColor(R.color.color_text_secondary, theme))
         }
 
         selectedChip.setBackgroundResource(R.drawable.bg_chip_active)
-        selectedChip.setTextColor(resources.getColor(android.R.color.white))
+        selectedChip.setTextColor(resources.getColor(android.R.color.white, theme))
     }
+
+
+    private fun showFilterBottomSheet() {
+        val sheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottomsheet_filter, null)
+        sheet.setContentView(view)
+
+        val etLoc = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etFilterLocation)
+        val slider = view.findViewById<com.google.android.material.slider.RangeSlider>(R.id.salarySlider)
+        val tvLabel = view.findViewById<TextView>(R.id.tvSalaryRangeLabel)
+        val chipAny = view.findViewById<TextView>(R.id.chipExpAny)
+        val chipFresher = view.findViewById<TextView>(R.id.chipExpFresher)
+        val chip1 = view.findViewById<TextView>(R.id.chipExp1)
+        val chip2Plus = view.findViewById<TextView>(R.id.chipExp2Plus)
+
+        etLoc.setText(filterLocation)
+        slider.setValues(filterMinSalary, filterMaxSalary)
+        tvLabel.text = "Salary Range: ${filterMinSalary.toInt()} - ${filterMaxSalary.toInt()} LPA"
+
+        val expChips = listOf(chipAny, chipFresher, chip1, chip2Plus)
+        fun setExpChip(selected: TextView) {
+            for (c in expChips) { c.setBackgroundResource(R.drawable.bg_chip); c.setTextColor(resources.getColor(R.color.color_text_secondary, theme)) }
+            selected.setBackgroundResource(R.drawable.bg_chip_active)
+            selected.setTextColor(resources.getColor(android.R.color.white, theme))
+        }
+        when (filterExperience) {
+            "Fresher" -> setExpChip(chipFresher)
+            "1 Year" -> setExpChip(chip1)
+            "2+ Years" -> setExpChip(chip2Plus)
+            else -> setExpChip(chipAny)
+        }
+
+        chipAny.setOnClickListener { filterExperience = "Any"; setExpChip(chipAny) }
+        chipFresher.setOnClickListener { filterExperience = "Fresher"; setExpChip(chipFresher) }
+        chip1.setOnClickListener { filterExperience = "1 Year"; setExpChip(chip1) }
+        chip2Plus.setOnClickListener { filterExperience = "2+ Years"; setExpChip(chip2Plus) }
+
+        slider.addOnChangeListener { s, _, _ ->
+            val vals = s.values
+            tvLabel.text = "Salary Range: ${vals[0].toInt()} - ${vals[1].toInt()} LPA"
+        }
+
+        view.findViewById<View>(R.id.btnResetFilter).setOnClickListener {
+            filterLocation = ""
+            filterExperience = "Any"
+            filterMinSalary = 0f
+            filterMaxSalary = 15f
+            applyCombinedFilter()
+            sheet.dismiss()
+        }
+
+        view.findViewById<View>(R.id.btnApplyFilter).setOnClickListener {
+            filterLocation = etLoc.text.toString().trim()
+            val vals = slider.values
+            filterMinSalary = vals[0]
+            filterMaxSalary = vals[1]
+            applyCombinedFilter()
+            sheet.dismiss()
+        }
+
+        sheet.show()
+    }
+
+
+
 }

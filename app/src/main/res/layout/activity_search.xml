@@ -4,14 +4,46 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="@color/color_bg_screen"
+    android:fitsSystemWindows="true">
+
+    <!-- HEADER -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="All jobs"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/color_text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivFilterIcon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_filter"
+            app:tint="@color/color_text_secondary"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
 
     <!-- SEARCH BAR -->
     <LinearLayout
         android:id="@+id/searchContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
         android:padding="12dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -21,19 +53,19 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/search"
-            app:tint="#757575" />
+            app:tint="@color/color_text_hint"/>
 
         <EditText
             android:id="@+id/etSearch"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Search job, company, location..."
+            android:hint="Search jobs, companies or skills"
             android:background="@null"
             android:paddingStart="8dp"
-            android:textColor="#000000"
-            android:textColorHint="#9E9E9E" />
-
+            android:textColor="@color/color_text_primary"
+            android:textColorHint="@color/color_text_hint"
+            android:textSize="14sp"/>
     </LinearLayout>
 
     <!-- CHIPS -->
@@ -41,7 +73,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:scrollbars="none"
-        android:padding="8dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="8dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -53,28 +87,28 @@
                 android:id="@+id/chipAll"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="All" />
+                android:text="All"/>
 
             <TextView
                 style="@style/Chip"
                 android:id="@+id/chipDevelopment"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Development" />
+                android:text="Development"/>
 
             <TextView
                 style="@style/Chip"
                 android:id="@+id/chipDesign"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Designing" />
+                android:text="Designing"/>
 
             <TextView
                 style="@style/Chip"
                 android:id="@+id/chipMarketing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Marketing" />
+                android:text="Marketing"/>
         </LinearLayout>
     </HorizontalScrollView>
 
@@ -85,7 +119,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="16dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:saveEnabled="false"/>
 
     <!-- JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -94,7 +129,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="16dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:saveEnabled="false"/>
 
     <!-- NO RESULT MESSAGE -->
     <TextView
@@ -103,7 +139,7 @@
         android:layout_height="wrap_content"
         android:text="No matching jobs found. Please try another search."
         android:textSize="16sp"
-        android:textColor="#888888"
+        android:textColor="@color/color_text_hint"
         android:gravity="center"
         android:padding="24dp"
         android:visibility="gone"/>

@@ -50,8 +50,8 @@
             android:layout_height="44dp"
             android:padding="10dp"
             android:src="@drawable/ic_settings"
-            app:tint="@color/color_accent"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/color_text_secondary"
+            android:background="@drawable/ripple_circle"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="Settings"/>
@@ -214,7 +214,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="16dp"
-        android:visibility="visible"/>
+        android:visibility="visible"
+        android:saveEnabled="false"/>
 
     <!-- JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -225,7 +226,8 @@
         android:padding="16dp"
         android:clipToPadding="false"
         android:paddingBottom="80dp"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:saveEnabled="false"/>
 
     <!-- BOTTOM NAVBAR -->
     <LinearLayout

@@ -26,4 +26,6 @@
     <color name="badge_teal">#0D9488</color>
     <color name="badge_orange">#EA580C</color>
 
+    <color name="color_chip_bg">#F1F5F9</color>
+
 </resources>
