@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/off_white">
+    android:background="@color/color_bg_screen">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -9,100 +11,104 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Job Title -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/color_text_primary"
             android:layout_marginBottom="6dp"/>
 
-        <!-- Company -->
         <TextView
             android:id="@+id/tvCompany"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textColor="@color/black"
+            android:textColor="@color/color_text_secondary"
             android:layout_marginBottom="4dp"/>
 
-        <!-- Location -->
         <TextView
             android:id="@+id/tvLocation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textColor="@color/gray"
-            android:layout_marginBottom="16dp"/>
+            android:textColor="@color/color_text_hint"
+            android:layout_marginBottom="20dp"/>
 
-
-        <!-- Company Overview Heading -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Company Overview"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/color_text_primary"
             android:layout_marginBottom="6dp"/>
 
-        <!-- Company Overview Text -->
         <TextView
             android:id="@+id/tvCompanyOverview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textColor="@color/gray"
+            android:textColor="@color/color_text_secondary"
             android:layout_marginBottom="20dp"/>
 
-        <!-- Job Details Card -->
-        <LinearLayout
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_card"
-            android:padding="16dp"
-            android:orientation="vertical">
+            app:cardCornerRadius="18dp"
+            app:cardElevation="3dp"
+            app:cardBackgroundColor="@color/color_surface">
 
-            <!-- Category -->
-            <TextView
-                android:id="@+id/tvCategory"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/primary_blue"
-                android:layout_marginBottom="6dp"/>
+                android:orientation="vertical"
+                android:padding="18dp">
 
-            <!-- Experience -->
-            <TextView
-                android:id="@+id/tvExperience"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/black"
-                android:layout_marginBottom="6dp"/>
+                <TextView
+                    android:id="@+id/tvCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_accent"
+                    android:layout_marginBottom="10dp"/>
 
-            <!-- Salary -->
-            <TextView
-                android:id="@+id/tvSalary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/green"/>
-        </LinearLayout>
+                <TextView
+                    android:id="@+id/tvExperience"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/color_text_primary"
+                    android:layout_marginBottom="10dp"/>
 
-        <!-- Apply Button -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/color_divider"
+                    android:layout_marginBottom="10dp"/>
+
+                <TextView
+                    android:id="@+id/tvSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#16A34A"/>
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <Button
             android:id="@+id/btnApply"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="54dp"
             android:layout_marginTop="24dp"
             android:text="APPLY NOW"
             android:textAllCaps="true"
             android:textStyle="bold"
-            android:textColor="@color/off_white"
+            android:textColor="#FFFFFF"
             android:background="@drawable/bg_button"/>
 
     </LinearLayout>
