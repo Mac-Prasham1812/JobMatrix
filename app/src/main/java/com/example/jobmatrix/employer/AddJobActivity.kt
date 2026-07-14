@@ -30,6 +30,7 @@ class AddJobActivity : AppCompatActivity() {
         val etCompanyOverview = findViewById<EditText>(R.id.etCompanyOverview)
 
         val btnPostJob = findViewById<Button>(R.id.btnPostJob)
+        val etSkills = findViewById<EditText>(R.id.etSkills)
 
         btnPostJob.setOnClickListener {
 
@@ -40,10 +41,15 @@ class AddJobActivity : AppCompatActivity() {
             val salary = etSalary.text.toString().trim()
             val experience = etExperience.text.toString().trim()
             val companyOverview = etCompanyOverview.text.toString().trim()
+            val skillsText = etSkills.text.toString().trim()
+
+            val skillsList = skillsText.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
 
             if (title.isEmpty() || company.isEmpty() || location.isEmpty()
                 || category.isEmpty() || salary.isEmpty() || experience.isEmpty()
-                || companyOverview.isEmpty()
+                || companyOverview.isEmpty() || skillsList.isEmpty()
             ) {
                 Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -68,7 +74,8 @@ class AddJobActivity : AppCompatActivity() {
                 "employerId" to employerId,
                 "companyOverview" to companyOverview,
                 "status" to "Active",
-                "createdAt" to System.currentTimeMillis()
+                "createdAt" to System.currentTimeMillis(),
+                "skills" to skillsList
             )
 
             db.collection("jobs")

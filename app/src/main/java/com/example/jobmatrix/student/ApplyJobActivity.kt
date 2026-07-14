@@ -89,8 +89,16 @@ class ApplyJobActivity : AppCompatActivity() {
         tvSubmitHint = findViewById(R.id.tvSubmitHint)
         btnRemoveFile = findViewById(R.id.btnRemoveFile)
         btnSubmit = findViewById(R.id.btnSubmitApplication)
+        findViewById<TextView>(R.id.tvHeaderTitle).text = "Apply for $jobTitle"
+        findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
 
         setSubmitButtonState(false)
+
+        layoutPickFile.visibility = View.VISIBLE
+        layoutFileChip.visibility = View.GONE
+        layoutProgress.visibility = View.GONE
+        layoutAlreadyApplied.visibility = View.GONE
+
 
         layoutPickFile.setOnClickListener { openFilePicker() }
 
@@ -98,6 +106,8 @@ class ApplyJobActivity : AppCompatActivity() {
 
         btnSubmit.setOnClickListener {
             if (canSubmit) submitApplication()
+
+
         }
 
         checkExistingApplication()
@@ -143,12 +153,31 @@ class ApplyJobActivity : AppCompatActivity() {
             }
     }
 
+//    private fun showAlreadyApplied() {
+//        cardResume.visibility = View.GONE
+//        layoutInfoNote.visibility = View.GONE
+//        btnSubmit.visibility = View.GONE
+//        tvSubmitHint.visibility = View.GONE
+//        layoutAlreadyApplied.visibility = View.VISIBLE
+//
+//    }
+
     private fun showAlreadyApplied() {
         cardResume.visibility = View.GONE
         layoutInfoNote.visibility = View.GONE
         btnSubmit.visibility = View.GONE
         tvSubmitHint.visibility = View.GONE
+
+        layoutAlreadyApplied.scaleX = 0.94f
+        layoutAlreadyApplied.scaleY = 0.94f
+        layoutAlreadyApplied.alpha = 0f
         layoutAlreadyApplied.visibility = View.VISIBLE
+        layoutAlreadyApplied.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(220)
+            .start()
     }
 
     private fun openFilePicker() {
@@ -175,8 +204,8 @@ class ApplyJobActivity : AppCompatActivity() {
         tvFileName.text = fileName
         tvFileSize.text = formatFileSize(fileSize)
 
-        layoutPickFile.visibility = View.GONE
-        layoutFileChip.visibility = View.VISIBLE
+        showFileCard()
+
 
         setSubmitButtonState(true)
         tvSubmitHint.text = "Ready to submit"
@@ -293,9 +322,13 @@ class ApplyJobActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private fun setUploadingUi(uploading: Boolean) {
-        layoutProgress.visibility = if (uploading) View.VISIBLE else View.GONE
+        if (uploading) {
+            showUploading()
+        } else {
+            layoutProgress.visibility = View.GONE
+        }
+
         setSubmitButtonState(!uploading && selectedFileUri != null)
         btnRemoveFile.isEnabled = !uploading
         tvUploadStatus.text = "Uploading resume..."
@@ -374,4 +407,26 @@ class ApplyJobActivity : AppCompatActivity() {
                 Toast.makeText(this, "Failed to submit application", Toast.LENGTH_SHORT).show()
             }
     }
+
+    private fun showFileCard() {
+        layoutPickFile.animate().alpha(0f).setDuration(120).withEndAction {
+            layoutPickFile.visibility = View.GONE
+            layoutFileChip.alpha = 0f
+            layoutFileChip.translationY = 20f
+            layoutFileChip.visibility = View.VISIBLE
+            layoutFileChip.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(220)
+                .start()
+        }.start()
+    }
+
+    private fun showUploading() {
+        layoutProgress.alpha = 0f
+        layoutProgress.visibility = View.VISIBLE
+        layoutProgress.animate().alpha(1f).setDuration(180).start()
+    }
+
+
 }

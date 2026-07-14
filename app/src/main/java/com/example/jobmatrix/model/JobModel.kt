@@ -14,7 +14,8 @@ data class JobModel(
     val companyOverview: String = "",
     val status: String = "Active",
     val createdAt: Any? = null,
-    val matchScore: Int = 0
+    val matchScore: Int = 0,
+    val skills: List<String> = emptyList()
 )
 
 

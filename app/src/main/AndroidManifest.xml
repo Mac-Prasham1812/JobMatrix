@@ -139,6 +139,8 @@
 
         <activity android:name="com.example.jobmatrix.settings.SettingsActivity" />
 
+        <activity android:name="com.example.jobmatrix.profile.SkillsActivity" />
+
 
     </application>
 
