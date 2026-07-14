@@ -108,6 +108,18 @@
                     android:inputType="text"/>
 
                 <EditText
+                    android:id="@+id/etSkills"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Skills (comma separated)"
+                    android:background="@drawable/bg_input"
+                    android:layout_marginBottom="12dp"
+                    android:textColorHint="@color/gray"
+                    android:textColor="@color/black"
+                    android:inputType="text"
+                    android:singleLine="false" />
+
+                <EditText
                     android:id="@+id/etCompanyOverview"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

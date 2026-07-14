@@ -16,76 +16,69 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingStart="20dp"
-            android:paddingEnd="12dp"
-            android:paddingTop="22dp"
-            android:paddingBottom="22dp"
             android:gravity="center_vertical"
-            android:divider="@color/color_text_primary">
+            android:padding="18dp">
 
             <ImageView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@drawable/ic_document"
-                android:padding="1dp"
-                android:layout_marginTop="4dp"
-                app:tint="@color/color_text_secondary" />
+                android:id="@+id/btnBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/color_text_primary"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvHeaderTitle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Submit Application"
-                android:textSize="21sp"
+                android:layout_weight="1"
+                android:layout_marginStart="14dp"
+                android:text="Apply for Job"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/color_text_primary"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="5dp"/>
-
-
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/color_text_primary" />
 
         </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Upload your resume"
-            android:paddingLeft="10dp"
-            android:layout_margin="10dp"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/color_text_primary"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp"
-            android:layout_marginTop="10dp">
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload your resume"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/color_text_primary"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Supported formats: PDF • up to 5 MB"
+                android:textSize="12sp"
+                android:textColor="@color/color_text_hint"
+                android:layout_marginBottom="14dp"/>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardResume"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="20dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/color_surface">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@android:color/transparent">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp"
-                    android:backgroundTint="@color/color_text_secondary">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="RESUME"
-                        android:textSize="12sp"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.1"
-                        android:textColor="@color/color_text_secondary"
-                        android:layout_marginBottom="12dp"/>
+                    android:orientation="vertical">
 
                     <LinearLayout
                         android:id="@+id/layoutPickFile"
@@ -96,31 +89,41 @@
                         android:clickable="true"
                         android:focusable="true"
                         android:background="@drawable/bg_dashed_picker"
-                        android:padding="32dp">
+                        android:padding="36dp">
 
                         <ImageView
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
                             android:src="@drawable/ic_upload_file"
-                            android:background="@drawable/bg_circle_accent"
-                            android:padding="12dp"/>
+                            app:tint="@color/color_accent"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Choose PDF File"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/color_text_primary"
+                            android:text="Drag &amp; drop your resume here"
+                            android:textSize="14sp"
+                            android:textColor="@color/color_text_secondary"
                             android:layout_marginTop="14dp"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tap to browse • PDF only • up to 5 MB"
-                            android:textSize="13sp"
+                            android:text="or"
+                            android:textSize="12sp"
                             android:textColor="@color/color_text_hint"
                             android:layout_marginTop="4dp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Choose file"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/color_accent"
+                            android:background="@drawable/bg_pipeline_card"
+                            android:paddingHorizontal="24dp"
+                            android:paddingVertical="10dp"
+                            android:layout_marginTop="12dp"/>
 
                     </LinearLayout>
 
@@ -280,13 +283,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="10dp"
-                    android:text="Your resume is stored securely and only visible to the employer for this job."
+                    android:text="Your data is secure and only shared with relevant recruiters."
                     android:textSize="12sp"
                     android:textColor="@color/color_text_secondary"/>
 
             </LinearLayout>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubmitApplication"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
@@ -295,9 +298,10 @@
                 android:textStyle="bold"
                 android:textSize="15sp"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/bg_button"
-                android:layout_marginTop="24dp"
-                android:elevation="4dp"/>
+                android:backgroundTint="@color/color_accent"
+                app:cornerRadius="16dp"
+                app:elevation="4dp"
+                android:layout_marginTop="24dp"/>
 
             <TextView
                 android:id="@+id/tvSubmitHint"

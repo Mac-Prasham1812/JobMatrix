@@ -44,6 +44,19 @@ class StudentDashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_student_dashboard)
 
+        val uid = FirebaseAuth.getInstance().currentUser?.uid
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("users").document(uid).get()
+                .addOnSuccessListener { doc ->
+                    val skills = doc.get("skills") as? List<*>
+                    if (skills.isNullOrEmpty()) {
+                        startActivity(Intent(this, com.example.jobmatrix.profile.SkillsActivity::class.java)
+                            .putExtra("isFirstTime", true))
+                        finish()
+                    }
+                }
+        }
+
         // Navbar
         navProfile = findViewById(R.id.navProfile)
         navHome = findViewById(R.id.navHome)
@@ -122,39 +135,56 @@ class StudentDashboardActivity : AppCompatActivity() {
     private fun loadJobs() {
         showShimmer()
 
-        db.collection("jobs")
-            .whereEqualTo("status", "Active")
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        db.collection("users")
+            .document(uid)
             .get()
-            .addOnSuccessListener { documents ->
-                jobList.clear()
+            .addOnSuccessListener { userDoc ->
 
-                val sortedList = documents.mapNotNull { doc ->
-                    try {
-                        doc.toObject(JobModel::class.java)
-                    } catch (e: Exception) {
-                        null
+                val userSkills = (userDoc.get("skills") as? List<*>)?.mapNotNull {
+                    it?.toString()?.trim()?.lowercase()
+                } ?: emptyList()
+
+                db.collection("jobs")
+                    .whereEqualTo("status", "Active")
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        jobList.clear()
+
+                        val sortedList = documents.mapNotNull { doc ->
+                            try {
+                                val job = doc.toObject(JobModel::class.java)
+                                val score = calculateMatchScore(userSkills, job.skills)
+
+                                job.copy(
+                                    jobId = if (job.jobId.isBlank()) doc.id else job.jobId,
+                                    matchScore = score
+                                )
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }.sortedByDescending { job ->
+                            when (val time = job.createdAt) {
+                                is com.google.firebase.Timestamp -> time.toDate().time
+                                is Long -> time
+                                else -> 0L
+                            }
+                        }
+
+                        jobList.addAll(sortedList)
+                        jobAdapter.updateList(jobList)
+                        hideShimmer()
+
+                        recyclerView.alpha = 0f
+                        recyclerView.animate()
+                            .alpha(1f)
+                            .setDuration(250)
+                            .start()
                     }
-                }.sortedByDescending { job ->
-                    when (val time = job.createdAt) {
-                        is com.google.firebase.Timestamp -> time.toDate().time
-                        is Long -> time
-                        else -> 0L
-                    }
-                }
-
-                jobList.addAll(sortedList)
-                jobAdapter.updateList(jobList)
-
-                hideShimmer()
-
-                // Fade-in effect
-                recyclerView.alpha = 0f
-                recyclerView.animate()
-                    .alpha(1f)
-                    .setDuration(250)
-                    .start()
             }
     }
+
 
     private fun setGreeting() {
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -218,5 +248,18 @@ class StudentDashboardActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.tvInReviewCount).text = rejected.toString()
                 findViewById<TextView>(R.id.tvShortlistedCount).text = shortlisted.toString()
             }
+    }
+
+    private fun calculateMatchScore(
+        userSkills: List<String>,
+        jobSkills: List<String>
+    ): Int {
+        if (userSkills.isEmpty() || jobSkills.isEmpty()) return 0
+
+        val userSet = userSkills.map { it.trim().lowercase() }.toSet()
+        val jobSet = jobSkills.map { it.trim().lowercase() }.toSet()
+
+        val matchedCount = jobSet.count { it in userSet }
+        return ((matchedCount.toFloat() / jobSet.size) * 100).toInt()
     }
 }

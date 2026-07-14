@@ -109,6 +109,7 @@ class JobAdapter(private var jobList: List<JobModel>) :
                 JobDetailsActivity::class.java
             )
             intent.putExtra("jobId", job.jobId)
+            intent.putExtra("matchScore", job.matchScore)
             holder.itemView.context.startActivity(intent)
         }
     }
