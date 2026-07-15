@@ -3,6 +3,7 @@ package com.example.jobmatrix.profile
 import android.content.Intent
 import android.os.Bundle
 import android.view.animation.AnimationUtils
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.chip.Chip
@@ -19,7 +20,7 @@ class SkillsActivity : AppCompatActivity() {
 
     // Shared list used on both student skill picker and job creation form
     // (admin side) for consistent matching.
-    private val allSkills = listOf(
+    private val allSkills = mutableListOf(
         "Kotlin", "Java", "Firebase", "REST API", "Git", "MVVM", "Room",
         "Jetpack Compose", "React", "Node.js", "Python", "SQL", "Excel",
         "Content Writing", "Graphic Design", "UI/UX Design", "Figma",
@@ -35,6 +36,20 @@ class SkillsActivity : AppCompatActivity() {
 
         isFirstTime = intent.getBooleanExtra("isFirstTime", false)
         chipGroup = findViewById(R.id.chipGroupSkills)
+
+        findViewById<Button>(R.id.btnAddSkill).setOnClickListener {
+            val et = findViewById<android.widget.EditText>(R.id.etCustomSkill)
+            val skill = et.text.toString().trim()
+            if (skill.isNotEmpty() && !allSkills.any { it.equals(skill, true) }) {
+                allSkills.add(skill)
+                val currentlyChecked = (0 until chipGroup.childCount)
+                    .map { chipGroup.getChildAt(it) as Chip }
+                    .filter { it.isChecked }
+                    .map { it.text.toString() }
+                buildChips(currentlyChecked + skill)
+            }
+            et.text.clear()
+        }
 
         findViewById<android.view.View>(R.id.headerRow).startAnimation(
             AnimationUtils.loadAnimation(this, R.anim.anim_header_entrance)
@@ -84,6 +99,9 @@ class SkillsActivity : AppCompatActivity() {
         db.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
                 val skills = doc.get("skills") as? List<String> ?: emptyList()
+                for (s in skills) {
+                    if (!allSkills.any { it.equals(s, true) }) allSkills.add(s)
+                }
                 buildChips(skills)
             }
     }

@@ -49,14 +49,45 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chipGroupSkills"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            app:singleLine="false"
-            app:chipSpacingHorizontal="8dp"
-            app:chipSpacingVertical="8dp"/>
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="10dp">
+
+                <EditText
+                    android:id="@+id/etCustomSkill"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Add a skill not listed"
+                    android:background="@drawable/bg_input"
+                    android:textColor="@color/color_text_primary"/>
+
+                <Button
+                    android:id="@+id/btnAddSkill"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Add"/>
+            </LinearLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupSkills"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                app:singleLine="false"
+                app:chipSpacingHorizontal="8dp"
+                app:chipSpacingVertical="8dp"/>
+
+        </LinearLayout>
     </ScrollView>
 
     <Button

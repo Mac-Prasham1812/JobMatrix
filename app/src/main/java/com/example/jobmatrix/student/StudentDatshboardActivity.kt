@@ -226,6 +226,7 @@ class StudentDashboardActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         setActiveNav(navHome)
+        loadJobs()
     }
     private fun setActiveNav(selected: LinearLayout) {
         val navItems = listOf(navHome, navSearch, ivNotification, navProfile)

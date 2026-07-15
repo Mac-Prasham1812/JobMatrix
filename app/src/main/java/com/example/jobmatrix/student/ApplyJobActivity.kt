@@ -393,9 +393,13 @@ class ApplyJobActivity : AppCompatActivity() {
             "appliedAt" to System.currentTimeMillis()
         )
 
-        db.collection("applications")
-            .document(applicationId)
-            .set(applicationData)
+        val appRef = db.collection("applications").document(applicationId)
+        val jobRef = db.collection("jobs").document(jobId)
+
+        db.runBatch { batch ->
+            batch.set(appRef, applicationData)
+            batch.update(jobRef, "applicantsCount", com.google.firebase.firestore.FieldValue.increment(1))
+        }
             .addOnSuccessListener {
                 isUploading = false
                 Toast.makeText(this, "Application submitted successfully", Toast.LENGTH_SHORT).show()

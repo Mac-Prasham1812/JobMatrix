@@ -17,14 +17,16 @@ class JobDetailsActivity : AppCompatActivity() {
 
     private lateinit var tvTitle: TextView
     private lateinit var tvCompanyOverview: TextView
-    private lateinit var tvCategory: TextView
-    private lateinit var tvExperience: TextView
+    private lateinit var tvExperience: com.google.android.material.chip.Chip
+    private lateinit var tvCategory: com.google.android.material.chip.Chip
     private lateinit var tvSalary: TextView
     private lateinit var btnApply: Button
     private lateinit var tvCompany: TextView
     private lateinit var tvLocation: com.google.android.material.chip.Chip
     private lateinit var tvMatchBadge: com.google.android.material.chip.Chip
     private lateinit var tvPostedOn: TextView
+    private lateinit var chipGroupJobSkills: com.google.android.material.chip.ChipGroup
+
 
     private var jobId: String? = null
     private var currentJob: JobModel? = null
@@ -53,6 +55,9 @@ class JobDetailsActivity : AppCompatActivity() {
         passedMatchScore = intent.getIntExtra("matchScore", 0)
         tvApplicants = findViewById(R.id.tvApplicants)
 
+        findViewById<android.widget.ImageView>(R.id.btnBack).setOnClickListener { finish() }
+        chipGroupJobSkills = findViewById(R.id.chipGroupJobSkills)
+
 
 
 
@@ -64,7 +69,9 @@ class JobDetailsActivity : AppCompatActivity() {
             return
         }
 
-        loadJobDetails(jobId!!)
+
+
+
 
         // Redirect to ApplyJobActivity
         btnApply.setOnClickListener {
@@ -74,6 +81,11 @@ class JobDetailsActivity : AppCompatActivity() {
             intent.putExtra("companyName", currentJob?.company ?: "")
             startActivity(intent)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        jobId?.let { loadJobDetails(it) }
     }
 
     private fun loadJobDetails(jobId: String) {
@@ -107,10 +119,11 @@ class JobDetailsActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvExperienceCard).text = job.experience
         findViewById<TextView>(R.id.tvCategoryCard).text = job.category
 
-        tvMatchBadge.text = "${passedMatchScore}% match"
-        styleMatchBadge(passedMatchScore)
 
-        loadApplicantsCount(jobId!!)
+        tvApplicants.text = job.applicantsCount.toString()
+
+        findViewById<TextView>(R.id.tvCompanyInitials).text =
+            job.company.firstOrNull()?.uppercase() ?: "?"
 
 
         val createdMillis = when (val t = job.createdAt) {
@@ -121,6 +134,35 @@ class JobDetailsActivity : AppCompatActivity() {
         val days = ((System.currentTimeMillis() - createdMillis) / (1000 * 60 * 60 * 24)).toInt()
         tvPostedOn.text = if (days <= 0) "Today" else "$days d ago"
 
+
+        chipGroupJobSkills.removeAllViews()
+        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+        db.collection("users").document(myUid ?: "").get().addOnSuccessListener { userDoc ->
+            val mySkills = (userDoc.get("skills") as? List<*>)?.map { it.toString().lowercase() } ?: emptyList()
+
+            val jobSkillsLower = job.skills.map { it.lowercase() }
+            val matched = jobSkillsLower.count { mySkills.contains(it) }
+            val liveScore = if (job.skills.isEmpty()) 0 else ((matched.toFloat() / job.skills.size) * 100).toInt()
+            tvMatchBadge.text = "$liveScore% match"
+            styleMatchBadge(liveScore)
+
+            for (skill in job.skills) {
+                val has = mySkills.contains(skill.lowercase())
+                val chip = com.google.android.material.chip.Chip(this).apply {
+                    text = skill
+                    isClickable = !has
+                    chipBackgroundColor = android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor(if (has) "#DCFCE7" else "#FEE2E2"))
+                    setTextColor(android.graphics.Color.parseColor(if (has) "#16A34A" else "#DC2626"))
+                    if (!has) {
+                        setOnClickListener {
+                            startActivity(Intent(this@JobDetailsActivity, com.example.jobmatrix.profile.SkillsActivity::class.java))
+                        }
+                    }
+                }
+                chipGroupJobSkills.addView(chip)
+            }
+        }
     }
 
     private fun animateContent() {
@@ -176,18 +218,5 @@ class JobDetailsActivity : AppCompatActivity() {
             }
             false
         }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun loadApplicantsCount(jobId: String) {
-        db.collection("applications")
-            .whereEqualTo("jobId", jobId)
-            .get()
-            .addOnSuccessListener { docs ->
-                tvApplicants.text = docs.size().toString()
-            }
-            .addOnFailureListener {
-                tvApplicants.text = "0"
-            }
     }
 }
