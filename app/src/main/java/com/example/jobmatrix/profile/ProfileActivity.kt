@@ -19,7 +19,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var tvEmail: TextView
     private lateinit var tvRole: TextView
     private lateinit var tvAvatarInitials: TextView
-    private lateinit var btnLogout: Button
+    private lateinit var btnLogout: LinearLayout
     private lateinit var btnClose: ImageView
 
     private val auth = FirebaseAuth.getInstance()

@@ -40,6 +40,7 @@ class SearchActivity : AppCompatActivity() {
 
     private var currentCategory = "All"
     private val db = FirebaseFirestore.getInstance()
+    private var userSkills: List<String> = emptyList()
 
 
 
@@ -67,7 +68,6 @@ class SearchActivity : AppCompatActivity() {
         chipMarketing = findViewById(R.id.chipMarketing)
 
         setActiveChip(chipAll)
-        loadJobs()
 
         // Live search typing
         etSearch.addTextChangedListener(object : TextWatcher {
@@ -108,6 +108,7 @@ class SearchActivity : AppCompatActivity() {
         }
     }
 
+
     private fun loadJobs() {
         showShimmer()
 
@@ -120,7 +121,10 @@ class SearchActivity : AppCompatActivity() {
 
                 for (doc in documents) {
                     val job = doc.toObject(JobModel::class.java)
-                    allJobsList.add(job)
+                    allJobsList.add(job.copy(
+                        jobId = if (job.jobId.isBlank()) doc.id else job.jobId,
+                        matchScore = calculateMatchScore(job.skills)
+                    ))
                 }
 
                 jobList.addAll(allJobsList)
@@ -283,6 +287,30 @@ class SearchActivity : AppCompatActivity() {
         sheet.show()
     }
 
+    private fun loadUserSkillsThenJobs() {
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+        if (uid == null) { loadJobs(); return }
 
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                userSkills = (doc.get("skills") as? List<*>)?.mapNotNull {
+                    it?.toString()?.trim()?.lowercase()
+                } ?: emptyList()
+                loadJobs()
+            }
+            .addOnFailureListener { loadJobs() }
+    }
+
+    private fun calculateMatchScore(jobSkills: List<String>): Int {
+        if (userSkills.isEmpty() || jobSkills.isEmpty()) return 0
+        val jobSet = jobSkills.map { it.trim().lowercase() }.toSet()
+        val matched = jobSet.count { it in userSkills.toSet() }
+        return ((matched.toFloat() / jobSet.size) * 100).toInt()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadUserSkillsThenJobs()
+    }
 
 }

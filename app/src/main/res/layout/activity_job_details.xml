@@ -144,25 +144,39 @@
 
 
 
-                    <TextView
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/tvExperience"
+                        style="@style/Widget.Material3.Chip.Assist"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:maxLines="1"
+                        android:clickable="false"
+                        android:focusable="false"
                         android:textColor="@color/color_text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="12sp"
+                        app:chipBackgroundColor="@color/color_bg_screen"
+                        app:chipCornerRadius="10dp"
+                        app:chipIcon="@drawable/ic_jobs"
+                        app:chipIconTint="@color/color_text_secondary"
+                        app:chipMinHeight="30dp"
+                        app:chipStrokeWidth="0dp" />
 
-
-
-                    <TextView
+                    <com.google.android.material.chip.Chip
                         android:id="@+id/tvCategory"
+                        style="@style/Widget.Material3.Chip.Assist"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="10dp"
-                        android:maxLines="1"
+                        android:clickable="false"
+                        android:focusable="false"
                         android:textColor="@color/color_text_secondary"
-                        android:textSize="12sp" />
+                        android:textSize="12sp"
+                        app:chipBackgroundColor="@color/color_bg_screen"
+                        app:chipCornerRadius="10dp"
+                        app:chipIcon="@drawable/ic_info"
+                        app:chipIconTint="@color/color_text_secondary"
+                        app:chipMinHeight="30dp"
+                        app:chipStrokeWidth="0dp" />
                 </LinearLayout>
 
                 <TextView
@@ -176,6 +190,60 @@
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Required Skills"
+            android:textColor="@color/color_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical">
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_circle_green"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginEnd="16dp"
+                android:text="Skill matched"
+                android:textColor="@color/color_text_hint"
+                android:textSize="11sp"/>
+
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_circle_red"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="Tap to add skill"
+                android:textColor="@color/color_text_hint"
+                android:textSize="11sp"/>
+
+        </LinearLayout>
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupJobSkills"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:singleLine="false"
+            app:chipSpacingHorizontal="6dp"
+            app:chipSpacingVertical="6dp"/>
+
 
         <TextView
             android:layout_width="match_parent"
