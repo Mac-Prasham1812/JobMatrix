@@ -23,6 +23,7 @@ class EmployerJobAdapter(
         val tvCategory: TextView = view.findViewById(R.id.tvCategory)
         val tvSalary: TextView = view.findViewById(R.id.tvSalary)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
+        val tvApplicants: TextView = view.findViewById(R.id.tvApplicants)
         val btnEdit: Button = view.findViewById(R.id.btnEditJob)
         val btnDelete: Button = view.findViewById(R.id.btnDeleteJob)
     }
@@ -34,45 +35,39 @@ class EmployerJobAdapter(
     }
 
     override fun onBindViewHolder(holder: JobVH, position: Int) {
-
         val job = list[position]
 
-        // Job data binding
-        holder.tvTitle.text = job.title
-        holder.tvCategory.text = "Category: ${job.category}"
-        holder.tvSalary.text = "₹${job.salary}"
+        holder.tvTitle.text = job.title.ifBlank { "Untitled Job" }
+        holder.tvCategory.text = job.category.ifBlank { "General" }
+        holder.tvSalary.text = if (job.salary.isBlank()) "₹0" else "₹${job.salary}"
 
+        val applicantsCount = getCount(job, "appliedCount", "applicationsCount", "totalApplicants")
+        holder.tvApplicants.text = String.format("%02d Applicants", applicantsCount)
 
-        holder.tvStatus.text = "ACTIVE"
-        holder.tvStatus.setBackgroundResource(R.drawable.bg_status_active)
+        val status = job.status.ifBlank { "Active" }
+        holder.tvStatus.text = status.replaceFirstChar { it.uppercase() }
 
-        // Open Applications screen
         holder.itemView.setOnClickListener {
             val intent = Intent(it.context, EmployerApplicationsActivity::class.java)
             intent.putExtra("jobId", job.jobId)
             it.context.startActivity(intent)
         }
 
-        // EDIT JOB
         holder.btnEdit.setOnClickListener {
             val intent = Intent(holder.itemView.context, EditJobActivity::class.java)
             intent.putExtra("jobId", job.jobId)
             holder.itemView.context.startActivity(intent)
         }
 
-        // DELETE JOB
         holder.btnDelete.setOnClickListener {
-
             val context = holder.itemView.context
 
             db.collection("applications")
                 .whereEqualTo("jobId", job.jobId)
                 .get()
                 .addOnSuccessListener { snapshot ->
-
                     val batch = db.batch()
 
-                    // Delete all applications
                     for (doc in snapshot.documents) {
                         batch.delete(doc.reference)
                     }
@@ -82,8 +77,6 @@ class EmployerJobAdapter(
 
                     batch.commit()
                         .addOnSuccessListener {
-
-                            // Remove from UI
                             val pos = holder.adapterPosition
                             if (pos != RecyclerView.NO_POSITION) {
                                 list.removeAt(pos)
@@ -112,6 +105,20 @@ class EmployerJobAdapter(
                     ).show()
                 }
         }
+    }
+
+    private fun getCount(job: JobModel, vararg fieldNames: String): Int {
+        for (fieldName in fieldNames) {
+            try {
+                val field = job.javaClass.getDeclaredField(fieldName)
+                field.isAccessible = true
+                val value = field.get(job)
+                if (value is Int) return value
+                if (value is Long) return value.toInt()
+            } catch (_: Exception) {
+            }
+        }
+        return 0
     }
 
     override fun getItemCount(): Int = list.size
