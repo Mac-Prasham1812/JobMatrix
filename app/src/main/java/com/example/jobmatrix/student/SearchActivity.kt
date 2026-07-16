@@ -127,6 +127,14 @@ class SearchActivity : AppCompatActivity() {
                     ))
                 }
 
+                allJobsList.sortByDescending { job ->
+                    when (val time = job.createdAt) {
+                        is com.google.firebase.Timestamp -> time.toDate().time
+                        is Long -> time
+                        else -> 0L
+                    }
+                }
+
                 jobList.addAll(allJobsList)
                 jobAdapter.updateList(jobList)
 

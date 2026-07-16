@@ -338,7 +338,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="14dp"
-                        android:text="My Rsume"
+                        android:text="Theme"
                         android:textSize="14sp"
                         android:textColor="@color/color_text_primary"/>
 

@@ -19,6 +19,8 @@ class RegisterActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val saved = getSharedPreferences("prefs", MODE_PRIVATE).getInt("night_mode", androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(saved)
         setContentView(R.layout.activity_register)
 
         auth = FirebaseAuth.getInstance()

@@ -105,7 +105,7 @@ class JobDetailsActivity : AppCompatActivity() {
             }
     }
 
-    @SuppressLint("SetTextI18n")
+    @SuppressLint("SetTextI18n", "CutPasteId")
     private fun bindJob(job: JobModel) {
         tvTitle.text = job.title
         tvCompany.text = job.company
@@ -122,8 +122,10 @@ class JobDetailsActivity : AppCompatActivity() {
 
         tvApplicants.text = job.applicantsCount.toString()
 
-        findViewById<TextView>(R.id.tvCompanyInitials).text =
-            job.company.firstOrNull()?.uppercase() ?: "?"
+        val badgeColors = listOf(R.color.badge_purple, R.color.badge_green, R.color.badge_teal, R.color.badge_orange)
+        findViewById<TextView>(R.id.tvCompanyInitials).text = getInitials(job.company)
+        val bgDrawable = findViewById<TextView>(R.id.tvCompanyInitials).background.mutate() as android.graphics.drawable.GradientDrawable
+        bgDrawable.setColor(androidx.core.content.ContextCompat.getColor(this, badgeColors[Math.abs(job.company.hashCode()) % badgeColors.size]))
 
 
         val createdMillis = when (val t = job.createdAt) {
@@ -206,6 +208,13 @@ class JobDetailsActivity : AppCompatActivity() {
         tvMatchBadge.chipBackgroundColor =
             android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor(bg))
         tvMatchBadge.setTextColor(android.graphics.Color.parseColor(text))
+    }
+
+    private fun getInitials(company: String): String {
+        val words = company.trim().split(" ").filter { it.isNotEmpty() }
+        return if (words.size >= 2) (words[0].first().toString() + words[1].first()
+            .toString()).uppercase()
+        else company.take(2).uppercase()
     }
 
     @SuppressLint("ClickableViewAccessibility")

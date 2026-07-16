@@ -69,9 +69,9 @@
 
                     <TextView
                         android:id="@+id/tvCompanyInitials"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="@drawable/bg_circle_accent"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_avatar_circle"
                         android:gravity="center"
                         android:text="AC"
                         android:textColor="@android:color/white"

@@ -40,16 +40,10 @@ class JobAdapter(private var jobList: List<JobModel>) :
         holder.tvLocation.text = job.location
 
         // Avatar initial + colored badge
-        holder.tvCompanyInitial.text = job.company.firstOrNull()?.uppercase() ?: "?"
-        val bgDrawable =
-            holder.tvCompanyInitial.background.mutate() as android.graphics.drawable.GradientDrawable
-        val color = holder.badgeColors[position % holder.badgeColors.size]
-        bgDrawable.setColor(
-            androidx.core.content.ContextCompat.getColor(
-                holder.itemView.context,
-                color
-            )
-        )
+        holder.tvCompanyInitial.text = getInitials(job.company)
+        val bgDrawable = holder.tvCompanyInitial.background.mutate() as android.graphics.drawable.GradientDrawable
+        val color = holder.badgeColors[Math.abs(job.company.hashCode()) % holder.badgeColors.size]
+        bgDrawable.setColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, color))
 
         // Match score (assumes JobModel has a matchScore field; using placeholder if not)
         holder.tvMatchScore.text = "${job.matchScore}% match"
@@ -112,6 +106,12 @@ class JobAdapter(private var jobList: List<JobModel>) :
             intent.putExtra("matchScore", job.matchScore)
             holder.itemView.context.startActivity(intent)
         }
+    }
+
+    private fun getInitials(company: String): String {
+        val words = company.trim().split(" ").filter { it.isNotEmpty() }
+        return if (words.size >= 2) (words[0].first().toString() + words[1].first().toString()).uppercase()
+        else company.take(2).uppercase()
     }
 
     override fun getItemCount(): Int = jobList.size
