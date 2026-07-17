@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_pipeline_card"
+    android:elevation="8dp"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/menuViewApplicants"
+        style="@style/PopupMenuItem"
+        android:text="View Applicants"
+        android:drawableStart="@android:drawable/ic_menu_view"
+        android:drawableTint="@color/color_text_secondary"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"/>
+
+
+    <TextView
+        android:id="@+id/menuEditJob"
+        style="@style/PopupMenuItem"
+        android:text="Edit Job"
+        android:drawableStart="@android:drawable/ic_menu_edit"
+        android:drawableTint="@color/color_text_secondary"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"/>
+
+
+    <TextView
+        android:id="@+id/menuDeactivateJob"
+        style="@style/PopupMenuItem"
+        android:text="Deactivate Job"
+        android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
+        android:drawableTint="@color/color_text_secondary"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"/>
+
+
+    <TextView
+        android:id="@+id/menuDeleteJob"
+        style="@style/PopupMenuItem"
+        android:text="Delete Job"
+        android:textColor="@color/red"
+        android:drawableStart="@android:drawable/ic_menu_delete"
+        android:drawableTint="@color/red"
+        android:drawablePadding="10dp"
+        android:gravity="center_vertical"/>
+
+</LinearLayout>

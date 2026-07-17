@@ -142,6 +142,9 @@
         <activity android:name="com.example.jobmatrix.profile.SkillsActivity" />
 
 
+        <activity android:name="com.example.jobmatrix.employer.EmployerMyJobsActivity" />
+
+
     </application>
 
 </manifest>

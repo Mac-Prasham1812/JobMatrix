@@ -4,7 +4,7 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -24,8 +24,9 @@ class EmployerJobAdapter(
         val tvSalary: TextView = view.findViewById(R.id.tvSalary)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
         val tvApplicants: TextView = view.findViewById(R.id.tvApplicants)
-        val btnEdit: Button = view.findViewById(R.id.btnEditJob)
-        val btnDelete: Button = view.findViewById(R.id.btnDeleteJob)
+        val ivMore: ImageView = view.findViewById(R.id.ivMore)
+        val vAccent: View = view.findViewById(R.id.vAccent)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JobVH {
@@ -41,8 +42,7 @@ class EmployerJobAdapter(
         holder.tvCategory.text = job.category.ifBlank { "General" }
         holder.tvSalary.text = if (job.salary.isBlank()) "₹0" else "₹${job.salary}"
 
-        val applicantsCount = getCount(job, "appliedCount", "applicationsCount", "totalApplicants")
-        holder.tvApplicants.text = String.format("%02d Applicants", applicantsCount)
+        holder.tvApplicants.text = String.format("%02d Applicants", job.applicantsCount)
 
         val status = job.status.ifBlank { "Active" }
         holder.tvStatus.text = status.replaceFirstChar { it.uppercase() }
@@ -53,72 +53,56 @@ class EmployerJobAdapter(
             it.context.startActivity(intent)
         }
 
-        holder.btnEdit.setOnClickListener {
-            val intent = Intent(holder.itemView.context, EditJobActivity::class.java)
-            intent.putExtra("jobId", job.jobId)
-            holder.itemView.context.startActivity(intent)
-        }
+        holder.ivMore.setOnClickListener {
+            val ctx = it.context
+            val popupView = LayoutInflater.from(ctx).inflate(R.layout.popup_job_menu, null)
+            val popupWindow = android.widget.PopupWindow(popupView, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, true)
 
-        holder.btnDelete.setOnClickListener {
-            val context = holder.itemView.context
-
-            db.collection("applications")
-                .whereEqualTo("jobId", job.jobId)
-                .get()
-                .addOnSuccessListener { snapshot ->
-                    val batch = db.batch()
-
-                    for (doc in snapshot.documents) {
-                        batch.delete(doc.reference)
-                    }
-
-                    val jobRef = db.collection("jobs").document(job.jobId)
-                    batch.delete(jobRef)
-
-                    batch.commit()
-                        .addOnSuccessListener {
-                            val pos = holder.adapterPosition
-                            if (pos != RecyclerView.NO_POSITION) {
-                                list.removeAt(pos)
-                                notifyItemRemoved(pos)
-                            }
-
-                            Toast.makeText(
-                                context,
-                                "Job deleted permanently",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                        .addOnFailureListener {
-                            Toast.makeText(
-                                context,
-                                "Failed to delete job",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(
-                        context,
-                        "Failed to fetch job applications",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-        }
-    }
-
-    private fun getCount(job: JobModel, vararg fieldNames: String): Int {
-        for (fieldName in fieldNames) {
-            try {
-                val field = job.javaClass.getDeclaredField(fieldName)
-                field.isAccessible = true
-                val value = field.get(job)
-                if (value is Int) return value
-                if (value is Long) return value.toInt()
-            } catch (_: Exception) {
+            popupView.findViewById<TextView>(R.id.menuViewApplicants).setOnClickListener {
+                val intent = Intent(ctx, EmployerApplicationsActivity::class.java)
+                intent.putExtra("jobId", job.jobId)
+                ctx.startActivity(intent)
+                popupWindow.dismiss()
             }
+            popupView.findViewById<TextView>(R.id.menuEditJob).setOnClickListener {
+                val intent = Intent(ctx, EditJobActivity::class.java)
+                intent.putExtra("jobId", job.jobId)
+                ctx.startActivity(intent)
+                popupWindow.dismiss()
+            }
+            popupView.findViewById<TextView>(R.id.menuDeactivateJob).setOnClickListener {
+                db.collection("jobs").document(job.jobId).update("status", "Inactive")
+                    .addOnSuccessListener {
+                        val pos = holder.adapterPosition
+                        if (pos != RecyclerView.NO_POSITION) { list.removeAt(pos); notifyItemRemoved(pos) }
+                    }
+                popupWindow.dismiss()
+            }
+            popupView.findViewById<TextView>(R.id.menuDeleteJob).setOnClickListener {
+                db.collection("applications").whereEqualTo("jobId", job.jobId).get()
+                    .addOnSuccessListener { snapshot ->
+                        val batch = db.batch()
+                        for (doc in snapshot.documents) batch.delete(doc.reference)
+                        batch.delete(db.collection("jobs").document(job.jobId))
+                        batch.commit().addOnSuccessListener {
+                            val pos = holder.adapterPosition
+                            if (pos != RecyclerView.NO_POSITION) { list.removeAt(pos); notifyItemRemoved(pos) }
+                            Toast.makeText(ctx, "Job deleted permanently", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                popupWindow.dismiss()
+            }
+
+            popupWindow.showAsDropDown(it, -180, 0)
         }
-        return 0
+
+        val accentColors = intArrayOf(
+            android.graphics.Color.parseColor("#2563EB"),
+            android.graphics.Color.parseColor("#F59E0B"),
+            android.graphics.Color.parseColor("#16A34A"),
+            android.graphics.Color.parseColor("#7C3AED")
+        )
+        holder.vAccent.setBackgroundColor(accentColors[position % accentColors.size])
     }
 
     override fun getItemCount(): Int = list.size
