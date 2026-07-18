@@ -16,4 +16,8 @@
     <color name="badge_teal">#0D9488</color>
     <color name="badge_orange">#EA580C</color>
     <color name="color_chip_bg">#1E293B</color>
+
+    <color name="color_icon_tint">#FFFFFF</color>
+
+    <color name="color_icon_bg">#1E293B</color>
 </resources>

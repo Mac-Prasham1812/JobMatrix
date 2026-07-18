@@ -4,12 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.JobModel
+import com.example.jobmatrix.profile.ProfileActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
@@ -28,6 +30,9 @@ class EmployerMyJobsActivity : AppCompatActivity() {
     private lateinit var tabInactive: TextView
     private var currentFilter = "All"
 
+    private lateinit var rvShimmer: RecyclerView
+    private var shimmerStartTime = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employer_my_jobs)
@@ -37,14 +42,35 @@ class EmployerMyJobsActivity : AppCompatActivity() {
         adapter = EmployerJobAdapter(displayedJobs)
         recyclerView.adapter = adapter
 
+        rvShimmer = findViewById(R.id.rvShimmerMyJobs)
+        rvShimmer.layoutManager = LinearLayoutManager(this)
+        rvShimmer.adapter = com.example.jobmatrix.student.ShimmerAdapter()
+
         etSearch = findViewById(R.id.etSearch)
         tabAll = findViewById(R.id.tabAll)
         tabActive = findViewById(R.id.tabActive)
         tabInactive = findViewById(R.id.tabInactive)
 
-        findViewById<ImageView>(R.id.ivBack).setOnClickListener { finish() }
+        findViewById<ImageView>(R.id.ivBack).setOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
         findViewById<CardView>(R.id.fabAddJob).setOnClickListener {
             startActivity(Intent(this, AddJobActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.navDashboard).setOnClickListener {
+            startActivity(Intent(this, EmployerDashboardActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            finish()
+        }
+
+        findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.navApplications).setOnClickListener {
+            // startActivity(Intent(this, EmployerApplicationsActivity::class.java))
         }
 
         tabAll.setOnClickListener { setFilter("All") }
@@ -60,10 +86,20 @@ class EmployerMyJobsActivity : AppCompatActivity() {
         })
 
         loadJobs()
+        setActiveNav(R.id.navMyJobs)
+    }
+
+
+    private fun setActiveNav(activeId: Int) {
+        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
+        for (id in navItems) {
+            findViewById<LinearLayout>(id).isSelected = (id == activeId)
+        }
     }
 
     private fun loadJobs() {
         val employerId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        showShimmer()
         db.collection("jobs")
             .whereEqualTo("employerId", employerId)
             .addSnapshotListener { snapshots, error ->
@@ -73,6 +109,7 @@ class EmployerMyJobsActivity : AppCompatActivity() {
                     doc.toObject(JobModel::class.java)?.let { allJobs.add(it) }
                 }
                 applyFilters()
+                hideShimmer()
             }
     }
 
@@ -107,5 +144,25 @@ class EmployerMyJobsActivity : AppCompatActivity() {
         displayedJobs.clear()
         displayedJobs.addAll(filtered)
         adapter.notifyDataSetChanged()
+        recyclerView.scheduleLayoutAnimation()
+        recyclerView.alpha = 0f
+        recyclerView.animate().alpha(1f).setDuration(250).start()
+    }
+
+
+
+    private fun showShimmer() {
+        shimmerStartTime = System.currentTimeMillis()
+        rvShimmer.visibility = android.view.View.VISIBLE
+        recyclerView.visibility = android.view.View.GONE
+    }
+
+    private fun hideShimmer() {
+        val elapsed = System.currentTimeMillis() - shimmerStartTime
+        val delay = (600 - elapsed).coerceAtLeast(0)
+        rvShimmer.postDelayed({
+            rvShimmer.visibility = android.view.View.GONE
+            recyclerView.visibility = android.view.View.VISIBLE
+        }, delay)
     }
 }
