@@ -28,4 +28,10 @@
 
     <color name="color_chip_bg">#F1F5F9</color>
 
+    <color name="color_icon_tint">#000000</color>
+
+    <color name="color_icon_bg">#E3EEFD</color>
+
+    <color name="color_nav_selected_bg">@color/color_accent</color>
+
 </resources>

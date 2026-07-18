@@ -40,7 +40,7 @@
                 android:layout_height="40dp"
                 android:padding="9dp"
                 android:background="@drawable/ic_jobs"
-                app:tint="@android:color/black" />
+                app:tint="@color/color_icon_tint"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -83,9 +83,8 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:padding="9dp"
-                android:src="@android:drawable/ic_menu_manage"
                 android:background="@drawable/ic_company"
-                app:tint="@android:color/white" />
+                app:tint="@color/color_icon_tint" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -129,8 +128,7 @@
                 android:layout_height="40dp"
                 android:padding="9dp"
                 android:background="@drawable/ic_pin"
-                app:tint="@android:color/black"
-                />
+                app:tint="@color/color_icon_tint" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -175,7 +173,7 @@
                 android:padding="9dp"
                 android:src="@android:drawable/ic_menu_sort_by_size"
                 android:background="@drawable/ic_business"
-                app:tint="@android:color/black" />
+                app:tint="@color/color_icon_tint" />
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -219,7 +217,7 @@
                 android:layout_height="40dp"
                 android:padding="9dp"
                 android:background="@drawable/ic_package"
-                app:tint="@android:color/white" />
+                app:tint="@color/color_icon_tint"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -264,7 +262,7 @@
                 android:layout_height="40dp"
                 android:padding="9dp"
                 android:background="@drawable/ic_business"
-                app:tint="@android:color/black" />
+                app:tint="@color/color_icon_tint"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -308,7 +306,7 @@
                 android:layout_height="40dp"
                 android:padding="9dp"
                 android:background="@drawable/ic_check"
-                app:tint="@android:color/black" />
+                app:tint="@color/color_icon_tint"/>
 
             <LinearLayout
                 android:layout_width="0dp"

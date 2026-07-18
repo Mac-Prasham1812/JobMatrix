@@ -7,6 +7,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.JobModel
@@ -32,7 +34,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private lateinit var tvReviewCount: TextView
     private lateinit var tvShortlistedCount: TextView
 
-    private lateinit var tvViewAll: TextView
+//    private lateinit var tvViewAll: TextView
     private lateinit var rvShimmer: RecyclerView
     private var shimmerStartTime = 0L
 
@@ -40,11 +42,26 @@ class EmployerDashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employer_dashboard)
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout)) { v, insets ->
+            val navBar = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navBar.bottom)
+            insets
+        }
+
         initViews()
         setupRecycler()
         setupClicks()
         setEmployerName()
         loadEmployerJobs()
+        setActiveNav(R.id.navDashboard)
+
+    }
+
+    private fun setActiveNav(activeId: Int) {
+        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
+        for (id in navItems) {
+            findViewById<LinearLayout>(id).isSelected = (id == activeId)
+        }
     }
 
     private fun initViews() {
@@ -54,7 +71,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         tvAppliedCount = findViewById(R.id.tvAppliedCount)
         tvReviewCount = findViewById(R.id.tvReviewCount)
         tvShortlistedCount = findViewById(R.id.tvShortlistedCount)
-        tvViewAll = findViewById(R.id.tvViewAll)
+//        tvViewAll = findViewById(R.id.tvViewAll)
         rvShimmer = findViewById(R.id.rvShimmer)
     }
 
@@ -85,13 +102,14 @@ class EmployerDashboardActivity : AppCompatActivity() {
         val navMyJobs = findViewById<LinearLayout>(R.id.navMyJobs)
         navMyJobs.setOnClickListener {
             startActivity(Intent(this, EmployerMyJobsActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
-        tvViewAll.setOnClickListener {
-            if (jobList.isNotEmpty()) {
-                recyclerView.smoothScrollToPosition(0)
-            }
-        }
+//        tvViewAll.setOnClickListener {
+//            if (jobList.isNotEmpty()) {
+//                recyclerView.smoothScrollToPosition(0)
+//            }
+//        }
     }
 
     private fun setEmployerName() {
@@ -107,17 +125,9 @@ class EmployerDashboardActivity : AppCompatActivity() {
             .whereEqualTo("status", "Active")
             .addSnapshotListener { snapshots, error ->
                 if (error != null || snapshots == null) return@addSnapshotListener
-
-
-
                 jobList.clear()
-
                 val sortedList = snapshots.documents.mapNotNull { doc ->
-                    try {
-                        doc.toObject(JobModel::class.java)
-                    } catch (_: Exception) {
-                        null
-                    }
+                    try { doc.toObject(JobModel::class.java) } catch (_: Exception) { null }
                 }.sortedByDescending { job ->
                     when (val time = job.createdAt) {
                         is Timestamp -> time.toDate().time
@@ -126,9 +136,11 @@ class EmployerDashboardActivity : AppCompatActivity() {
                     }
                 }
                 hideShimmer()
-
                 jobList.addAll(sortedList)
                 adapter.notifyDataSetChanged()
+                recyclerView.scheduleLayoutAnimation()
+                recyclerView.alpha = 0f
+                recyclerView.animate().alpha(1f).setDuration(250).start()
                 loadPipelineCounts(sortedList.map { it.jobId })
             }
         showShimmer()

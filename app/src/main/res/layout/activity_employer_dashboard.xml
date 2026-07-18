@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/color_bg_screen"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:id="@+id/rootLayout">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -100,7 +101,7 @@
         android:textColor="@color/color_text_primary"
         android:paddingStart="16dp" />
 
-    <!-- HIRING PIPELINE (same style as student dashboard) -->
+    <!-- HIRING PIPELINE -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -229,14 +230,6 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:textColor="@color/color_text_primary" />
-
-        <TextView
-            android:id="@+id/tvViewAll"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="View all"
-            android:textSize="13sp"
-            android:textColor="@color/color_accent" />
     </LinearLayout>
 
     <FrameLayout
@@ -263,140 +256,38 @@
 
     </FrameLayout>
 
-
-
-    <RelativeLayout
+    <!-- BOTTOM BAR + FAB: ConstraintLayout, siblings don't clip each other -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:background="@color/color_surface"
-        android:elevation="10dp">
+        android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:weightSum="5">
-
-            <LinearLayout
-                android:id="@+id/navDashboard"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/home"
-                    app:tint="@color/color_accent" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="Dashboard"
-                    android:textSize="10sp"
-                    android:textColor="@color/color_accent" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/navMyJobs"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_agenda"
-                    app:tint="@color/color_text_secondary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="My Jobs"
-                    android:textSize="10sp"
-                    android:textColor="@color/color_text_secondary" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <LinearLayout
-                android:id="@+id/navApplications"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_edit"
-                    app:tint="@color/color_text_secondary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="Applications"
-                    android:textSize="10sp"
-                    android:textColor="@color/color_text_secondary" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/navProfile"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/profile"
-                    app:tint="@color/color_text_secondary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="3dp"
-                    android:text="Profile"
-                    android:textSize="10sp"
-                    android:textColor="@color/color_text_secondary" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+        <include
+            android:id="@+id/bottomNavInclude"
+            layout="@layout/layout_bottom_nav"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/fabAddJob"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="-20dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             app:cardBackgroundColor="@color/color_accent"
-            app:cardCornerRadius="26dp"
-            app:cardElevation="4dp">
+            app:cardCornerRadius="28dp"
+            app:cardElevation="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/bottomBar"
+            android:layout_marginTop="-28dp"
+            tools:ignore="NotSibling">
 
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="14dp"
-                android:src="@drawable/ic_add_white"/>
-
+                android:padding="16dp"
+                android:src="@drawable/ic_add_white"
+                app:tint="@android:color/white" />
         </androidx.cardview.widget.CardView>
 
-    </RelativeLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </LinearLayout>
