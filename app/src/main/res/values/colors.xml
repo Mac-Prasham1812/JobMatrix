@@ -34,4 +34,32 @@
 
     <color name="color_nav_selected_bg">@color/color_accent</color>
 
+
+    <color name="job_screen_bg">#F5F7FC</color>
+    <color name="job_form_bg">#FFFFFF</color>
+    <color name="job_form_stroke">#E2E8F3</color>
+    <color name="job_title_color">#111827</color>
+    <color name="job_subtitle_color">#667085</color>
+    <color name="job_label_color">#1F2937</color>
+    <color name="job_input_bg">#FFFFFF</color>
+    <color name="job_input_stroke">#D7E3F4</color>
+    <color name="job_input_text">#1F2937</color>
+    <color name="job_hint_color">#98A2B3</color>
+    <color name="job_icon_box_bg">#F4F8FF</color>
+    <color name="job_icon_box_stroke">#D8E5FF</color>
+    <color name="job_header_action_bg">#F8FAFF</color>
+    <color name="job_header_action_stroke">#D8E5FF</color>
+    <color name="job_counter_color">#667085</color>
+    <color name="job_muted_icon">#667085</color>
+    <color name="job_accent_blue">#2F6BFF</color>
+    <color name="job_delete_bg">#FFF4F4</color>
+    <color name="job_delete_stroke">#FFB3B3</color>
+    <color name="job_delete_red">#FF4D4F</color>
+
+    <color name="job_input_stroke_focused">#2F6BFF</color>
+    <color name="job_option_bg">#FFFFFF</color>
+    <color name="job_option_stroke">#D7E3F4</color>
+    <color name="job_option_selected_bg">#EEF4FF</color>
+    <color name="job_option_selected_stroke">#2F6BFF</color>
+
 </resources>

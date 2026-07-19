@@ -86,7 +86,6 @@ class EmployerMyJobsActivity : AppCompatActivity() {
         })
 
         loadJobs()
-        setActiveNav(R.id.navMyJobs)
     }
 
 
@@ -164,5 +163,10 @@ class EmployerMyJobsActivity : AppCompatActivity() {
             rvShimmer.visibility = android.view.View.GONE
             recyclerView.visibility = android.view.View.VISIBLE
         }, delay)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setActiveNav(R.id.navMyJobs)
     }
 }
