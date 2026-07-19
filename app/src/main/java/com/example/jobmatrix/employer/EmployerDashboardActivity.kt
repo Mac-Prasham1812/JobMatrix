@@ -62,6 +62,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         for (id in navItems) {
             findViewById<LinearLayout>(id).isSelected = (id == activeId)
         }
+
     }
 
     private fun initViews() {
@@ -89,21 +90,29 @@ class EmployerDashboardActivity : AppCompatActivity() {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.navDashboard).setOnClickListener {
+            setActiveNav(R.id.navDashboard)
+            loadEmployerJobs()
+        }
+
         val fabAddJob = findViewById<androidx.cardview.widget.CardView>(R.id.fabAddJob)
         fabAddJob.setOnClickListener {
             startActivity(Intent(this, AddJobActivity::class.java))
         }
 
-        val navProfile = findViewById<LinearLayout>(R.id.navProfile)
-        navProfile.setOnClickListener {
+        findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         val navMyJobs = findViewById<LinearLayout>(R.id.navMyJobs)
         navMyJobs.setOnClickListener {
-            startActivity(Intent(this, EmployerMyJobsActivity::class.java))
+            val i = Intent(this, EmployerMyJobsActivity::class.java)
+            i.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(i)
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+            finish()
         }
+
 
 //        tvViewAll.setOnClickListener {
 //            if (jobList.isNotEmpty()) {
@@ -179,6 +188,11 @@ class EmployerDashboardActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         jobListener?.remove()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setActiveNav(R.id.navDashboard)
     }
 
     private fun showShimmer() {
