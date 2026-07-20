@@ -24,7 +24,7 @@ class EmployerJobAdapter(
         val tvSalary: TextView = view.findViewById(R.id.tvSalary)
         val tvStatus: TextView = view.findViewById(R.id.tvStatus)
         val tvApplicants: TextView = view.findViewById(R.id.tvApplicants)
-        val ivMore: ImageView = view.findViewById(R.id.ivMore)
+        val ivMoreContainer: View = view.findViewById(R.id.ivMoreContainer)
         val vAccent: View = view.findViewById(R.id.vAccent)
 
     }
@@ -47,16 +47,29 @@ class EmployerJobAdapter(
         val status = job.status.ifBlank { "Active" }
         holder.tvStatus.text = status.replaceFirstChar { it.uppercase() }
 
+        if (status.equals("Inactive", ignoreCase = true)) {
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_inactive)
+            holder.tvStatus.setTextColor(android.graphics.Color.WHITE)
+        } else {
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_active)
+            holder.tvStatus.setTextColor(android.graphics.Color.WHITE)
+        }
+
         holder.itemView.setOnClickListener {
             val intent = Intent(it.context, EmployerApplicationsActivity::class.java)
             intent.putExtra("jobId", job.jobId)
             it.context.startActivity(intent)
         }
 
-        holder.ivMore.setOnClickListener {
+        holder.ivMoreContainer.setOnClickListener {
             val ctx = it.context
             val popupView = LayoutInflater.from(ctx).inflate(R.layout.popup_job_menu, null)
             val popupWindow = android.widget.PopupWindow(popupView, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, true)
+
+            holder.ivMoreContainer.animate().rotation(180f).setDuration(200).start()
+            popupWindow.setOnDismissListener {
+                holder.ivMoreContainer.animate().rotation(0f).setDuration(200).start()
+            }
 
             popupView.findViewById<TextView>(R.id.menuViewApplicants).setOnClickListener {
                 val intent = Intent(ctx, EmployerApplicationsActivity::class.java)
@@ -71,11 +84,8 @@ class EmployerJobAdapter(
                 popupWindow.dismiss()
             }
             popupView.findViewById<TextView>(R.id.menuDeactivateJob).setOnClickListener {
-                db.collection("jobs").document(job.jobId).update("status", "Inactive")
-                    .addOnSuccessListener {
-                        val pos = holder.adapterPosition
-                        if (pos != RecyclerView.NO_POSITION) { list.removeAt(pos); notifyItemRemoved(pos) }
-                    }
+                db.collection("jobs").document(job.jobId)
+                    .update(mapOf("status" to "Inactive", "deactivatedAt" to System.currentTimeMillis()))
                 popupWindow.dismiss()
             }
             popupView.findViewById<TextView>(R.id.menuDeleteJob).setOnClickListener {
@@ -93,6 +103,7 @@ class EmployerJobAdapter(
                 popupWindow.dismiss()
             }
 
+            popupWindow.animationStyle = R.style.PopupAnimation
             popupWindow.showAsDropDown(it, -180, 0)
         }
 

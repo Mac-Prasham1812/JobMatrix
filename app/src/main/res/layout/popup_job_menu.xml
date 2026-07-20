@@ -11,38 +11,35 @@
         android:id="@+id/menuViewApplicants"
         style="@style/PopupMenuItem"
         android:text="View Applicants"
-        android:drawableStart="@android:drawable/ic_menu_view"
+        android:drawableStart="@drawable/ic_eye"
         android:drawableTint="@color/color_text_secondary"
         android:drawablePadding="10dp"
         android:gravity="center_vertical"/>
-
 
     <TextView
         android:id="@+id/menuEditJob"
         style="@style/PopupMenuItem"
         android:text="Edit Job"
-        android:drawableStart="@android:drawable/ic_menu_edit"
+        android:drawableStart="@drawable/ic_header_edit"
         android:drawableTint="@color/color_text_secondary"
         android:drawablePadding="10dp"
         android:gravity="center_vertical"/>
-
 
     <TextView
         android:id="@+id/menuDeactivateJob"
         style="@style/PopupMenuItem"
         android:text="Deactivate Job"
-        android:drawableStart="@android:drawable/ic_menu_close_clear_cancel"
+        android:drawableStart="@drawable/ic_deactivate"
         android:drawableTint="@color/color_text_secondary"
         android:drawablePadding="10dp"
         android:gravity="center_vertical"/>
-
 
     <TextView
         android:id="@+id/menuDeleteJob"
         style="@style/PopupMenuItem"
         android:text="Delete Job"
         android:textColor="@color/red"
-        android:drawableStart="@android:drawable/ic_menu_delete"
+        android:drawableStart="@drawable/ic_delete"
         android:drawableTint="@color/red"
         android:drawablePadding="10dp"
         android:gravity="center_vertical"/>

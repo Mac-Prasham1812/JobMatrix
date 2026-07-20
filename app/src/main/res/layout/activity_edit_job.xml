@@ -50,19 +50,19 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/btnDeleteJob"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_job_delete_action">
+<!--            <FrameLayout-->
+<!--                android:id="@+id/btnDeleteJob"-->
+<!--                android:layout_width="48dp"-->
+<!--                android:layout_height="48dp"-->
+<!--                android:background="@drawable/bg_job_delete_action">-->
 
-                <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:layout_gravity="center"
-                    android:src="@android:drawable/ic_menu_delete"
-                    app:tint="@color/job_delete_red" />
-            </FrameLayout>
+<!--                <ImageView-->
+<!--                    android:layout_width="22dp"-->
+<!--                    android:layout_height="22dp"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:src="@android:drawable/ic_menu_delete"-->
+<!--                    app:tint="@color/job_delete_red" />-->
+<!--            </FrameLayout>-->
         </LinearLayout>
 
         <LinearLayout
@@ -87,7 +87,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_agenda"
+                        android:src="@drawable/ic_calendar"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -134,7 +134,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_myplaces"
+                        android:src="@drawable/ic_company"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -181,7 +181,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_mylocation"
+                        android:src="@drawable/ic_pin"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -247,7 +247,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_dialog_dialer"
+                        android:src="@drawable/ic_category"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -317,7 +317,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_info_details"
+                        android:src="@drawable/ic_package"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -364,7 +364,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_manage"
+                        android:src="@drawable/ic_experience"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -434,7 +434,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_set_as"
+                        android:src="@drawable/ic_skills"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
@@ -480,7 +480,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:layout_gravity="center"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@drawable/ic_overview"
                         app:tint="@color/job_accent_blue" />
                 </FrameLayout>
 
