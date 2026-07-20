@@ -53,7 +53,8 @@ class AddJobActivity : AppCompatActivity() {
             "Finance",
             "Human Resources",
             "Customer Support",
-            "Operations"
+            "Operations",
+            "Other"
         )
 
         val experienceList = listOf(
@@ -61,33 +62,54 @@ class AddJobActivity : AppCompatActivity() {
             "1 - 3 Years",
             "2 - 4 Years",
             "3 - 5 Years",
-            "5+ Years"
+            "5+ Years",
+            "Other"
         )
 
-        etCategory.setOnClickListener {
-            showBottomSheetSelector("Select Category", categoryList) { selected ->
+        val onExperienceSelected: (String) -> Unit = { selected ->
+            if (selected == "Other") {
+                etExperience.setText("")
+                etExperience.isFocusable = true
+                etExperience.isFocusableInTouchMode = true
+                etExperience.isCursorVisible = true
+                etExperience.requestFocus()
+            } else {
+                etExperience.isFocusable = false
+                etExperience.isCursorVisible = false
+                etExperience.setText(selected)
+            }
+        }
+
+        val onCategorySelected: (String) -> Unit = { selected ->
+            if (selected == "Other") {
+                etCategory.setText("")
+                etCategory.isFocusable = true
+                etCategory.isFocusableInTouchMode = true
+                etCategory.isCursorVisible = true
+                etCategory.requestFocus()
+            } else {
+                etCategory.isFocusable = false
+                etCategory.isCursorVisible = false
                 etCategory.setText(selected)
             }
+        }
+        etCategory.setOnClickListener {
+            if (etCategory.isFocusable && etCategory.isFocusableInTouchMode) return@setOnClickListener
+            showBottomSheetSelector("Select Category", categoryList, onCategorySelected)
         }
 
         etExperience.setOnClickListener {
-            showBottomSheetSelector("Select Experience", experienceList) { selected ->
-                etExperience.setText(selected)
-            }
+            if (etExperience.isFocusable && etExperience.isFocusableInTouchMode) return@setOnClickListener
+            showBottomSheetSelector("Select Experience", experienceList, onExperienceSelected)
         }
 
         ivCategoryArrow.setOnClickListener {
-            showBottomSheetSelector("Select Category", categoryList) { selected ->
-                etCategory.setText(selected)
-            }
+            showBottomSheetSelector("Select Category", categoryList, onCategorySelected)
         }
 
         ivExperienceArrow.setOnClickListener {
-            showBottomSheetSelector("Select Experience", experienceList) { selected ->
-                etExperience.setText(selected)
-            }
+            showBottomSheetSelector("Select Experience", experienceList, onExperienceSelected)
         }
-
 
         btnPostJob.setOnClickListener {
 

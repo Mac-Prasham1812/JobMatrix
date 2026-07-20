@@ -140,8 +140,19 @@ class EmployerMyJobsActivity : AppCompatActivity() {
             val matchesSearch = query.isEmpty() || job.title.lowercase().contains(query) || job.category.lowercase().contains(query)
             matchesTab && matchesSearch
         }
+
+        val sorted = if (currentFilter == "Inactive") {
+            filtered.sortedByDescending { it.deactivatedAt }
+        } else if (currentFilter == "All") {
+            val active = filtered.filter { it.status == "Active" }
+            val inactive = filtered.filter { it.status != "Active" }.sortedByDescending { it.deactivatedAt }
+            active + inactive
+        } else {
+            filtered
+        }
+
         displayedJobs.clear()
-        displayedJobs.addAll(filtered)
+        displayedJobs.addAll(sorted)
         adapter.notifyDataSetChanged()
         recyclerView.scheduleLayoutAnimation()
         recyclerView.alpha = 0f

@@ -131,19 +131,25 @@ class EmployerDashboardActivity : AppCompatActivity() {
 
         jobListener = db.collection("jobs")
             .whereEqualTo("employerId", employerId)
-            .whereEqualTo("status", "Active")
             .addSnapshotListener { snapshots, error ->
                 if (error != null || snapshots == null) return@addSnapshotListener
                 jobList.clear()
-                val sortedList = snapshots.documents.mapNotNull { doc ->
+                val allList = snapshots.documents.mapNotNull { doc ->
                     try { doc.toObject(JobModel::class.java) } catch (_: Exception) { null }
-                }.sortedByDescending { job ->
-                    when (val time = job.createdAt) {
-                        is Timestamp -> time.toDate().time
-                        is Long -> time
-                        else -> 0L
-                    }
                 }
+                val active = allList.filter { it.status == "Active" }
+                    .sortedByDescending { job ->
+                        when (val time = job.createdAt) {
+                            is Timestamp -> time.toDate().time
+                            is Long -> time
+                            else -> 0L
+                        }
+                    }
+                val inactive = allList.filter { it.status != "Active" }
+                    .sortedByDescending { it.deactivatedAt }
+
+                val sortedList = active + inactive
+
                 hideShimmer()
                 jobList.addAll(sortedList)
                 adapter.notifyDataSetChanged()
