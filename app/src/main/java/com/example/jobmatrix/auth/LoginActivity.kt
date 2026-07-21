@@ -105,6 +105,11 @@ class LoginActivity : AppCompatActivity() {
 
                 val role = doc.getString("role")
 
+                com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                    .addOnSuccessListener { token ->
+                        db.collection("users").document(uid).update("fcmToken", token)
+                    }
+
                 when (role) {
                     "Student" -> {
                         startActivity(Intent(this, StudentDashboardActivity::class.java))

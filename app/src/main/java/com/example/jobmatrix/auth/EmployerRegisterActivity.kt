@@ -82,11 +82,14 @@ class EmployerRegisterActivity : AppCompatActivity() {
                         "email" to email,
                         "phone" to phone,
                         "role" to "Employer",
-                        "createdAt" to System.currentTimeMillis()
+                        "createdAt" to System.currentTimeMillis(),
+                        "fcmToken" to ""
                     )
 
                     db.collection("users").document(uid).set(userMap)
                         .addOnSuccessListener {
+                            com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                                .addOnSuccessListener { t -> db.collection("users").document(uid).update("fcmToken", t) }
                             showToast("Registration successful")
                             startActivity(Intent(this, EmployerDashboardActivity::class.java))
                             finish()
@@ -102,6 +105,8 @@ class EmployerRegisterActivity : AppCompatActivity() {
                     btnRegister.isEnabled = true
                     showToast(e.message ?: "Registration failed")
                 }
+
+
         }
     }
 
