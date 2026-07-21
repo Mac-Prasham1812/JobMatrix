@@ -8,6 +8,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Part
+import retrofit2.http.Body
 
 interface ApiService {
     @Multipart
@@ -22,7 +23,12 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("key") key: String
     ): Response<ResumeUrlResponse>
+
+    @POST("send-notification")
+    suspend fun sendNotification(@Body body: NotifyRequest): Response<Unit>
+
 }
 
 data class UploadResponse(val key: String, val url: String)
 data class ResumeUrlResponse(val url: String)
+data class NotifyRequest(val token: String, val title: String, val body: String)

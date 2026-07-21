@@ -3,9 +3,7 @@ package com.example.jobmatrix.employer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.ApplicationModel
 import com.example.jobmatrix.model.JobModel
@@ -17,11 +15,11 @@ data class AppWithJob(val app: ApplicationModel, val job: JobModel?)
 
 class EmployerApplicationAdapter(
     private val list: List<AppWithJob>,
-    private val onResumeClick: (String) -> Unit
+    private val onItemClick: (AppWithJob) -> Unit
 ) : RecyclerView.Adapter<EmployerApplicationAdapter.VH>() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val studentCache = HashMap<String, Triple<String, String, String>>()
+    private val studentCache = HashMap<String, Pair<String, String>>()
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvStudentName: TextView = view.findViewById(R.id.tvStudentName)
@@ -32,9 +30,6 @@ class EmployerApplicationAdapter(
         val tvLocation: TextView = view.findViewById(R.id.tvLocation)
         val tvAppliedDate: TextView = view.findViewById(R.id.tvAppliedDate)
         val tvProfile: TextView = view.findViewById(R.id.tvProfile)
-        val btnShortlist: Button = view.findViewById(R.id.btnShortlist)
-        val btnReject: Button = view.findViewById(R.id.btnReject)
-        val btnViewResume: Button = view.findViewById(R.id.btnViewResume)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -44,7 +39,9 @@ class EmployerApplicationAdapter(
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        val (app, job) = list[position]
+        val item = list[position]
+        val app = item.app
+        val job = item.job
 
         holder.tvJobTitle.text = job?.title ?: app.jobTitle
         holder.tvExperience.text = job?.experience?.ifBlank { "N/A" } ?: "N/A"
@@ -58,24 +55,20 @@ class EmployerApplicationAdapter(
         }
         holder.tvStatus.text = app.status.replaceFirstChar { it.uppercase() }
 
-        if (studentCache.containsKey(app.studentId)) {
-            val (name, email, _) = studentCache[app.studentId]!!
-            setStudentData(holder, name, email)
+        val cached = studentCache[app.studentId]
+        if (cached != null) {
+            setStudentData(holder, cached.first, cached.second)
         } else {
             db.collection("users").document(app.studentId).get()
                 .addOnSuccessListener { doc ->
                     val name = doc.getString("name") ?: "Unknown"
                     val email = doc.getString("email") ?: "Not available"
-                    studentCache[app.studentId] = Triple(name, email, "")
+                    studentCache[app.studentId] = name to email
                     setStudentData(holder, name, email)
                 }
         }
 
-        holder.btnViewResume.setOnClickListener {
-            if (app.resumeLink.isNotEmpty()) onResumeClick(app.resumeLink)
-        }
-        holder.btnShortlist.setOnClickListener { updateStatus(app, "Shortlisted", holder) }
-        holder.btnReject.setOnClickListener { updateStatus(app, "Rejected", holder) }
+        holder.itemView.setOnClickListener { onItemClick(item) }
     }
 
     private fun setStudentData(holder: VH, name: String, email: String) {
@@ -92,19 +85,6 @@ class EmployerApplicationAdapter(
             days == 1L -> "1 day ago"
             else -> "$days days ago"
         }
-    }
-
-    private fun updateStatus(app: ApplicationModel, newStatus: String, holder: VH) {
-        val message = when (newStatus) {
-            "Shortlisted" -> "🎉 You have been shortlisted for further rounds."
-            "Rejected" -> "❌ Your application was not selected."
-            else -> ""
-        }
-        db.collection("applications").document(app.applicationId)
-            .update(mapOf("status" to newStatus, "hasNotification" to true, "notificationMessage" to message, "isRead" to false))
-            .addOnSuccessListener {
-                Toast.makeText(holder.itemView.context, "Status updated & student notified", Toast.LENGTH_SHORT).show()
-            }
     }
 
     override fun getItemCount() = list.size

@@ -2,9 +2,13 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:cardBackgroundColor="@color/color_surface"
@@ -148,50 +152,6 @@
                 android:layout_marginStart="6dp"
                 android:textSize="11sp"
                 android:textColor="@color/color_text_secondary"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnShortlist"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:text="Shortlist"
-                android:textAllCaps="false"
-                android:textSize="13sp"
-                android:textColor="@android:color/white"
-                android:backgroundTint="#16A34A"/>
-
-            <Button
-                android:id="@+id/btnReject"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:text="Reject"
-                android:textAllCaps="false"
-                android:textSize="13sp"
-                android:textColor="@android:color/white"
-                android:backgroundTint="@color/job_delete_red"/>
-
-            <Button
-                android:id="@+id/btnViewResume"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="Resume"
-                android:textAllCaps="false"
-                android:textSize="13sp"
-                android:textColor="@color/color_accent"
-                android:backgroundTint="@color/color_surface"
-                app:strokeColor="@color/color_accent"/>
-
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -85,12 +85,16 @@ class RegisterActivity : AppCompatActivity() {
                         "email" to email,
                         "phone" to phone,
                         "role" to "Student",   // fixed role
-                        "createdAt" to System.currentTimeMillis()
+                        "createdAt" to System.currentTimeMillis(),
+                        "fcmToken" to ""
                     )
 
                     //  Firestore
                     db.collection("users").document(uid).set(userMap)
                         .addOnSuccessListener {
+
+                            com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                                .addOnSuccessListener { t -> db.collection("users").document(uid).update("fcmToken", t) }
                             showToast("Registration successful")
                             startActivity(Intent(this, LoginActivity::class.java))
                             finish()
@@ -106,6 +110,8 @@ class RegisterActivity : AppCompatActivity() {
                     btnRegister.isEnabled = true
                     showToast(e.message ?: "Registration failed")
                 }
+
+
         }
     }
 

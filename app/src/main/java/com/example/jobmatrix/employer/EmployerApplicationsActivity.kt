@@ -2,25 +2,18 @@ package com.example.jobmatrix.employer
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.ApplicationModel
 import com.example.jobmatrix.model.JobModel
-import com.example.jobmatrix.network.RetrofitClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class EmployerApplicationsActivity : AppCompatActivity() {
 
@@ -44,7 +37,16 @@ class EmployerApplicationsActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.rvApplications)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = EmployerApplicationAdapter(displayedData) { openResume(it) }
+        adapter = EmployerApplicationAdapter(displayedData) { item ->
+            val i = Intent(this, ApplicantDetailsActivity::class.java)
+            i.putExtra("applicationId", item.app.applicationId)
+            i.putExtra("studentId", item.app.studentId)
+            i.putExtra("jobTitle", item.job?.title ?: item.app.jobTitle)
+            i.putExtra("status", item.app.status)
+            i.putExtra("resumeLink", item.app.resumeLink)
+            i.putExtra("appliedAt", item.app.appliedAt)
+            startActivity(i)
+        }
         recyclerView.adapter = adapter
 
         tabAll = findViewById(R.id.tabAll)
@@ -58,6 +60,11 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         tabRejected.setOnClickListener { setFilter("Rejected") }
 
         loadData(filterJobId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (allData.isNotEmpty()) applyFilter()
     }
 
     private fun setFilter(filter: String) {
@@ -82,6 +89,16 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         displayedData.clear()
         displayedData.addAll(filtered)
         adapter.notifyDataSetChanged()
+        updateTabCounts()
+    }
+
+    private fun updateTabCounts() {
+        val all = allData.size
+        val shortlisted = allData.count { it.app.status.equals("Shortlisted", true) }
+        val rejected = allData.count { it.app.status.equals("Rejected", true) }
+        tabAll.text = "All ($all)"
+        tabShortlisted.text = "Shortlisted ($shortlisted)"
+        tabRejected.text = "Rejected ($rejected)"
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -102,7 +119,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                     .addOnSuccessListener { appDocs ->
                         allData.clear()
                         for (doc in appDocs) {
-                            val app = doc.toObject(ApplicationModel::class.java)
+                            val app = doc.toObject(ApplicationModel::class.java).copy(applicationId = doc.id)
                             allData.add(AppWithJob(app, jobMap[app.jobId]))
                         }
                         applyFilter()
@@ -111,43 +128,5 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                         Toast.makeText(this, "Failed to load applications", Toast.LENGTH_SHORT).show()
                     }
             }
-    }
-
-    private fun openResume(resumeKey: String) {
-        if (resumeKey.isBlank()) {
-            Toast.makeText(this, "Resume not available", Toast.LENGTH_SHORT).show()
-            return
-        }
-        lifecycleScope.launch {
-            try {
-                val token = "Bearer ${getIdToken()}"
-                val response = RetrofitClient.api.getResumeUrl(token, resumeKey)
-                if (response.isSuccessful) {
-                    val url = response.body()?.url
-                    if (!url.isNullOrBlank()) openUrl(url)
-                    else Toast.makeText(this@EmployerApplicationsActivity, "Resume not available", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@EmployerApplicationsActivity, "Failed to load resume", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this@EmployerApplicationsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private suspend fun getIdToken(): String = suspendCancellableCoroutine { cont ->
-        val user = auth.currentUser
-        if (user == null) { cont.resumeWithException(Exception("Not logged in")); return@suspendCancellableCoroutine }
-        user.getIdToken(true)
-            .addOnSuccessListener { result -> cont.resume(result.token ?: "") }
-            .addOnFailureListener { e -> cont.resumeWithException(e) }
-    }
-
-    private fun openUrl(url: String) {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) })
-        } catch (e: Exception) {
-            Toast.makeText(this, "No app found to open resume", Toast.LENGTH_SHORT).show()
-        }
     }
 }
