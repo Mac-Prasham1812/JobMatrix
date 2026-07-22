@@ -42,6 +42,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             i.putExtra("applicationId", item.app.applicationId)
             i.putExtra("studentId", item.app.studentId)
             i.putExtra("jobTitle", item.job?.title ?: item.app.jobTitle)
+            i.putExtra("companyName", item.job?.company ?: "")
             i.putExtra("status", item.app.status)
             i.putExtra("resumeLink", item.app.resumeLink)
             i.putExtra("appliedAt", item.app.appliedAt)
