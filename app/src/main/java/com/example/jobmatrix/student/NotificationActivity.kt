@@ -4,52 +4,129 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.jobmatrix.model.ApplicationModel
+import com.example.jobmatrix.model.NotificationModel
+import com.google.android.material.tabs.TabLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.jobmatrix.app.R
+import com.google.android.material.tabs.TabLayout.Tab
 
 class NotificationActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
+    private lateinit var notificationTabs: TabLayout
     private lateinit var adapter: NotificationAdapter
-    private val list = mutableListOf<ApplicationModel>()
-    private val db = FirebaseFirestore.getInstance()
+
+    private val allNotifications =
+        mutableListOf<NotificationModel>()
+
+    private val visibleNotifications =
+        mutableListOf<NotificationModel>()
+
+    private val db =
+        FirebaseFirestore.getInstance()
+
+    private var selectedFilter = "All"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContentView(R.layout.activity_notification)
 
         recyclerView = findViewById(R.id.rvNotifications)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = NotificationAdapter(list)
+        notificationTabs = findViewById(R.id.notificationTabs)
+
+        recyclerView.layoutManager =
+            LinearLayoutManager(this)
+
+        adapter = NotificationAdapter(
+            visibleNotifications
+        )
+
         recyclerView.adapter = adapter
-        recyclerView.layoutAnimation = android.view.animation.AnimationUtils.loadLayoutAnimation(this, R.anim.layout_fade_in)
+
+        notificationTabs.addOnTabSelectedListener(
+            object : TabLayout.OnTabSelectedListener {
+
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    selectedFilter =
+                        tab.text?.toString() ?: "All"
+
+                    filterNotifications()
+                }
+
+                override fun onTabUnselected(tab: Tab) {
+                    // No action required
+                }
+
+                override fun onTabReselected(tab: Tab) {
+                    // No action required
+                }
+            }
+        )
 
         loadNotifications()
     }
 
     private fun loadNotifications() {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val userId =
+            FirebaseAuth.getInstance()
+                .currentUser
+                ?.uid
+                ?: return
 
-        db.collection("applications")
+        db.collection("notifications")
             .whereEqualTo("studentId", userId)
-            .whereEqualTo("hasNotification", true)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                list.clear()
+            .orderBy(
+                "createdAt",
+                Query.Direction.DESCENDING
+            )
+            .addSnapshotListener { snapshot, error ->
 
-                for (doc in snapshot.documents) {
-                    val app = doc.toObject(ApplicationModel::class.java)
-                    if (app != null) {
-                        val fixedApp = app.copy(applicationId = doc.id)
-                        list.add(fixedApp)
+                if (error != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                allNotifications.clear()
+
+                for (document in snapshot.documents) {
+                    val notification =
+                        document.toObject(
+                            NotificationModel::class.java
+                        )
+
+                    if (notification != null) {
+                        allNotifications.add(
+                            notification.copy(
+                                notificationId = document.id
+                            )
+                        )
                     }
                 }
 
-                adapter.notifyDataSetChanged()
+                filterNotifications()
             }
     }
 
+    private fun filterNotifications() {
+        visibleNotifications.clear()
 
+        if (selectedFilter == "All") {
+            visibleNotifications.addAll(
+                allNotifications
+            )
+        } else {
+            visibleNotifications.addAll(
+                allNotifications.filter { notification ->
+                    notification.type.equals(
+                        selectedFilter,
+                        ignoreCase = true
+                    )
+                }
+            )
+        }
+
+        adapter.notifyDataSetChanged()
+    }
 }
