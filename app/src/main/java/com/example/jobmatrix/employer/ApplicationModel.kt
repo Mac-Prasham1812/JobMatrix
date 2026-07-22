@@ -10,7 +10,8 @@ data class ApplicationModel(
     val status: String = "Applied",
     val appliedAt: Long = 0L,
     val hasNotification: Boolean = false,
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val notificationMessage: String = ""
 )
 
 

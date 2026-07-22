@@ -113,28 +113,46 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     }
 
     private fun updateStatus(newStatus: String) {
+        val jobTitle = intent.getStringExtra("jobTitle") ?: ""
+        val companyName = intent.getStringExtra("companyName") ?: ""
+
         val message = if (newStatus == "Shortlisted")
-            "You have been shortlisted for further rounds."
+            "You have been shortlisted for $jobTitle at $companyName."
         else
-            "Your application was not selected."
+            "Your application for $jobTitle at $companyName was not selected."
 
         db.collection("applications").document(applicationId)
-            .update(
-                mapOf(
-                    "status" to newStatus,
-                    "hasNotification" to true,
-                    "notificationMessage" to message,
-                    "isRead" to false
-                )
-            )
+            .update(mapOf("status" to newStatus))
             .addOnSuccessListener {
                 setStatusUi(newStatus)
                 Toast.makeText(this, "Status updated & student notified", Toast.LENGTH_SHORT).show()
-                sendPush("JobMatrix", message)
+                addNotification(newStatus, message)
+
+                db.collection("users").document(studentId).get()
+                    .addOnSuccessListener { doc ->
+                        val token = doc.getString("fcmToken") ?: ""
+                        if (token.isNotBlank()) sendPush(token, "JobMatrix", message)
+                    }
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    private fun addNotification(type: String, message: String) {
+        val jobTitle = intent.getStringExtra("jobTitle") ?: ""
+        val companyName = intent.getStringExtra("companyName") ?: ""
+        val notif = hashMapOf(
+            "studentId" to studentId,
+            "applicationId" to applicationId,
+            "jobTitle" to jobTitle,
+            "companyName" to companyName,
+            "message" to message,
+            "type" to type,
+            "createdAt" to System.currentTimeMillis(),
+            "isRead" to false
+        )
+        db.collection("notifications").add(notif)
     }
 
     private fun showMessageDialog() {
@@ -146,30 +164,26 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             .setPositiveButton("Send") { _, _ ->
                 val text = et.text.toString().trim()
                 if (text.isEmpty()) return@setPositiveButton
-                db.collection("applications").document(applicationId)
-                    .update(
-                        mapOf(
-                            "hasNotification" to true,
-                            "notificationMessage" to text,
-                            "isRead" to false
-                        )
-                    )
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Message sent", Toast.LENGTH_SHORT).show()
-                        sendPush("JobMatrix", text)
+                Toast.makeText(this, "Message sent", Toast.LENGTH_SHORT).show()
+                addNotification("Message", text)
+
+                db.collection("users").document(studentId).get()
+                    .addOnSuccessListener { doc ->
+                        val token = doc.getString("fcmToken") ?: ""
+                        if (token.isNotBlank()) sendPush(token, "JobMatrix", text)
                     }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun sendPush(title: String, body: String) {
-        if (studentFcmToken.isBlank()) return
+    private fun sendPush(token: String, title: String, body: String) {
+        if (token.isBlank()) return
         lifecycleScope.launch {
             try {
-                RetrofitClient.api.sendNotification(NotifyRequest(studentFcmToken, title, body))
-            } catch (_: Exception) {
-                // silent fail, in-app notification already saved to Firestore
+                RetrofitClient.api.sendNotification(NotifyRequest(token, title, body))
+            } catch (e: Exception) {
+                Toast.makeText(this@ApplicantDetailsActivity, "Push failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
