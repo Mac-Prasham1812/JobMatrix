@@ -38,7 +38,7 @@
                 android:layout_height="match_parent"
                 android:padding="10dp"
                 android:src="@drawable/notification"
-                android:contentDescription="Notification icon"
+                android:contentDescription="Notification symbol"
                 app:tint="@color/color_accent" />
 
         </androidx.cardview.widget.CardView>
