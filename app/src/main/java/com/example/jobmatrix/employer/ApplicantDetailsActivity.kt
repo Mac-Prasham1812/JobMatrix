@@ -73,7 +73,11 @@ class ApplicantDetailsActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnShortlist).setOnClickListener { updateStatus("Shortlisted") }
         findViewById<Button>(R.id.btnReject).setOnClickListener { updateStatus("Rejected") }
-        findViewById<Button>(R.id.btnMessage).setOnClickListener { showMessageDialog() }
+        findViewById<Button>(R.id.btnMessage).setOnClickListener {
+            val intent = Intent(this, com.example.jobmatrix.chat.ChatActivity::class.java)
+            intent.putExtra("applicationId", applicationId)
+            startActivity(intent)
+        }
         findViewById<android.view.View>(R.id.rowResume).setOnClickListener { openResume() }
 
         loadStudent()
@@ -155,27 +159,27 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         db.collection("notifications").add(notif)
     }
 
-    private fun showMessageDialog() {
-        val et = EditText(this)
-        et.hint = "Type a message to the student..."
-        AlertDialog.Builder(this)
-            .setTitle("Send Message")
-            .setView(et)
-            .setPositiveButton("Send") { _, _ ->
-                val text = et.text.toString().trim()
-                if (text.isEmpty()) return@setPositiveButton
-                Toast.makeText(this, "Message sent", Toast.LENGTH_SHORT).show()
-                addNotification("Message", text)
-
-                db.collection("users").document(studentId).get()
-                    .addOnSuccessListener { doc ->
-                        val token = doc.getString("fcmToken") ?: ""
-                        if (token.isNotBlank()) sendPush(token, "JobMatrix", text)
-                    }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
+//    private fun showMessageDialog() {
+//        val et = EditText(this)
+//        et.hint = "Type a message to the student..."
+//        AlertDialog.Builder(this)
+//            .setTitle("Send Message")
+//            .setView(et)
+//            .setPositiveButton("Send") { _, _ ->
+//                val text = et.text.toString().trim()
+//                if (text.isEmpty()) return@setPositiveButton
+//                Toast.makeText(this, "Message sent", Toast.LENGTH_SHORT).show()
+//                addNotification("Message", text)
+//
+//                db.collection("users").document(studentId).get()
+//                    .addOnSuccessListener { doc ->
+//                        val token = doc.getString("fcmToken") ?: ""
+//                        if (token.isNotBlank()) sendPush(token, "JobMatrix", text)
+//                    }
+//            }
+//            .setNegativeButton("Cancel", null)
+//            .show()
+//    }
 
     private fun sendPush(token: String, title: String, body: String) {
         if (token.isBlank()) return
