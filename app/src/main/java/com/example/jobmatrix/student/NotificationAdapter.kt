@@ -1,13 +1,16 @@
 package com.example.jobmatrix.student
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.Color
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.view.animation.AnimationUtils
 import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.NotificationModel
@@ -20,180 +23,138 @@ class NotificationAdapter(
 
     private val db = FirebaseFirestore.getInstance()
 
+    private var lastAnimatedPosition = -1
+
+    private val avatarColors = listOf(
+        "#7C6FF0", "#35C1B0", "#F5A623", "#E85D75", "#4E8CFF", "#9B6FD6"
+    )
+
     class VH(view: View) : RecyclerView.ViewHolder(view) {
-
-        val tvTitle: TextView =
-            view.findViewById(R.id.tvTitle)
-
-        val tvMessage: TextView =
-            view.findViewById(R.id.tvMessage)
-
-        val tvTime: TextView =
-            view.findViewById(R.id.tvTime)
-
-        val tvJobTitle: TextView =
-            view.findViewById(R.id.tvJobTitle)
-
-        val tvStatus: TextView =
-            view.findViewById(R.id.tvStatus)
-
-        val ivIcon: ImageView =
-            view.findViewById(R.id.ivIcon)
-
-        val card: View =
-            view.findViewById(R.id.cardRoot)
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvMessage: TextView = view.findViewById(R.id.tvMessage)
+        val tvTime: TextView = view.findViewById(R.id.tvTime)
+        val tvStatus: TextView = view.findViewById(R.id.tvStatus)
+        val tvAvatarLetter: TextView = view.findViewById(R.id.tvAvatarLetter)
+        val avatarContainer: CardView = view.findViewById(R.id.avatarContainer)
+        val unreadDot: View = view.findViewById(R.id.unreadDot)
+        val card: View = view.findViewById(R.id.cardRoot)
     }
 
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): VH {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context)
-            .inflate(
-                R.layout.item_notification,
-                parent,
-                false
-            )
-
+            .inflate(R.layout.item_notification, parent, false)
         return VH(view)
     }
 
-    override fun onBindViewHolder(
-        holder: VH,
-        position: Int
-    ) {
+    override fun onBindViewHolder(holder: VH, @SuppressLint("RecyclerView") position: Int) {
         val notification = list[position]
+        val label = notification.companyName.ifBlank { notification.type }
 
-        holder.tvTitle.text =
-            notification.companyName.ifBlank {
-                notification.type
-            }
+        holder.tvTitle.text = label
+        holder.tvMessage.text = notification.message
 
-        holder.tvMessage.text =
-            notification.message
+        holder.tvTime.text = if (notification.createdAt > 0L) {
+            DateUtils.getRelativeTimeSpanString(
+                notification.createdAt,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS
+            )
+        } else {
+            "Recently"
+        }
 
-        holder.tvJobTitle.text =
-            notification.jobTitle
+        holder.unreadDot.visibility = if (notification.isRead) View.GONE else View.VISIBLE
 
-        holder.tvStatus.text =
-            notification.type
+        val avatarLetter = label.trim().firstOrNull()?.uppercaseChar() ?: '?'
+        holder.tvAvatarLetter.text = avatarLetter.toString()
 
-        holder.tvTime.text =
-            if (notification.createdAt > 0L) {
-                DateUtils.getRelativeTimeSpanString(
-                    notification.createdAt,
-                    System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS
-                )
-            } else {
-                "Recently"
-            }
+        val colorIndex = Math.abs(label.hashCode()) % avatarColors.size
+        holder.avatarContainer.setCardBackgroundColor(Color.parseColor(avatarColors[colorIndex]))
 
         val type = notification.type.lowercase()
 
-        val iconRes = when (type) {
-            "shortlisted" -> R.drawable.check_circle
-            "rejected" -> R.drawable.cancel
-            "applied" -> R.drawable.notification
-            else -> R.drawable.notification
-        }
+        if (type == "shortlisted" || type == "rejected" || type == "applied") {
+            holder.tvStatus.visibility = View.VISIBLE
+            holder.tvStatus.text = notification.type
 
-        holder.ivIcon.setImageResource(iconRes)
+            val statusColor = when (type) {
+                "shortlisted" -> R.color.badge_green
+                "rejected" -> R.color.red
+                else -> R.color.badge_orange
+            }
 
-        val statusColor = when (type) {
-            "shortlisted" -> R.color.badge_green
-            "rejected" -> R.color.red
-            "applied" -> R.color.badge_orange
-            else -> R.color.color_accent
-        }
-
-        holder.tvStatus.setTextColor(
-            ContextCompat.getColor(
-                holder.itemView.context,
-                statusColor
+            holder.tvStatus.background.mutate().setTint(
+                ContextCompat.getColor(holder.itemView.context, statusColor)
             )
-        )
+        } else {
+            holder.tvStatus.visibility = View.GONE
+        }
 
         holder.card.setOnClickListener {
-            markAsRead(notification.notificationId)
+            holder.unreadDot.visibility = View.GONE
+            markAsRead(notification.notificationId, holder.itemView.context)
+
+            if (type == "message") {
+                val intent = android.content.Intent(
+                    holder.itemView.context,
+                    com.example.jobmatrix.chat.ChatActivity::class.java
+                )
+                intent.putExtra("applicationId", notification.applicationId)
+                holder.itemView.context.startActivity(intent)
+            }
         }
 
         holder.card.setOnLongClickListener {
-            showDeleteDialog(
-                holder,
-                notification,
-                position
-            )
-
+            showDeleteDialog(holder, notification, position)
             true
+        }
+
+        if (position > lastAnimatedPosition) {
+            holder.itemView.startAnimation(
+                AnimationUtils.loadAnimation(holder.itemView.context, R.anim.item_fade_slide)
+            )
+            lastAnimatedPosition = position
         }
     }
 
-    private fun markAsRead(id: String) {
+    private fun markAsRead(id: String, context: android.content.Context) {
         if (id.isBlank()) return
-
-        db.collection("notifications")
-            .document(id)
-            .update("isRead", true)
+        db.collection("notifications").document(id).update("isRead", true)
+            .addOnFailureListener {
+                android.util.Log.e("NotificationAdapter", "markAsRead failed: ${it.message}")
+                android.widget.Toast.makeText(context, "Mark read failed: ${it.message}", android.widget.Toast.LENGTH_LONG).show()
+            }
     }
 
-    private fun showDeleteDialog(
-        holder: VH,
-        notification: NotificationModel,
-        position: Int
-    ) {
+    private fun showDeleteDialog(holder: VH, notification: NotificationModel, position: Int) {
         val context = holder.itemView.context
-
         val dialogView = LayoutInflater.from(context)
-            .inflate(
-                R.layout.dialog_delete_notification,
-                null
-            )
+            .inflate(R.layout.dialog_delete_notification, null)
 
         val dialog = AlertDialog.Builder(context)
             .setView(dialogView)
             .setCancelable(false)
             .create()
 
-        val btnCancel =
-            dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
+        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
 
-        val btnDelete =
-            dialogView.findViewById<TextView>(R.id.btnDelete)
-
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
+        btnCancel.setOnClickListener { dialog.dismiss() }
 
         btnDelete.setOnClickListener {
             dialog.dismiss()
-
-            deleteNotification(
-                notification.notificationId,
-                position,
-                holder
-            )
+            deleteNotification(notification.notificationId, position, holder)
         }
 
         dialog.show()
-
-        dialog.window?.setBackgroundDrawableResource(
-            R.drawable.bg_dialog_premium
-        )
+        dialog.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_premium)
     }
 
-    private fun deleteNotification(
-        id: String,
-        position: Int,
-        holder: VH
-    ) {
+    private fun deleteNotification(id: String, position: Int, holder: VH) {
         if (id.isBlank()) return
 
-        db.collection("notifications")
-            .document(id)
-            .delete()
+        db.collection("notifications").document(id).delete()
             .addOnSuccessListener {
-
                 if (position >= 0 && position < list.size) {
                     holder.card.animate()
                         .alpha(0f)
@@ -205,23 +166,16 @@ class NotificationAdapter(
                         }
                         .start()
                 }
-
-                Toast.makeText(
-                    holder.itemView.context,
-                    "Notification deleted",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(holder.itemView.context, "Notification deleted", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener {
-                Toast.makeText(
-                    holder.itemView.context,
-                    "Failed to delete notification",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(holder.itemView.context, "Failed to delete notification", Toast.LENGTH_SHORT).show()
             }
     }
 
-    override fun getItemCount(): Int {
-        return list.size
+    override fun getItemCount(): Int = list.size
+
+    fun resetAnimation() {
+        lastAnimatedPosition = -1
     }
 }

@@ -146,6 +146,11 @@
         <activity android:name="com.example.jobmatrix.employer.EmployerMyJobsActivity" />
         <activity android:name="com.example.jobmatrix.employer.ApplicantDetailsActivity" />
 
+
+        <activity android:name="com.example.jobmatrix.chat.ChatActivity" android:exported="false"
+            tools:ignore="Instantiatable" />
+
+
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
             android:exported="false"
