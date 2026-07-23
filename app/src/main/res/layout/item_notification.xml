@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -24,21 +25,21 @@
         android:padding="14dp">
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/avatarContainer"
+            android:id="@+id/iconContainer"
             android:layout_width="44dp"
             android:layout_height="44dp"
+            app:cardBackgroundColor="@color/color_icon_bg"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp">
 
-            <TextView
-                android:id="@+id/tvAvatarLetter"
+            <ImageView
+                android:id="@+id/ivIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="T"
-                android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:padding="10dp"
+                android:src="@drawable/notification"
+                android:contentDescription="Notification symbol"
+                app:tint="@color/color_accent" />
 
         </androidx.cardview.widget.CardView>
 
@@ -54,13 +55,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-
-                <View
-                    android:id="@+id/unreadDot"
-                    android:layout_width="7dp"
-                    android:layout_height="7dp"
-                    android:layout_marginEnd="6dp"
-                    android:background="@drawable/dot_unread" />
 
                 <TextView
                     android:id="@+id/tvTitle"
@@ -85,39 +79,55 @@
 
             </LinearLayout>
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="Your application status has been updated."
+                android:textColor="@color/color_text_secondary"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_business"
+                    android:contentDescription="Job icon"
+                    app:tint="@color/color_accent" />
 
                 <TextView
-                    android:id="@+id/tvMessage"
+                    android:id="@+id/tvJobTitle"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:maxLines="2"
+                    android:layout_marginStart="5dp"
+                    android:maxLines="1"
                     android:ellipsize="end"
-                    android:text="Your application status has been updated."
-                    android:textColor="@color/color_text_secondary"
-                    android:textSize="12sp" />
+                    android:text="Android Developer"
+                    android:textColor="@color/color_accent"
+                    android:textSize="11sp" />
 
                 <TextView
                     android:id="@+id/tvStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:background="@drawable/bg_status_chip"
                     android:paddingStart="8dp"
                     android:paddingTop="4dp"
                     android:paddingEnd="8dp"
                     android:paddingBottom="4dp"
-                    android:text="Shortlisted"
-                    android:textColor="@android:color/white"
+                    android:text="Applied"
+                    android:textColor="@color/badge_orange"
                     android:textSize="10sp"
-                    android:textStyle="bold"
-                    android:visibility="visible" />
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
