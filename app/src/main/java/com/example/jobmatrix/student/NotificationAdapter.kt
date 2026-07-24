@@ -92,6 +92,7 @@ class NotificationAdapter(
 
         holder.card.setOnClickListener {
             holder.unreadDot.visibility = View.GONE
+            notification.isRead = true
             markAsRead(notification.notificationId, holder.itemView.context)
 
             if (type == "message") {

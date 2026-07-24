@@ -9,5 +9,5 @@ data class NotificationModel(
     val message: String = "",
     val type: String = "Info",
     val createdAt: Long = 0L,
-    val isRead: Boolean = false
+    var isRead: Boolean = false
 )

@@ -84,7 +84,8 @@ class NotificationActivity : AppCompatActivity() {
                 for (document in snapshot.documents) {
                     val notification = document.toObject(NotificationModel::class.java)
                     if (notification != null) {
-                        allNotifications.add(notification.copy(notificationId = document.id))
+                        val fixedIsRead = document.getBoolean("isRead") ?: false
+                        allNotifications.add(notification.copy(notificationId = document.id, isRead = fixedIsRead))
                     }
                 }
 
@@ -101,12 +102,13 @@ class NotificationActivity : AppCompatActivity() {
             val countView = tabView.findViewById<TextView>(R.id.tvTabCount)
 
             val count = if (label == "All") {
-                allNotifications.size
+                allNotifications.count { !it.isRead }
             } else {
-                allNotifications.count { it.type.equals(label, ignoreCase = true) }
+                allNotifications.count { it.type.equals(label, ignoreCase = true) && !it.isRead }
             }
 
-            countView.text = count.toString()
+            countView.text = if (count > 0) count.toString() else ""
+            countView.visibility = if (count > 0) android.view.View.VISIBLE else android.view.View.GONE
         }
     }
 
