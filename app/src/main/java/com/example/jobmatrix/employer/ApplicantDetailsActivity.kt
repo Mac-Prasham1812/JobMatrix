@@ -24,6 +24,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+
 class ApplicantDetailsActivity : AppCompatActivity() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -224,4 +225,5 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             .addOnSuccessListener { result -> cont.resume(result.token ?: "") }
             .addOnFailureListener { e -> cont.resumeWithException(e) }
     }
+
 }

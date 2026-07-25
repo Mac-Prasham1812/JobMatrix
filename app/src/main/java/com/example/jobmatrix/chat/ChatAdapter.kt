@@ -11,7 +11,8 @@ import com.jobmatrix.app.R
 
 class ChatAdapter(
     private val messages: MutableList<ChatMessage>,
-    private val currentUid: String
+    private val currentUid: String,
+    private val onLongPress: (ChatMessage) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -34,15 +35,17 @@ class ChatAdapter(
         val tvText = holder.itemView.findViewById<TextView>(R.id.tvMessageText)
         val tvTime = holder.itemView.findViewById<TextView>(R.id.tvMessageTime)
 
-        tvText.text = message.text
-        tvTime.text = if (message.timestamp > 0L) {
-            DateUtils.getRelativeTimeSpanString(
-                message.timestamp,
-                System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS
-            )
-        } else {
-            "Sending..."
+        tvText.text = if (message.isDeleted) "This message was deleted" else message.text
+
+        val timeText = if (message.timestamp > 0L) {
+            DateUtils.getRelativeTimeSpanString(message.timestamp, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+        } else "Sending..."
+
+        tvTime.text = if (message.edited && !message.isDeleted) "$timeText • edited" else timeText.toString()
+
+        holder.itemView.setOnLongClickListener {
+            if (message.senderId == currentUid && !message.isDeleted) onLongPress(message)
+            true
         }
     }
 
