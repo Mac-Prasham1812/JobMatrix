@@ -25,7 +25,7 @@ interface ApiService {
     ): Response<ResumeUrlResponse>
 
     @POST("send-notification")
-    suspend fun sendNotification(@Body body: NotifyRequest): Response<Unit>
+    suspend fun sendNotification(@Body body: NotifyRequest): Response<Map<String, Boolean>>
 
 }
 
