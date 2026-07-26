@@ -32,6 +32,9 @@ class ChatActivity : AppCompatActivity() {
 
     private var chatReady = false
 
+    private var editingMessageId: String? = null
+    private lateinit var editBar: android.widget.LinearLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -42,11 +45,16 @@ class ChatActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.rvMessages)
         etMessage = findViewById(R.id.etMessage)
 
+        editBar = findViewById(R.id.editBar)
+        findViewById<ImageView>(R.id.btnCancelEdit).setOnClickListener { cancelEdit() }
+        recyclerView.itemAnimator?.changeDuration = 250
+
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ChatAdapter(messages, auth.currentUser?.uid ?: "") { message ->
             showEditDeleteDialog(message)
         }
         recyclerView.adapter = adapter
+        recyclerView.itemAnimator?.changeDuration = 250
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
@@ -106,9 +114,20 @@ class ChatActivity : AppCompatActivity() {
                 messages.clear()
                 for (doc in snapshot.documents) {
                     doc.toObject(ChatMessage::class.java)?.let {
-                        messages.add(it.copy(messageId = doc.id))
+                        val fixedIsRead = doc.getBoolean("isRead") ?: false
+                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead))
                     }
                 }
+
+                val myUid = auth.currentUser?.uid ?: ""
+                for (doc in snapshot.documents) {
+                    val senderId = doc.getString("senderId") ?: ""
+                    val isRead = doc.getBoolean("isRead") ?: false
+                    if (senderId != myUid && !isRead) {
+                        doc.reference.update("isRead", true)
+                    }
+                }
+
                 adapter.notifyDataSetChanged()
                 if (messages.isNotEmpty()) recyclerView.scrollToPosition(messages.size - 1)
             }
@@ -117,6 +136,14 @@ class ChatActivity : AppCompatActivity() {
     private fun sendMessage() {
         val text = etMessage.text.toString().trim()
         if (text.isEmpty()) return
+
+        if (editingMessageId != null) {
+            db.collection("chats").document(applicationId)
+                .collection("messages").document(editingMessageId!!)
+                .update(mapOf("text" to text, "edited" to true))
+            cancelEdit()
+            return
+        }
 
         if (!chatReady) {
             android.widget.Toast.makeText(this, "Please wait...", android.widget.Toast.LENGTH_SHORT).show()
@@ -140,7 +167,6 @@ class ChatActivity : AppCompatActivity() {
         db.collection("chats").document(applicationId)
             .update(mapOf("lastMessage" to text, "lastMessageAt" to System.currentTimeMillis()))
 
-        // If employer sends, also create a "Message" notification for the student.
         if (role == "Employer") {
             createStudentNotification(text)
         }
@@ -199,38 +225,46 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun showEditDeleteDialog(message: com.example.jobmatrix.model.ChatMessage) {
-        val options = arrayOf("Edit", "Delete")
-        android.app.AlertDialog.Builder(this)
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> showEditInput(message)
-                    1 -> deleteMessage(message)
-                }
-            }
-            .show()
+        val view = layoutInflater.inflate(R.layout.dialog_chat_action_menu, null)
+        val dialog = android.app.AlertDialog.Builder(this).setView(view).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        view.findViewById<TextView>(R.id.btnEditMsg).setOnClickListener {
+            dialog.dismiss()
+            startEdit(message)
+        }
+        view.findViewById<TextView>(R.id.btnDeleteMsg).setOnClickListener {
+            dialog.dismiss()
+            confirmDelete(message)
+        }
+        dialog.show()
     }
 
-    private fun showEditInput(message: com.example.jobmatrix.model.ChatMessage) {
-        val input = EditText(this)
-        input.setText(message.text)
-        android.app.AlertDialog.Builder(this)
-            .setTitle("Edit message")
-            .setView(input)
-            .setPositiveButton("Save") { _, _ ->
-                val newText = input.text.toString().trim()
-                if (newText.isNotEmpty()) {
-                    db.collection("chats").document(applicationId)
-                        .collection("messages").document(message.messageId)
-                        .update(mapOf("text" to newText, "edited" to true))
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+    private fun startEdit(message: com.example.jobmatrix.model.ChatMessage) {
+        editingMessageId = message.messageId
+        etMessage.setText(message.text)
+        etMessage.setSelection(etMessage.text.length)
+        editBar.visibility = android.view.View.VISIBLE
     }
 
-    private fun deleteMessage(message: com.example.jobmatrix.model.ChatMessage) {
-        db.collection("chats").document(applicationId)
-            .collection("messages").document(message.messageId)
-            .update(mapOf("text" to "", "isDeleted" to true))
+    private fun cancelEdit() {
+        editingMessageId = null
+        etMessage.setText("")
+        editBar.visibility = android.view.View.GONE
+    }
+
+    private fun confirmDelete(message: com.example.jobmatrix.model.ChatMessage) {
+        val view = layoutInflater.inflate(R.layout.dialog_delete_message, null)
+        val dialog = android.app.AlertDialog.Builder(this).setView(view).setCancelable(false).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        view.findViewById<TextView>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<TextView>(R.id.btnDelete).setOnClickListener {
+            dialog.dismiss()
+            db.collection("chats").document(applicationId)
+                .collection("messages").document(message.messageId)
+                .update(mapOf("text" to "", "isDeleted" to true))
+        }
+        dialog.show()
     }
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="220dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog_premium"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:elevation="10dp">
+
+    <TextView
+        android:id="@+id/btnEditMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Edit"
+        android:textColor="@color/color_text_primary"
+        android:textSize="14sp"
+        android:padding="14dp"
+        android:background="@drawable/ripple_text"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
+        android:id="@+id/btnDeleteMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:textColor="@color/red"
+        android:textSize="14sp"
+        android:padding="14dp"
+        android:background="@drawable/ripple_text"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

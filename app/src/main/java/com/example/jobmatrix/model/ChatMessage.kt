@@ -7,5 +7,6 @@ data class ChatMessage(
     val text: String = "",
     val timestamp: Long = 0L,
     val edited: Boolean = false,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val isRead: Boolean = false
 )
