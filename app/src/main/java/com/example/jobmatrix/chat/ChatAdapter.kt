@@ -29,7 +29,6 @@ class ChatAdapter(
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         return object : RecyclerView.ViewHolder(view) {}
     }
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val message = messages[position]
         val tvText = holder.itemView.findViewById<TextView>(R.id.tvMessageText)
@@ -41,7 +40,24 @@ class ChatAdapter(
             DateUtils.getRelativeTimeSpanString(message.timestamp, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
         } else "Sending..."
 
-        tvTime.text = if (message.edited && !message.isDeleted) "$timeText • edited" else timeText.toString()
+        val editedLabel = if (message.edited && !message.isDeleted) " • edited" else ""
+        tvTime.text = "$timeText$editedLabel"
+
+        if (message.senderId == currentUid) {
+            val ivTick = holder.itemView.findViewById<android.widget.ImageView>(R.id.ivReadStatus)
+            if (message.isDeleted) {
+                ivTick.visibility = View.GONE
+            } else {
+                ivTick.visibility = View.VISIBLE
+                if (message.isRead) {
+                    ivTick.setImageResource(R.drawable.ic_tick_double)
+                    ivTick.setColorFilter(android.graphics.Color.parseColor("#4FC3F7"))
+                } else {
+                    ivTick.setImageResource(R.drawable.ic_tick_single)
+                    ivTick.clearColorFilter()
+                }
+            }
+        }
 
         holder.itemView.setOnLongClickListener {
             if (message.senderId == currentUid && !message.isDeleted) onLongPress(message)
