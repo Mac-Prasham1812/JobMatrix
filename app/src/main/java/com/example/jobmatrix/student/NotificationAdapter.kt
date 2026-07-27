@@ -25,6 +25,12 @@ class NotificationAdapter(
 
     private var lastAnimatedPosition = -1
 
+    private var recyclerViewRef: RecyclerView? = null
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        recyclerViewRef = recyclerView
+    }
+
     private val avatarColors = listOf(
         "#7C6FF0", "#35C1B0", "#F5A623", "#E85D75", "#4E8CFF", "#9B6FD6"
     )
@@ -149,6 +155,61 @@ class NotificationAdapter(
 
         dialog.show()
         dialog.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_premium)
+    }
+
+    fun requestDelete(position: Int) {
+        if (position < 0 || position >= list.size) return
+        val notification = list[position]
+        notifyItemChanged(position)
+
+        val context = recyclerViewRef?.context ?: return
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_delete_notification, null)
+        val dialog = AlertDialog.Builder(context).setView(dialogView).setCancelable(false).create()
+
+        dialogView.findViewById<TextView>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        dialogView.findViewById<TextView>(R.id.btnDelete).setOnClickListener {
+            dialog.dismiss()
+            db.collection("notifications").document(notification.notificationId).delete()
+                .addOnSuccessListener {
+                    val idx = list.indexOf(notification)
+                    if (idx != -1) {
+                        list.removeAt(idx)
+                        notifyItemRemoved(idx)
+                    }
+                }
+        }
+        dialog.show()
+        dialog.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_premium)
+    }
+
+    fun deleteImmediately(position: Int) {
+        if (position < 0 || position >= list.size) return
+        val notification = list[position]
+        val context = recyclerViewRef?.context
+
+        db.collection("notifications").document(notification.notificationId).delete()
+            .addOnSuccessListener {
+                val idx = list.indexOf(notification)
+                if (idx != -1) {
+                    list.removeAt(idx)
+                    notifyItemRemoved(idx)
+                }
+                context?.let { showCustomToast(it, "Notification deleted") }
+            }
+            .addOnFailureListener {
+                notifyItemChanged(position)
+                context?.let { showCustomToast(it, "Failed to delete") }
+            }
+    }
+
+    private fun showCustomToast(context: android.content.Context, message: String) {
+        val layout = LayoutInflater.from(context).inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        android.widget.Toast(context).apply {
+            duration = android.widget.Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 
     private fun deleteNotification(id: String, position: Int, holder: VH) {
