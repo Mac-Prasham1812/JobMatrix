@@ -26,6 +26,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var etMessage: EditText
 
     private val messages = mutableListOf<ChatMessage>()
+    private val listItems = mutableListOf<ChatListItem>()
 
     private var studentId = ""
     private var employerId = ""
@@ -34,6 +35,7 @@ class ChatActivity : AppCompatActivity() {
 
     private var editingMessageId: String? = null
     private lateinit var editBar: android.widget.LinearLayout
+    private lateinit var emptyStateContainer: android.widget.LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +45,7 @@ class ChatActivity : AppCompatActivity() {
         if (applicationId.isEmpty()) { finish(); return }
 
         recyclerView = findViewById(R.id.rvMessages)
+        emptyStateContainer = findViewById(R.id.emptyStateContainer)
         etMessage = findViewById(R.id.etMessage)
 
         editBar = findViewById(R.id.editBar)
@@ -50,7 +53,7 @@ class ChatActivity : AppCompatActivity() {
         recyclerView.itemAnimator?.changeDuration = 250
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ChatAdapter(messages, auth.currentUser?.uid ?: "") { message ->
+        adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "") { message ->
             showEditDeleteDialog(message)
         }
         recyclerView.adapter = adapter
@@ -115,7 +118,8 @@ class ChatActivity : AppCompatActivity() {
                 for (doc in snapshot.documents) {
                     doc.toObject(ChatMessage::class.java)?.let {
                         val fixedIsRead = doc.getBoolean("isRead") ?: false
-                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead))
+                        val fixedIsDeleted = doc.getBoolean("isDeleted") ?: false
+                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead, isDeleted = fixedIsDeleted))
                     }
                 }
 
@@ -128,8 +132,10 @@ class ChatActivity : AppCompatActivity() {
                     }
                 }
 
+                buildListItems()
                 adapter.notifyDataSetChanged()
-                if (messages.isNotEmpty()) recyclerView.scrollToPosition(messages.size - 1)
+                emptyStateContainer.visibility = if (messages.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                if (listItems.isNotEmpty()) recyclerView.scrollToPosition(listItems.size - 1)
             }
     }
 
@@ -266,5 +272,32 @@ class ChatActivity : AppCompatActivity() {
                 .update(mapOf("text" to "", "isDeleted" to true))
         }
         dialog.show()
+    }
+
+    private fun dateLabelFor(timestamp: Long): String {
+        val cal = java.util.Calendar.getInstance().apply { timeInMillis = timestamp }
+        val today = java.util.Calendar.getInstance()
+        val yesterday = java.util.Calendar.getInstance().apply { add(java.util.Calendar.DAY_OF_YEAR, -1) }
+
+        return when {
+            cal.get(java.util.Calendar.YEAR) == today.get(java.util.Calendar.YEAR) &&
+                    cal.get(java.util.Calendar.DAY_OF_YEAR) == today.get(java.util.Calendar.DAY_OF_YEAR) -> "Today"
+            cal.get(java.util.Calendar.YEAR) == yesterday.get(java.util.Calendar.YEAR) &&
+                    cal.get(java.util.Calendar.DAY_OF_YEAR) == yesterday.get(java.util.Calendar.DAY_OF_YEAR) -> "Yesterday"
+            else -> android.text.format.DateFormat.format("dd MMM yyyy", timestamp).toString()
+        }
+    }
+
+    private fun buildListItems() {
+        listItems.clear()
+        var lastLabel = ""
+        for (msg in messages) {
+            val label = dateLabelFor(msg.timestamp)
+            if (label != lastLabel) {
+                listItems.add(ChatListItem.Header(label))
+                lastLabel = label
+            }
+            listItems.add(ChatListItem.MessageItem(msg))
+        }
     }
 }

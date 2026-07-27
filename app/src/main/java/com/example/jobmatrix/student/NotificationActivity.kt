@@ -40,6 +40,20 @@ class NotificationActivity : AppCompatActivity() {
         adapter = NotificationAdapter(visibleNotifications)
         recyclerView.adapter = adapter
 
+        val swipeHandler = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+            0, androidx.recyclerview.widget.ItemTouchHelper.LEFT
+        ) {
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    adapter.deleteImmediately(position)
+                }
+            }
+        }
+        androidx.recyclerview.widget.ItemTouchHelper(swipeHandler).attachToRecyclerView(recyclerView)
+
         setupTabs()
         loadNotifications()
         findViewById<android.widget.ImageView>(R.id.btnBack).setOnClickListener { finish() }

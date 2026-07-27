@@ -4,40 +4,59 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.jobmatrix.model.ChatMessage
 import com.jobmatrix.app.R
 
 class ChatAdapter(
-    private val messages: MutableList<ChatMessage>,
+    private val items: MutableList<ChatListItem>,
     private val currentUid: String,
-    private val onLongPress: (ChatMessage) -> Unit
+    private val onLongPress: (com.example.jobmatrix.model.ChatMessage) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
+        const val TYPE_HEADER = 0
         const val TYPE_SENT = 1
         const val TYPE_RECEIVED = 2
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (messages[position].senderId == currentUid) TYPE_SENT else TYPE_RECEIVED
+        return when (val item = items[position]) {
+            is ChatListItem.Header -> TYPE_HEADER
+            is ChatListItem.MessageItem -> if (item.message.senderId == currentUid) TYPE_SENT else TYPE_RECEIVED
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val layoutId = if (viewType == TYPE_SENT) R.layout.item_message_sent else R.layout.item_message_received
+        val layoutId = when (viewType) {
+            TYPE_HEADER -> R.layout.item_date_header
+            TYPE_SENT -> R.layout.item_message_sent
+            else -> R.layout.item_message_received
+        }
         val view = LayoutInflater.from(parent.context).inflate(layoutId, parent, false)
         return object : RecyclerView.ViewHolder(view) {}
     }
+
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val message = messages[position]
+        when (val item = items[position]) {
+            is ChatListItem.Header -> {
+                holder.itemView.findViewById<TextView>(R.id.tvDateHeader).text = item.label
+                holder.itemView.alpha = 0f
+                holder.itemView.animate().alpha(1f).setDuration(300).start()
+            }
+            is ChatListItem.MessageItem -> bindMessage(holder, item.message)
+        }
+    }
+
+    private fun bindMessage(holder: RecyclerView.ViewHolder, message: com.example.jobmatrix.model.ChatMessage) {
         val tvText = holder.itemView.findViewById<TextView>(R.id.tvMessageText)
         val tvTime = holder.itemView.findViewById<TextView>(R.id.tvMessageTime)
 
         tvText.text = if (message.isDeleted) "This message was deleted" else message.text
 
         val timeText = if (message.timestamp > 0L) {
-            DateUtils.getRelativeTimeSpanString(message.timestamp, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+            android.text.format.DateFormat.format("hh:mm a", message.timestamp)
         } else "Sending..."
 
         val editedLabel = if (message.edited && !message.isDeleted) " • edited" else ""
@@ -59,11 +78,14 @@ class ChatAdapter(
             }
         }
 
+        holder.itemView.alpha = 0f
+        holder.itemView.animate().alpha(1f).setDuration(200).start()
+
         holder.itemView.setOnLongClickListener {
             if (message.senderId == currentUid && !message.isDeleted) onLongPress(message)
             true
         }
     }
 
-    override fun getItemCount(): Int = messages.size
+    override fun getItemCount(): Int = items.size
 }
