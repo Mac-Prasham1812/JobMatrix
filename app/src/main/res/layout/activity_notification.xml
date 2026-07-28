@@ -50,6 +50,17 @@
         app:tabMode="scrollable"
         app:tabRippleColor="@color/color_icon_bg" />
 
+    <TextView
+        android:id="@+id/btnMarkAllRead"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mark all as read"
+        android:textColor="@color/color_accent"
+        android:textSize="13sp"
+        android:padding="8dp"
+        android:layout_gravity="end"
+        android:visibility="gone" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

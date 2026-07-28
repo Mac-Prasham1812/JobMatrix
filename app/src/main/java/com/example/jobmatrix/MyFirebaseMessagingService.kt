@@ -40,6 +40,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
         // 1. Show tray notification
         showNotification(title, body)
+        updateBadgeCount()
 
         // 2. Send event inside app so open screen can update instantly
         val intent = Intent("JOBMATRIX_NEW_NOTIFICATION")
@@ -96,5 +97,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     companion object {
         const val CHANNEL_ID = "jobmatrix_channel"
+    }
+
+    private fun updateBadgeCount() {
+        val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            .collection("notifications")
+            .whereEqualTo("studentId", userId)
+            .whereEqualTo("isRead", false)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val count = snapshot.size()
+                if (count > 0) {
+                    me.leolin.shortcutbadger.ShortcutBadger.applyCount(applicationContext, count)
+                } else {
+                    me.leolin.shortcutbadger.ShortcutBadger.removeCount(applicationContext)
+                }
+            }
     }
 }
