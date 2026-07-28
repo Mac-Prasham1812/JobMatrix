@@ -1,6 +1,7 @@
 package com.example.jobmatrix.student
 
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -21,7 +22,7 @@ class NotificationActivity : AppCompatActivity() {
     private lateinit var adapter: NotificationAdapter
 
     private val allNotifications = mutableListOf<NotificationModel>()
-    private val visibleNotifications = mutableListOf<NotificationModel>()
+    private val visibleNotifications = mutableListOf<NotificationListItem>()
 
     private val db = FirebaseFirestore.getInstance()
 
@@ -40,6 +41,9 @@ class NotificationActivity : AppCompatActivity() {
         adapter = NotificationAdapter(visibleNotifications)
         recyclerView.adapter = adapter
 
+
+        findViewById<TextView>(R.id.btnMarkAllRead).setOnClickListener { markAllAsRead() }
+
         val swipeHandler = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
             0, androidx.recyclerview.widget.ItemTouchHelper.LEFT
         ) {
@@ -56,6 +60,7 @@ class NotificationActivity : AppCompatActivity() {
 
         setupTabs()
         loadNotifications()
+        syncBadgeCount()
         findViewById<android.widget.ImageView>(R.id.btnBack).setOnClickListener { finish() }
     }
 
@@ -109,6 +114,9 @@ class NotificationActivity : AppCompatActivity() {
     }
 
     private fun updateTabCounts() {
+        val btnMarkAllRead = findViewById<TextView>(R.id.btnMarkAllRead)
+        btnMarkAllRead.visibility = if (allNotifications.any { !it.isRead })
+            android.view.View.VISIBLE else android.view.View.GONE
         for (i in 0 until notificationTabs.tabCount) {
             val tab = notificationTabs.getTabAt(i) ?: continue
             val tabView = tab.customView ?: continue
@@ -125,19 +133,72 @@ class NotificationActivity : AppCompatActivity() {
             countView.visibility = if (count > 0) android.view.View.VISIBLE else android.view.View.GONE
         }
     }
-
     private fun filterNotifications() {
+        val filtered = if (selectedFilter == "All") {
+            allNotifications
+        } else {
+            allNotifications.filter { it.type.equals(selectedFilter, ignoreCase = true) }
+        }
+
         visibleNotifications.clear()
 
-        if (selectedFilter == "All") {
-            visibleNotifications.addAll(allNotifications)
-        } else {
-            visibleNotifications.addAll(
-                allNotifications.filter { it.type.equals(selectedFilter, ignoreCase = true) }
-            )
-        }
+        val today = filtered.filter { getBucket(it.createdAt) == "Today" }
+        val yesterday = filtered.filter { getBucket(it.createdAt) == "Yesterday" }
+        val thisWeek = filtered.filter { getBucket(it.createdAt) == "This Week" }
+        val earlier = filtered.filter { getBucket(it.createdAt) == "Earlier" }
+
+        listOf("Today" to today, "Yesterday" to yesterday, "This Week" to thisWeek, "Earlier" to earlier)
+            .forEach { (label, items) ->
+                if (items.isNotEmpty()) {
+                    visibleNotifications.add(NotificationListItem.Header(label))
+                    items.forEach { visibleNotifications.add(NotificationListItem.Item(it)) }
+                }
+            }
 
         adapter.resetAnimation()
         adapter.notifyDataSetChanged()
+    }
+
+    private fun getBucket(timestamp: Long): String {
+        if (timestamp <= 0L) return "Earlier"
+        val now = System.currentTimeMillis()
+        val diff = now - timestamp
+        val oneDay = 24 * 60 * 60 * 1000L
+
+        return when {
+            DateUtils.isToday(timestamp) -> "Today"
+            DateUtils.isToday(timestamp + oneDay) -> "Yesterday"
+            diff < 7 * oneDay -> "This Week"
+            else -> "Earlier"
+        }
+    }
+
+
+    private fun markAllAsRead() {
+        val unread = allNotifications.filter { !it.isRead }
+        if (unread.isEmpty()) return
+
+        val batch = db.batch()
+        unread.forEach { n ->
+            batch.update(db.collection("notifications").document(n.notificationId), "isRead", true)
+        }
+        batch.commit()
+            .addOnSuccessListener { syncBadgeCount() }
+    }
+
+    private fun syncBadgeCount() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("notifications")
+            .whereEqualTo("studentId", userId)
+            .whereEqualTo("isRead", false)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val count = snapshot.size()
+                if (count > 0) {
+                    me.leolin.shortcutbadger.ShortcutBadger.applyCount(applicationContext, count)
+                } else {
+                    me.leolin.shortcutbadger.ShortcutBadger.removeCount(applicationContext)
+                }
+            }
     }
 }

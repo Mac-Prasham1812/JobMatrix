@@ -63,6 +63,11 @@ class ChatActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
 
         resolveParticipants()
+        recyclerView.viewTreeObserver.addOnGlobalLayoutListener {
+            if (listItems.isNotEmpty()) {
+                recyclerView.scrollToPosition(listItems.size - 1)
+            }
+        }
     }
 
     private fun resolveParticipants() {
@@ -186,19 +191,34 @@ class ChatActivity : AppCompatActivity() {
                 val jobTitle = appDoc.getString("jobTitle") ?: ""
                 val companyName = appDoc.getString("companyName") ?: ""
 
-                val notif = hashMapOf(
-                    "studentId" to studentId,
-                    "applicationId" to applicationId,
-                    "jobTitle" to jobTitle,
-                    "companyName" to companyName,
-                    "message" to text,
-                    "type" to "Message",
-                    "createdAt" to System.currentTimeMillis(),
-                    "isRead" to false
-                )
-                db.collection("notifications").add(notif)
+                db.collection("notifications")
+                    .whereEqualTo("applicationId", applicationId)
+                    .whereEqualTo("employerId", employerId)
+                    .whereEqualTo("type", "Message")
+                    .whereEqualTo("isRead", false)
 
-                // NEW: send push too
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        if (!snapshot.isEmpty) {
+                            val docId = snapshot.documents[0].id
+                            db.collection("notifications").document(docId)
+                                .update(mapOf("message" to text, "createdAt" to System.currentTimeMillis()))
+                        } else {
+                            val notif = hashMapOf(
+                                "studentId" to studentId,
+                                "employerId" to employerId,
+                                "applicationId" to applicationId,
+                                "jobTitle" to jobTitle,
+                                "companyName" to companyName,
+                                "message" to text,
+                                "type" to "Message",
+                                "createdAt" to System.currentTimeMillis(),
+                                "isRead" to false
+                            )
+                            db.collection("notifications").add(notif)
+                        }
+                    }
+
                 db.collection("users").document(studentId).get()
                     .addOnSuccessListener { userDoc ->
                         val token = userDoc.getString("fcmToken") ?: ""

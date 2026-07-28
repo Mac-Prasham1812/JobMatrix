@@ -63,6 +63,7 @@ dependencies {
     implementation ("com.google.android.material:material:1.12.0")
 
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation ("me.leolin:ShortcutBadger:1.1.22@aar")
 
 
 

@@ -18,14 +18,18 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 
 class NotificationAdapter(
-    private val list: MutableList<NotificationModel>
-) : RecyclerView.Adapter<NotificationAdapter.VH>() {
+    private val list: MutableList<NotificationListItem>
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val db = FirebaseFirestore.getInstance()
-
     private var lastAnimatedPosition = -1
-
     private var recyclerViewRef: RecyclerView? = null
+
+    companion object {
+        const val TYPE_HEADER = 0
+        const val TYPE_ITEM = 1
+    }
+
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         recyclerViewRef = recyclerView
@@ -46,14 +50,36 @@ class NotificationAdapter(
         val card: View = view.findViewById(R.id.cardRoot)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_notification, parent, false)
-        return VH(view)
+    class HeaderVH(view: View) : RecyclerView.ViewHolder(view) {
+        val tvDateHeader: TextView = view.findViewById(R.id.tvDateHeader)
     }
 
-    override fun onBindViewHolder(holder: VH, @SuppressLint("RecyclerView") position: Int) {
-        val notification = list[position]
+    override fun getItemViewType(position: Int): Int =
+        if (list[position] is NotificationListItem.Header) TYPE_HEADER else TYPE_ITEM
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_HEADER) {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_date_header, parent, false)
+            HeaderVH(view)
+        } else {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_notification, parent, false)
+            VH(view)
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, @SuppressLint("RecyclerView") position: Int) {
+        val entry = list[position]
+
+        if (holder is HeaderVH && entry is NotificationListItem.Header) {
+            holder.tvDateHeader.text = entry.label
+            return
+        }
+
+        if (holder !is VH || entry !is NotificationListItem.Item) return
+        val notification = entry.notification
+
         val label = notification.companyName.ifBlank { notification.type }
 
         holder.tvTitle.text = label
@@ -129,7 +155,7 @@ class NotificationAdapter(
         db.collection("notifications").document(id).update("isRead", true)
             .addOnFailureListener {
                 android.util.Log.e("NotificationAdapter", "markAsRead failed: ${it.message}")
-                android.widget.Toast.makeText(context, "Mark read failed: ${it.message}", android.widget.Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Mark read failed: ${it.message}", Toast.LENGTH_LONG).show()
             }
     }
 
@@ -143,12 +169,8 @@ class NotificationAdapter(
             .setCancelable(false)
             .create()
 
-        val btnCancel = dialogView.findViewById<TextView>(R.id.btnCancel)
-        val btnDelete = dialogView.findViewById<TextView>(R.id.btnDelete)
-
-        btnCancel.setOnClickListener { dialog.dismiss() }
-
-        btnDelete.setOnClickListener {
+        dialogView.findViewById<TextView>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        dialogView.findViewById<TextView>(R.id.btnDelete).setOnClickListener {
             dialog.dismiss()
             deleteNotification(notification.notificationId, position, holder)
         }
@@ -159,7 +181,8 @@ class NotificationAdapter(
 
     fun requestDelete(position: Int) {
         if (position < 0 || position >= list.size) return
-        val notification = list[position]
+        val entry = list[position] as? NotificationListItem.Item ?: return
+        val notification = entry.notification
         notifyItemChanged(position)
 
         val context = recyclerViewRef?.context ?: return
@@ -171,7 +194,7 @@ class NotificationAdapter(
             dialog.dismiss()
             db.collection("notifications").document(notification.notificationId).delete()
                 .addOnSuccessListener {
-                    val idx = list.indexOf(notification)
+                    val idx = list.indexOf(entry)
                     if (idx != -1) {
                         list.removeAt(idx)
                         notifyItemRemoved(idx)
@@ -184,12 +207,13 @@ class NotificationAdapter(
 
     fun deleteImmediately(position: Int) {
         if (position < 0 || position >= list.size) return
-        val notification = list[position]
+        val entry = list[position] as? NotificationListItem.Item ?: return
+        val notification = entry.notification
         val context = recyclerViewRef?.context
 
         db.collection("notifications").document(notification.notificationId).delete()
             .addOnSuccessListener {
-                val idx = list.indexOf(notification)
+                val idx = list.indexOf(entry)
                 if (idx != -1) {
                     list.removeAt(idx)
                     notifyItemRemoved(idx)
@@ -205,8 +229,8 @@ class NotificationAdapter(
     private fun showCustomToast(context: android.content.Context, message: String) {
         val layout = LayoutInflater.from(context).inflate(R.layout.toast_custom, null)
         layout.findViewById<TextView>(R.id.tvToastMessage).text = message
-        android.widget.Toast(context).apply {
-            duration = android.widget.Toast.LENGTH_SHORT
+        Toast(context).apply {
+            duration = Toast.LENGTH_SHORT
             view = layout
             show()
         }
