@@ -402,6 +402,7 @@ class ApplyJobActivity : AppCompatActivity() {
         }
             .addOnSuccessListener {
                 isUploading = false
+                createEmployerNotificationForApplication(applicationId, studentId)
                 Toast.makeText(this, "Application submitted successfully", Toast.LENGTH_SHORT).show()
                 finish()
             }
@@ -432,5 +433,23 @@ class ApplyJobActivity : AppCompatActivity() {
         layoutProgress.animate().alpha(1f).setDuration(180).start()
     }
 
+    private fun createEmployerNotificationForApplication(applicationId: String, studentId: String) {
+        db.collection("jobs").document(jobId).get()
+            .addOnSuccessListener { jobDoc ->
+                val employerId = jobDoc.getString("employerId") ?: return@addOnSuccessListener
+                val notif = hashMapOf(
+                    "employerId" to employerId,
+                    "studentId" to studentId,
+                    "applicationId" to applicationId,
+                    "jobTitle" to jobTitle,
+                    "companyName" to companyName,
+                    "message" to "New application received",
+                    "type" to "Applied",
+                    "createdAt" to System.currentTimeMillis(),
+                    "isRead" to false
+                )
+                db.collection("notifications").add(notif)
+            }
+    }
 
 }

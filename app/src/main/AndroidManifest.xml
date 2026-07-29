@@ -151,6 +151,9 @@
             tools:ignore="Instantiatable" />
 
 
+     <activity android:name="com.example.jobmatrix.employer.EmployerNotificationActivity"/>
+
+
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
             android:exported="false"

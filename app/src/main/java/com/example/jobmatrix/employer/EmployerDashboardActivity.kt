@@ -28,7 +28,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private var jobListener: ListenerRegistration? = null
 
-    private lateinit var ivProfile: ImageView
+//    private lateinit var ivProfile: ImageView
     private lateinit var tvEmployerName: TextView
     private lateinit var tvAppliedCount: TextView
     private lateinit var tvReviewCount: TextView
@@ -37,6 +37,10 @@ class EmployerDashboardActivity : AppCompatActivity() {
 //    private lateinit var tvViewAll: TextView
     private lateinit var rvShimmer: RecyclerView
     private var shimmerStartTime = 0L
+
+    private lateinit var ivBell: ImageView
+    private lateinit var tvBellBadge: TextView
+    private var notifListener: com.google.firebase.firestore.ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +56,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         setupRecycler()
         setupClicks()
         setEmployerName()
+        listenBadgeCount()
         loadEmployerJobs()
         setActiveNav(R.id.navDashboard)
 
@@ -67,13 +72,16 @@ class EmployerDashboardActivity : AppCompatActivity() {
 
     private fun initViews() {
         recyclerView = findViewById(R.id.rvEmployerJobs)
-        ivProfile = findViewById(R.id.ivProfile)
+//        ivProfile = findViewById(R.id.ivProfile)
         tvEmployerName = findViewById(R.id.tvEmployerName)
         tvAppliedCount = findViewById(R.id.tvAppliedCount)
         tvReviewCount = findViewById(R.id.tvReviewCount)
         tvShortlistedCount = findViewById(R.id.tvShortlistedCount)
 //        tvViewAll = findViewById(R.id.tvViewAll)
         rvShimmer = findViewById(R.id.rvShimmer)
+
+        ivBell = findViewById(R.id.ivBell)
+        tvBellBadge = findViewById(R.id.tvBellBadge)
     }
 
     private fun setupRecycler() {
@@ -86,8 +94,8 @@ class EmployerDashboardActivity : AppCompatActivity() {
     }
 
     private fun setupClicks() {
-        ivProfile.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
+        ivBell.setOnClickListener {
+            startActivity(Intent(this, EmployerNotificationActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.navDashboard).setOnClickListener {
@@ -194,6 +202,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         jobListener?.remove()
+        notifListener?.remove()
     }
 
     override fun onResume() {
@@ -235,6 +244,26 @@ class EmployerDashboardActivity : AppCompatActivity() {
                 tvAppliedCount.text = applied.toString().padStart(2, '0')
                 tvReviewCount.text = review.toString().padStart(2, '0')
                 tvShortlistedCount.text = shortlisted.toString().padStart(2, '0')
+            }
+    }
+
+    private fun listenBadgeCount() {
+        val employerId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        notifListener = db.collection("notifications")
+            .whereEqualTo("employerId", employerId)
+            .whereEqualTo("isRead", false)
+            .addSnapshotListener { snap, _ ->
+                val count = snap?.size() ?: 0
+                if (count > 0) {
+                    tvBellBadge.text = if (count > 9) "9+" else count.toString()
+                    if (tvBellBadge.visibility != android.view.View.VISIBLE) {
+                        tvBellBadge.visibility = android.view.View.VISIBLE
+                        tvBellBadge.scaleX = 0f; tvBellBadge.scaleY = 0f
+                        tvBellBadge.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                    }
+                } else {
+                    tvBellBadge.visibility = android.view.View.GONE
+                }
             }
     }
 }
