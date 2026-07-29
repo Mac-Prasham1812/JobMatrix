@@ -163,6 +163,7 @@ class ChatActivity : AppCompatActivity() {
 
         val myUid = auth.currentUser?.uid ?: return
         val role = if (myUid == studentId) "Student" else "Employer"
+        android.util.Log.d("JM_CHAT", "sendMessage role=$role myUid=$myUid studentId=$studentId")
 
         val messageData = hashMapOf(
             "senderId" to myUid,
@@ -179,7 +180,10 @@ class ChatActivity : AppCompatActivity() {
             .update(mapOf("lastMessage" to text, "lastMessageAt" to System.currentTimeMillis()))
 
         if (role == "Employer") {
+            android.util.Log.d("JM_CHAT", "calling createStudentNotification")
             createStudentNotification(text)
+        } else {
+            createEmployerNotification(text)
         }
 
         etMessage.setText("")
@@ -195,14 +199,16 @@ class ChatActivity : AppCompatActivity() {
                     .whereEqualTo("applicationId", applicationId)
                     .whereEqualTo("employerId", employerId)
                     .whereEqualTo("type", "Message")
-                    .whereEqualTo("isRead", false)
-
                     .get()
                     .addOnSuccessListener { snapshot ->
                         if (!snapshot.isEmpty) {
                             val docId = snapshot.documents[0].id
                             db.collection("notifications").document(docId)
-                                .update(mapOf("message" to text, "createdAt" to System.currentTimeMillis()))
+                                .update(mapOf(
+                                    "message" to text,
+                                    "createdAt" to System.currentTimeMillis(),
+                                    "isRead" to false
+                                ))
                         } else {
                             val notif = hashMapOf(
                                 "studentId" to studentId,
@@ -218,6 +224,9 @@ class ChatActivity : AppCompatActivity() {
                             db.collection("notifications").add(notif)
                         }
                     }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("JM_CHAT", "notif query failed", e)
+                    }
 
                 db.collection("users").document(studentId).get()
                     .addOnSuccessListener { userDoc ->
@@ -231,6 +240,50 @@ class ChatActivity : AppCompatActivity() {
                                 } catch (e: Exception) { }
                             }
                         }
+                    }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("JM_CHAT", "appDoc fetch failed", e)
+            }
+    }
+
+    private fun createEmployerNotification(text: String) {
+        db.collection("applications").document(applicationId).get()
+            .addOnSuccessListener { appDoc ->
+                val jobTitle = appDoc.getString("jobTitle") ?: ""
+                val companyName = appDoc.getString("companyName") ?: ""
+
+                db.collection("notifications")
+                    .whereEqualTo("applicationId", applicationId)
+                    .whereEqualTo("studentId", studentId)
+                    .whereEqualTo("type", "Message")
+                    .get()
+                    .addOnSuccessListener { snapshot ->
+                        if (!snapshot.isEmpty) {
+                            val docId = snapshot.documents[0].id
+                            db.collection("notifications").document(docId)
+                                .update(mapOf(
+                                    "message" to text,
+                                    "createdAt" to System.currentTimeMillis(),
+                                    "isRead" to false
+                                ))
+                        } else {
+                            val notif = hashMapOf(
+                                "employerId" to employerId,
+                                "studentId" to studentId,
+                                "applicationId" to applicationId,
+                                "jobTitle" to jobTitle,
+                                "companyName" to companyName,
+                                "message" to text,
+                                "type" to "Message",
+                                "createdAt" to System.currentTimeMillis(),
+                                "isRead" to false
+                            )
+                            db.collection("notifications").add(notif)
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e("JM_CHAT", "employer notif query failed", e)
                     }
             }
     }
