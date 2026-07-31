@@ -44,6 +44,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     private lateinit var tvExperience: TextView
     private lateinit var chipSkills: ChipGroup
     private lateinit var tvResumeName: TextView
+    private lateinit var tvLocation: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +58,8 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         val appliedAt = intent.getLongExtra("appliedAt", 0L)
 
         tvName = findViewById(R.id.tvName)
+        tvLocation = findViewById(R.id.tvLocation)
+        tvLocation.text = intent.getStringExtra("jobLocation")?.ifBlank { "Location not available" } ?: "Location not available"
         tvJobTitle = findViewById(R.id.tvJobTitle)
         tvStatus = findViewById(R.id.tvStatus)
         tvAppliedAgo = findViewById(R.id.tvAppliedAgo)
@@ -97,7 +100,12 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         if (studentId.isEmpty()) return
         db.collection("users").document(studentId).get()
             .addOnSuccessListener { doc ->
-                tvName.text = doc.getString("name") ?: "Unknown"
+                val name = doc.getString("name") ?: "Unknown"
+                tvName.text = name
+                findViewById<TextView>(R.id.tvProfile).apply {
+                    text = getInitials(name)
+                    background.mutate().setTint(avatarColor(name))
+                }
                 tvPhone.text = doc.getString("phone")?.ifBlank { "Not available" } ?: "Not available"
                 tvEmail.text = doc.getString("email") ?: "Not available"
                 tvExperience.text = doc.getString("experience")?.ifBlank { "N/A" } ?: "N/A"
@@ -224,6 +232,21 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         user.getIdToken(true)
             .addOnSuccessListener { result -> cont.resume(result.token ?: "") }
             .addOnFailureListener { e -> cont.resumeWithException(e) }
+    }
+
+    private fun getInitials(name: String): String {
+        val p = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        return when {
+            p.isEmpty() -> "?"
+            p.size == 1 -> p[0].take(1).uppercase()
+            else -> (p.first().take(1) + p.last().take(1)).uppercase()
+        }
+    }
+
+    private fun avatarColor(seed: String): Int {
+        val palette = listOf("#FF7A45", "#4C6EF5", "#12B886", "#F783AC", "#845EF7", "#FAB005")
+        val idx = (seed.hashCode() and 0x7fffffff) % palette.size
+        return android.graphics.Color.parseColor(palette[idx])
     }
 
 }
