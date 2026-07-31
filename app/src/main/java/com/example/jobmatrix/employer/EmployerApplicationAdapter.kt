@@ -46,7 +46,7 @@ class EmployerApplicationAdapter(
         holder.tvJobTitle.text = job?.title ?: app.jobTitle
         holder.tvExperience.text = job?.experience?.ifBlank { "N/A" } ?: "N/A"
         holder.tvLocation.text = job?.location?.ifBlank { "N/A" } ?: "N/A"
-        holder.tvAppliedDate.text = "Applied ${timeAgo(app.appliedAt)}"
+        holder.tvAppliedDate.text = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(app.appliedAt))
 
         when (app.status.lowercase()) {
             "shortlisted" -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_shortlisted)
@@ -74,17 +74,33 @@ class EmployerApplicationAdapter(
     private fun setStudentData(holder: VH, name: String, email: String) {
         holder.tvStudentName.text = name
         holder.tvStudentEmail.text = email
-        holder.tvProfile.text = if (name.isNotEmpty()) name.first().uppercaseChar().toString() else "?"
+        holder.tvProfile.text = getInitials(name)
+        holder.tvProfile.background.mutate().setTint(avatarColor(name))
     }
 
-    private fun timeAgo(time: Long): String {
-        val diff = System.currentTimeMillis() - time
-        val days = TimeUnit.MILLISECONDS.toDays(diff)
+//    private fun timeAgo(time: Long): String {
+//        val diff = System.currentTimeMillis() - time
+//        val days = TimeUnit.MILLISECONDS.toDays(diff)
+//        return when {
+//            days <= 0L -> "today"
+//            days == 1L -> "1 day ago"
+//            else -> "$days days ago"
+//        }
+//    }
+
+    private fun getInitials(name: String): String {
+        val p = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
         return when {
-            days <= 0L -> "today"
-            days == 1L -> "1 day ago"
-            else -> "$days days ago"
+            p.isEmpty() -> "?"
+            p.size == 1 -> p[0].take(1).uppercase()
+            else -> (p.first().take(1) + p.last().take(1)).uppercase()
         }
+    }
+
+    private fun avatarColor(seed: String): Int {
+        val palette = listOf("#FF7A45", "#4C6EF5", "#12B886", "#F783AC", "#845EF7", "#FAB005")
+        val idx = (seed.hashCode() and 0x7fffffff) % palette.size
+        return android.graphics.Color.parseColor(palette[idx])
     }
 
     override fun getItemCount() = list.size

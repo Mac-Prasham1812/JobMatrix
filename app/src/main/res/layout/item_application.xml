@@ -84,74 +84,112 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal"
+            android:weightSum="3">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_experience"
-                    app:tint="@color/color_text_secondary"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_experience"
+                        app:tint="@color/color_text_hint"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Experience"
+                        android:textSize="10sp"
+                        android:textColor="@color/color_text_hint"/>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvExperience"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:textSize="11sp"
-                    android:textColor="@color/color_text_secondary"/>
+                    android:layout_marginTop="3dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_text_primary"/>
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical">
 
-                <ImageView
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:src="@drawable/ic_pin"
-                    app:tint="@color/color_text_secondary"/>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_pin"
+                        app:tint="@color/color_text_hint"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Location"
+                        android:textSize="10sp"
+                        android:textColor="@color/color_text_hint"/>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvLocation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:textSize="11sp"
-                    android:textColor="@color/color_text_secondary"/>
+                    android:layout_marginTop="3dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_text_primary"/>
             </LinearLayout>
-        </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_calendar"
-                app:tint="@color/color_text_secondary"/>
-
-            <TextView
-                android:id="@+id/tvAppliedDate"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:textSize="11sp"
-                android:textColor="@color/color_text_secondary"/>
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical">
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="@color/color_text_hint"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Applied on"
+                        android:textSize="10sp"
+                        android:textColor="@color/color_text_hint"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvAppliedDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_text_primary"/>
+            </LinearLayout>
+
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -36,6 +36,7 @@ class ChatActivity : AppCompatActivity() {
     private var editingMessageId: String? = null
     private lateinit var editBar: android.widget.LinearLayout
     private lateinit var emptyStateContainer: android.widget.LinearLayout
+    private var messagesLoadedOnce = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,11 +64,6 @@ class ChatActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
 
         resolveParticipants()
-        recyclerView.viewTreeObserver.addOnGlobalLayoutListener {
-            if (listItems.isNotEmpty()) {
-                recyclerView.scrollToPosition(listItems.size - 1)
-            }
-        }
     }
 
     private fun resolveParticipants() {
@@ -112,26 +108,76 @@ class ChatActivity : AppCompatActivity() {
 //        db.collection("chats").document(applicationId).set(chatData, com.google.firebase.firestore.SetOptions.merge())
 //    }
 
+//    private fun loadMessages() {
+//        db.collection("chats").document(applicationId)
+//            .collection("messages")
+//            .orderBy("timestamp", Query.Direction.ASCENDING)
+//            .addSnapshotListener { snapshot, error ->
+//                if (error != null || snapshot == null) return@addSnapshotListener
+//
+//                messages.clear()
+//                for (doc in snapshot.documents) {
+//                    doc.toObject(ChatMessage::class.java)?.let {
+//                        val fixedIsRead = doc.getBoolean("isRead") ?: false
+//                        val fixedIsDeleted = doc.getBoolean("isDeleted") ?: false
+//                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead, isDeleted = fixedIsDeleted))
+//                    }
+//                }
+//
+//                val myUid = auth.currentUser?.uid ?: ""
+//                for (doc in snapshot.documents) {
+//                    val senderId = doc.getString("senderId") ?: ""
+//                    val isRead = doc.getBoolean("isRead") ?: false
+//                    if (senderId != myUid && !isRead) {
+//                        doc.reference.update("isRead", true)
+//                    }
+//                }
+//
+//                buildListItems()
+//                adapter.notifyDataSetChanged()
+//                emptyStateContainer.visibility = if (messages.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+//                if (listItems.isNotEmpty()) recyclerView.scrollToPosition(listItems.size - 1)
+//            }
+//    }
+
+
     private fun loadMessages() {
         db.collection("chats").document(applicationId)
             .collection("messages")
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
+
                 if (error != null || snapshot == null) return@addSnapshotListener
 
+                val layoutManager =
+                    recyclerView.layoutManager as LinearLayoutManager
+
+                val wasAtBottom =
+                    !messagesLoadedOnce ||
+                            layoutManager.findLastVisibleItemPosition() >= adapter.itemCount - 2
                 messages.clear()
+
                 for (doc in snapshot.documents) {
                     doc.toObject(ChatMessage::class.java)?.let {
                         val fixedIsRead = doc.getBoolean("isRead") ?: false
                         val fixedIsDeleted = doc.getBoolean("isDeleted") ?: false
-                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead, isDeleted = fixedIsDeleted))
+
+                        messages.add(
+                            it.copy(
+                                messageId = doc.id,
+                                isRead = fixedIsRead,
+                                isDeleted = fixedIsDeleted
+                            )
+                        )
                     }
                 }
 
                 val myUid = auth.currentUser?.uid ?: ""
+
                 for (doc in snapshot.documents) {
                     val senderId = doc.getString("senderId") ?: ""
                     val isRead = doc.getBoolean("isRead") ?: false
+
                     if (senderId != myUid && !isRead) {
                         doc.reference.update("isRead", true)
                     }
@@ -139,8 +185,23 @@ class ChatActivity : AppCompatActivity() {
 
                 buildListItems()
                 adapter.notifyDataSetChanged()
-                emptyStateContainer.visibility = if (messages.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-                if (listItems.isNotEmpty()) recyclerView.scrollToPosition(listItems.size - 1)
+
+                emptyStateContainer.visibility =
+                    if (messages.isEmpty()) {
+                        android.view.View.VISIBLE
+                    } else {
+                        android.view.View.GONE
+                    }
+
+                if (wasAtBottom) {
+                    recyclerView.post {
+                        if (listItems.isNotEmpty()) {
+                            recyclerView.scrollToPosition(listItems.size - 1)
+                        }
+                    }
+                }
+
+                messagesLoadedOnce = true
             }
     }
 

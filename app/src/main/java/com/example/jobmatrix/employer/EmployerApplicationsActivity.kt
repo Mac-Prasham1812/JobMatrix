@@ -3,6 +3,7 @@ package com.example.jobmatrix.employer
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -28,6 +29,8 @@ class EmployerApplicationsActivity : AppCompatActivity() {
     private lateinit var tabAll: TextView
     private lateinit var tabShortlisted: TextView
     private lateinit var tabRejected: TextView
+    private var selectedJobFilter: String? = null
+    private var sortNewestFirst = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +49,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             i.putExtra("status", item.app.status)
             i.putExtra("resumeLink", item.app.resumeLink)
             i.putExtra("appliedAt", item.app.appliedAt)
+            i.putExtra("jobLocation", item.job?.location ?: "")
             startActivity(i)
         }
         recyclerView.adapter = adapter
@@ -55,6 +59,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         tabRejected = findViewById(R.id.tabRejected)
 
         findViewById<ImageView>(R.id.ivBack).setOnClickListener { finish() }
+        findViewById<ImageView>(R.id.ivFilter).setOnClickListener { showFilterSheet() }
 
         tabAll.setOnClickListener { setFilter("All") }
         tabShortlisted.setOnClickListener { setFilter("Shortlisted") }
@@ -85,8 +90,9 @@ class EmployerApplicationsActivity : AppCompatActivity() {
 
     private fun applyFilter() {
         val filtered = allData.filter {
-            currentFilter == "All" || it.app.status.equals(currentFilter, ignoreCase = true)
-        }.sortedByDescending { it.app.appliedAt }
+            (currentFilter == "All" || it.app.status.equals(currentFilter, ignoreCase = true)) &&
+                    (selectedJobFilter == null || it.job?.title == selectedJobFilter)
+        }.let{ list -> if (sortNewestFirst) list.sortedByDescending { it.app.appliedAt } else list.sortedBy { it.app.appliedAt } }
         displayedData.clear()
         displayedData.addAll(filtered)
         adapter.notifyDataSetChanged()
@@ -129,5 +135,64 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                         Toast.makeText(this, "Failed to load applications", Toast.LENGTH_SHORT).show()
                     }
             }
+    }
+
+    private fun showFilterSheet() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_filter_applications, null)
+        dialog.setContentView(view)
+
+        val chipGroupJobs = view.findViewById<android.widget.LinearLayout>(R.id.chipGroupJobs)
+        val jobTitles = allData.mapNotNull { it.job?.title }.distinct()
+        val chipViews = mutableListOf<TextView>()
+
+        fun addChip(label: String, isJob: Boolean) {
+            val chip = TextView(this).apply {
+                text = label
+                setPadding(32, 16, 32, 16)
+                textSize = 12f
+                setTextColor(resources.getColor(
+                    if (label == selectedJobFilter || (selectedJobFilter == null && label == "All"))
+                        android.R.color.white else R.color.color_text_secondary, theme))
+                background = resources.getDrawable(
+                    if (label == selectedJobFilter || (selectedJobFilter == null && label == "All"))
+                        R.drawable.bg_chip_active else R.drawable.bg_chip, theme)
+                (layoutParams as? android.widget.LinearLayout.LayoutParams)?.marginEnd = 16
+                setOnClickListener {
+                    selectedJobFilter = if (label == "All") null else label
+                    chipViews.forEach {
+                        val active = it.text == label
+                        it.setTextColor(resources.getColor(if (active) android.R.color.white else R.color.color_text_secondary, theme))
+                        it.background = resources.getDrawable(if (active) R.drawable.bg_chip_active else R.drawable.bg_chip, theme)
+                    }
+                }
+            }
+            chipViews.add(chip)
+            chipGroupJobs.addView(chip)
+        }
+
+        addChip("All", false)
+        jobTitles.forEach { addChip(it, true) }
+
+        val chipNewest = view.findViewById<TextView>(R.id.chipSortNewest)
+        val chipOldest = view.findViewById<TextView>(R.id.chipSortOldest)
+        fun refreshSortChips() {
+            chipNewest.setBackgroundResource(if (sortNewestFirst) R.drawable.bg_chip_active else R.drawable.bg_chip)
+            chipNewest.setTextColor(resources.getColor(if (sortNewestFirst) android.R.color.white else R.color.color_text_secondary, theme))
+            chipOldest.setBackgroundResource(if (!sortNewestFirst) R.drawable.bg_chip_active else R.drawable.bg_chip)
+            chipOldest.setTextColor(resources.getColor(if (!sortNewestFirst) android.R.color.white else R.color.color_text_secondary, theme))
+        }
+        refreshSortChips()
+        chipNewest.setOnClickListener { sortNewestFirst = true; refreshSortChips() }
+        chipOldest.setOnClickListener { sortNewestFirst = false; refreshSortChips() }
+
+        view.findViewById<View>(R.id.btnResetFilter).setOnClickListener {
+            selectedJobFilter = null; sortNewestFirst = true
+            applyFilter(); dialog.dismiss()
+        }
+        view.findViewById<View>(R.id.btnApplyFilter).setOnClickListener {
+            applyFilter(); dialog.dismiss()
+        }
+        dialog.show()
     }
 }
