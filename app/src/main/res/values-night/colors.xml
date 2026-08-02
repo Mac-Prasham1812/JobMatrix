@@ -48,7 +48,7 @@
 
     <color name="job_delete_bg">#2A1822</color>
     <color name="job_delete_stroke">#6B2335</color>
-    <color name="job_delete_red">#FF6B81</color>
+    <color name="job_delete_red">#F03E3E</color>
 
     <color name="job_option_bg">#1A2438</color>
     <color name="job_option_stroke">#31415F</color>

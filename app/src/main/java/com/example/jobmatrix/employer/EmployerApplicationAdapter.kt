@@ -19,7 +19,7 @@ class EmployerApplicationAdapter(
 ) : RecyclerView.Adapter<EmployerApplicationAdapter.VH>() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val studentCache = HashMap<String, Pair<String, String>>()
+    private val studentCache = HashMap<String, Triple<String, String, String>>()
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvStudentName: TextView = view.findViewById(R.id.tvStudentName)
@@ -44,7 +44,7 @@ class EmployerApplicationAdapter(
         val job = item.job
 
         holder.tvJobTitle.text = job?.title ?: app.jobTitle
-        holder.tvExperience.text = job?.experience?.ifBlank { "N/A" } ?: "N/A"
+        holder.tvExperience.text = job?.experience?.ifBlank { "Fresher" } ?: "Fresher"
         holder.tvLocation.text = job?.location?.ifBlank { "N/A" } ?: "N/A"
         holder.tvAppliedDate.text = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(app.appliedAt))
 
@@ -57,23 +57,25 @@ class EmployerApplicationAdapter(
 
         val cached = studentCache[app.studentId]
         if (cached != null) {
-            setStudentData(holder, cached.first, cached.second)
+            setStudentData(holder, cached.first, cached.second, cached.third)
         } else {
             db.collection("users").document(app.studentId).get()
                 .addOnSuccessListener { doc ->
                     val name = doc.getString("name") ?: "Unknown"
                     val email = doc.getString("email") ?: "Not available"
-                    studentCache[app.studentId] = name to email
-                    setStudentData(holder, name, email)
+                    val experience = doc.getString("experience")?.ifBlank { "Fresher" } ?: "Fresher"
+                    studentCache[app.studentId] = Triple(name, email, experience)
+                    setStudentData(holder, name, email, experience)
                 }
         }
 
         holder.itemView.setOnClickListener { onItemClick(item) }
     }
 
-    private fun setStudentData(holder: VH, name: String, email: String) {
+    private fun setStudentData(holder: VH, name: String, email: String, experience: String) {
         holder.tvStudentName.text = name
         holder.tvStudentEmail.text = email
+        holder.tvExperience.text = experience
         holder.tvProfile.text = getInitials(name)
         holder.tvProfile.background.mutate().setTint(avatarColor(name))
     }
