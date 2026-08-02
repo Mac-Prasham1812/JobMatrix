@@ -2,7 +2,9 @@ package com.example.jobmatrix.profile
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -25,6 +27,8 @@ class ProfileActivity : AppCompatActivity() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
+    private val experienceList = listOf("Fresher", "1-2 Years", "3-5 Years", "5+ Years", "Other")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
@@ -40,6 +44,8 @@ class ProfileActivity : AppCompatActivity() {
         loadPipelineCounts()
 
         btnClose.setOnClickListener { finish() }
+
+        findViewById<LinearLayout>(R.id.rowExperience).setOnClickListener { openExperienceSheet() }
 
         findViewById<LinearLayout>(R.id.rowSkills).setOnClickListener {
             startActivity(Intent(this, SkillsActivity::class.java))
@@ -64,9 +70,13 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.rowNotifications).setOnClickListener {
-            startActivity(Intent(this, com.example.jobmatrix.student.NotificationActivity::class.java))
+            startActivity(
+                Intent(
+                    this,
+                    com.example.jobmatrix.student.NotificationActivity::class.java
+                )
+            )
         }
-
         btnLogout.setOnClickListener {
             auth.signOut()
             val intent = Intent(this, LoginActivity::class.java)
@@ -110,6 +120,57 @@ class ProfileActivity : AppCompatActivity() {
                 findViewById<TextView>(R.id.tvAppliedCount).text = applied.toString()
                 findViewById<TextView>(R.id.tvInReviewCount).text = rejected.toString()
                 findViewById<TextView>(R.id.tvShortlistedCount).text = shortlisted.toString()
+            }
+    }
+
+    private fun openExperienceSheet() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_selector, null)
+        view.findViewById<TextView>(R.id.tvSheetTitle).text = "Select Experience"
+        val listOptions = view.findViewById<android.widget.ListView>(R.id.listOptions)
+        val adapter = android.widget.ArrayAdapter(
+            this,
+            R.layout.item_selector_option,
+            R.id.tvOption,
+            experienceList
+        )
+        listOptions.adapter = adapter
+        listOptions.setOnItemClickListener { _, _, position, _ ->
+            val selected = experienceList[position]
+            if (selected == "Other") {
+                dialog.dismiss()
+                showCustomExperienceInput()
+            } else {
+                saveExperience(selected)
+                dialog.dismiss()
+            }
+        }
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private fun showCustomExperienceInput() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_experience_input, null)
+        val etYears = view.findViewById<android.widget.EditText>(R.id.etYears)
+
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<View>(R.id.btnSave).setOnClickListener {
+            val years = etYears.text.toString().trim()
+            if (years.isNotBlank()) {
+                saveExperience("$years Years")
+                dialog.dismiss()
+            }
+        }
+        dialog.setContentView(view)
+        dialog.show()
+    }
+
+    private fun saveExperience(value: String) {
+        val uid = auth.currentUser?.uid ?: return
+        db.collection("users").document(uid).update("experience", value)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Experience updated", Toast.LENGTH_SHORT).show()
             }
     }
 }

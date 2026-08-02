@@ -153,6 +153,8 @@
 
      <activity android:name="com.example.jobmatrix.employer.EmployerNotificationActivity"/>
 
+        <activity android:name="com.example.jobmatrix.employer.EmployerProfileActivity"/>
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"

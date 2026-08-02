@@ -59,7 +59,8 @@ class ApplicantDetailsActivity : AppCompatActivity() {
 
         tvName = findViewById(R.id.tvName)
         tvLocation = findViewById(R.id.tvLocation)
-        tvLocation.text = intent.getStringExtra("jobLocation")?.ifBlank { "Location not available" } ?: "Location not available"
+        tvLocation.text = intent.getStringExtra("jobLocation")?.ifBlank { "Location not available" }
+            ?: "Location not available"
         tvJobTitle = findViewById(R.id.tvJobTitle)
         tvStatus = findViewById(R.id.tvStatus)
         tvAppliedAgo = findViewById(R.id.tvAppliedAgo)
@@ -106,10 +107,19 @@ class ApplicantDetailsActivity : AppCompatActivity() {
                     text = getInitials(name)
                     background.mutate().setTint(avatarColor(name))
                 }
-                tvPhone.text = doc.getString("phone")?.ifBlank { "Not available" } ?: "Not available"
+                tvPhone.text =
+                    doc.getString("phone")?.ifBlank { "Not available" } ?: "Not available"
                 tvEmail.text = doc.getString("email") ?: "Not available"
-                tvExperience.text = doc.getString("experience")?.ifBlank { "N/A" } ?: "N/A"
-                tvResumeName.text = if (resumeLink.isNotBlank()) resumeLink.substringAfterLast("/") else "No resume uploaded"
+                tvExperience.text = doc.getString("experience")?.ifBlank { "Fresher" } ?: "Fresher"
+
+                if (resumeLink.isNotBlank()) {
+                    val afterSlash = resumeLink.substringAfterLast("/")
+                    val parts = afterSlash.split("_", limit = 3)
+                    val fileName = if (parts.size == 3) parts[2] else afterSlash
+                    tvResumeName.text = fileName.ifBlank { "Resume.pdf" }
+                } else {
+                    tvResumeName.text = "No resume uploaded"
+                }
                 studentFcmToken = doc.getString("fcmToken") ?: ""
 
                 val skills = doc.get("skills") as? List<*> ?: emptyList<String>()
@@ -196,7 +206,11 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             try {
                 RetrofitClient.api.sendNotification(NotifyRequest(token, title, body))
             } catch (e: Exception) {
-                Toast.makeText(this@ApplicantDetailsActivity, "Push failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@ApplicantDetailsActivity,
+                    "Push failed: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -215,20 +229,34 @@ class ApplicantDetailsActivity : AppCompatActivity() {
                     if (!url.isNullOrBlank()) {
                         startActivity(Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) })
                     } else {
-                        Toast.makeText(this@ApplicantDetailsActivity, "Resume not available", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@ApplicantDetailsActivity,
+                            "Resume not available",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
-                    Toast.makeText(this@ApplicantDetailsActivity, "Failed to load resume", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@ApplicantDetailsActivity,
+                        "Failed to load resume",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@ApplicantDetailsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@ApplicantDetailsActivity,
+                    "Error: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
     private suspend fun getIdToken(): String = suspendCancellableCoroutine { cont ->
         val user = auth.currentUser
-        if (user == null) { cont.resumeWithException(Exception("Not logged in")); return@suspendCancellableCoroutine }
+        if (user == null) {
+            cont.resumeWithException(Exception("Not logged in")); return@suspendCancellableCoroutine
+        }
         user.getIdToken(true)
             .addOnSuccessListener { result -> cont.resume(result.token ?: "") }
             .addOnFailureListener { e -> cont.resumeWithException(e) }

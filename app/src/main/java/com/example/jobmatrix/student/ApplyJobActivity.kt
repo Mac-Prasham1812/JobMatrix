@@ -360,7 +360,8 @@ class ApplyJobActivity : AppCompatActivity() {
         } ?: throw Exception("Could not read selected file")
 
         val requestFile = tempFile.asRequestBody("application/pdf".toMediaTypeOrNull())
-        val body = MultipartBody.Part.createFormData("resume", tempFile.name, requestFile)
+        val originalName = getFileName(uri) ?: "resume.pdf"
+        val body = MultipartBody.Part.createFormData("resume", originalName, requestFile)
         val token = "Bearer ${getIdToken()}"
 
         val response = RetrofitClient.api.uploadResume(token, body)

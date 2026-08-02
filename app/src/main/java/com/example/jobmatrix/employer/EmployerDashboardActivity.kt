@@ -12,7 +12,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.JobModel
-import com.example.jobmatrix.profile.ProfileActivity
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -109,7 +108,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
+            startActivity(Intent(this, EmployerProfileActivity::class.java))
         }
 
         val navMyJobs = findViewById<LinearLayout>(R.id.navMyJobs)
