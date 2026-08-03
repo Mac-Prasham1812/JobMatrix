@@ -107,6 +107,10 @@ class EmployerDashboardActivity : AppCompatActivity() {
             startActivity(Intent(this, AddJobActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.navApplications).setOnClickListener {
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java))
+        }
+
         findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
             startActivity(Intent(this, EmployerProfileActivity::class.java))
         }

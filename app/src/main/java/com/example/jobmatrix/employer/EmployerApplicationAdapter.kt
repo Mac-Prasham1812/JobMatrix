@@ -49,9 +49,18 @@ class EmployerApplicationAdapter(
         holder.tvAppliedDate.text = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(app.appliedAt))
 
         when (app.status.lowercase()) {
-            "shortlisted" -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_shortlisted)
-            "rejected" -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_rejected)
-            else -> holder.tvStatus.setBackgroundResource(R.drawable.bg_status_applied)
+            "shortlisted" -> {
+                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_shortlisted)
+                holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#16A34A"))
+            }
+            "rejected" -> {
+                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_rejected)
+                holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#DC2626"))
+            }
+            else -> {
+                holder.tvStatus.setBackgroundResource(R.drawable.bg_status_applied)
+                holder.tvStatus.setTextColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, R.color.color_accent))
+            }
         }
         holder.tvStatus.text = app.status.replaceFirstChar { it.uppercase() }
 
@@ -77,7 +86,7 @@ class EmployerApplicationAdapter(
         holder.tvStudentEmail.text = email
         holder.tvExperience.text = experience
         holder.tvProfile.text = getInitials(name)
-        holder.tvProfile.background.mutate().setTint(avatarColor(name))
+        holder.tvProfile.background.mutate().setTint(avatarColor(holder.itemView.context, name))
     }
 
 //    private fun timeAgo(time: Long): String {
@@ -99,10 +108,21 @@ class EmployerApplicationAdapter(
         }
     }
 
-    private fun avatarColor(seed: String): Int {
-        val palette = listOf("#FF7A45", "#4C6EF5", "#12B886", "#F783AC", "#845EF7", "#FAB005")
+    private fun avatarColor(context: android.content.Context, seed: String): Int {
+        val palette = listOf(
+            R.color.avatar_1,
+            R.color.avatar_2,
+            R.color.avatar_3,
+            R.color.avatar_4,
+            R.color.avatar_5,
+            R.color.avatar_6,
+            R.color.avatar_7,
+            R.color.avatar_8,
+            R.color.avatar_9,
+            R.color.avatar_10
+        )
         val idx = (seed.hashCode() and 0x7fffffff) % palette.size
-        return android.graphics.Color.parseColor(palette[idx])
+        return androidx.core.content.ContextCompat.getColor(context, palette[idx])
     }
 
     override fun getItemCount() = list.size

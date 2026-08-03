@@ -49,10 +49,15 @@ class EmployerJobAdapter(
 
         if (status.equals("Inactive", ignoreCase = true)) {
             holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_inactive)
-            holder.tvStatus.setTextColor(android.graphics.Color.WHITE)
+            holder.tvStatus.setTextColor(android.graphics.Color.parseColor("#DC2626"))
         } else {
-            holder.tvStatus.setBackgroundResource(R.drawable.bg_chip_active)
-            holder.tvStatus.setTextColor(android.graphics.Color.WHITE)
+            holder.tvStatus.setBackgroundResource(R.drawable.bg_status_active)
+            holder.tvStatus.setTextColor(
+                androidx.core.content.ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.color_accent
+                )
+            )
         }
 
         holder.itemView.setOnClickListener {
@@ -64,12 +69,24 @@ class EmployerJobAdapter(
         holder.ivMoreContainer.setOnClickListener {
             val ctx = it.context
             val popupView = LayoutInflater.from(ctx).inflate(R.layout.popup_job_menu, null)
-            val popupWindow = android.widget.PopupWindow(popupView, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, true)
+            val popupWindow = android.widget.PopupWindow(
+                popupView,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+            )
 
             holder.ivMoreContainer.animate().rotation(180f).setDuration(200).start()
             popupWindow.setOnDismissListener {
                 holder.ivMoreContainer.animate().rotation(0f).setDuration(200).start()
             }
+
+            val isInactive = job.status.equals("Inactive", ignoreCase = true)
+            val menuToggle = popupView.findViewById<TextView>(R.id.menuDeactivateJob)
+            menuToggle.text = if (isInactive) "Activate Job" else "Deactivate Job"
+            menuToggle.setCompoundDrawablesWithIntrinsicBounds(
+                if (isInactive) R.drawable.ic_check else R.drawable.ic_deactivate, 0, 0, 0
+            )
 
             popupView.findViewById<TextView>(R.id.menuViewApplicants).setOnClickListener {
                 val intent = Intent(ctx, EmployerApplicationsActivity::class.java)
@@ -83,9 +100,13 @@ class EmployerJobAdapter(
                 ctx.startActivity(intent)
                 popupWindow.dismiss()
             }
-            popupView.findViewById<TextView>(R.id.menuDeactivateJob).setOnClickListener {
-                db.collection("jobs").document(job.jobId)
-                    .update(mapOf("status" to "Inactive", "deactivatedAt" to System.currentTimeMillis()))
+            menuToggle.setOnClickListener {
+                val newStatus = if (isInactive) "Active" else "Inactive"
+                val updates = if (isInactive)
+                    mapOf("status" to newStatus)
+                else
+                    mapOf("status" to newStatus, "deactivatedAt" to System.currentTimeMillis())
+                db.collection("jobs").document(job.jobId).update(updates)
                 popupWindow.dismiss()
             }
             popupView.findViewById<TextView>(R.id.menuDeleteJob).setOnClickListener {
@@ -96,24 +117,30 @@ class EmployerJobAdapter(
                         batch.delete(db.collection("jobs").document(job.jobId))
                         batch.commit().addOnSuccessListener {
                             val pos = holder.adapterPosition
-                            if (pos != RecyclerView.NO_POSITION) { list.removeAt(pos); notifyItemRemoved(pos) }
-                            Toast.makeText(ctx, "Job deleted permanently", Toast.LENGTH_SHORT).show()
+                            if (pos != RecyclerView.NO_POSITION) {
+                                list.removeAt(pos); notifyItemRemoved(pos)
+                            }
+                            Toast.makeText(ctx, "Job deleted permanently", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
                 popupWindow.dismiss()
             }
 
             popupWindow.animationStyle = R.style.PopupAnimation
-            popupWindow.showAsDropDown(it, -180, 0)
-        }
 
-        val accentColors = intArrayOf(
-            android.graphics.Color.parseColor("#2563EB"),
-            android.graphics.Color.parseColor("#F59E0B"),
-            android.graphics.Color.parseColor("#16A34A"),
-            android.graphics.Color.parseColor("#7C3AED")
-        )
-        holder.vAccent.setBackgroundColor(accentColors[position % accentColors.size])
+            val location = IntArray(2)
+            it.getLocationOnScreen(location)
+            val screenHeight = ctx.resources.displayMetrics.heightPixels
+            val popupHeightEstimate = 220 * ctx.resources.displayMetrics.density.toInt()
+            val spaceBelow = screenHeight - location[1]
+
+            if (spaceBelow < popupHeightEstimate) {
+                popupWindow.showAsDropDown(it, -180, -(popupHeightEstimate + it.height))
+            } else {
+                popupWindow.showAsDropDown(it, -180, 0)
+            }
+        }
     }
 
     override fun getItemCount(): Int = list.size

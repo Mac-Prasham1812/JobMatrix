@@ -45,6 +45,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     private lateinit var chipSkills: ChipGroup
     private lateinit var tvResumeName: TextView
     private lateinit var tvLocation: TextView
+    private lateinit var jobSkills: Set<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         val jobTitle = intent.getStringExtra("jobTitle") ?: ""
         val status = intent.getStringExtra("status") ?: "Applied"
         val appliedAt = intent.getLongExtra("appliedAt", 0L)
+        jobSkills = intent.getStringArrayListExtra("jobSkills")?.map { it.trim().lowercase() }?.toSet() ?: emptySet()
 
         tvName = findViewById(R.id.tvName)
         tvLocation = findViewById(R.id.tvLocation)
@@ -91,9 +93,18 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     private fun setStatusUi(status: String) {
         tvStatus.text = status.replaceFirstChar { it.uppercase() }
         when (status.lowercase()) {
-            "shortlisted" -> tvStatus.setBackgroundResource(R.drawable.bg_status_shortlisted)
-            "rejected" -> tvStatus.setBackgroundResource(R.drawable.bg_status_rejected)
-            else -> tvStatus.setBackgroundResource(R.drawable.bg_status_applied)
+            "shortlisted" -> {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_shortlisted)
+                tvStatus.setTextColor(android.graphics.Color.parseColor("#16A34A"))
+            }
+            "rejected" -> {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_rejected)
+                tvStatus.setTextColor(android.graphics.Color.parseColor("#DC2626"))
+            }
+            else -> {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_applied)
+                tvStatus.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.color_accent))
+            }
         }
     }
 
@@ -125,10 +136,35 @@ class ApplicantDetailsActivity : AppCompatActivity() {
                 val skills = doc.get("skills") as? List<*> ?: emptyList<String>()
                 chipSkills.removeAllViews()
                 for (s in skills) {
+                    val skillText = s.toString()
+                    val isMatch = jobSkills.contains(skillText.trim().lowercase())
                     val chip = Chip(this).apply {
-                        text = s.toString()
+                        text = skillText
                         isClickable = false
                         isCheckable = false
+                        textSize = 12f
+                        setTextColor(
+                            androidx.core.content.ContextCompat.getColor(
+                                this@ApplicantDetailsActivity,
+                                if (isMatch) R.color.badge_green else R.color.color_accent
+                            )
+                        )
+                        chipBackgroundColor = android.content.res.ColorStateList.valueOf(
+                            androidx.core.content.ContextCompat.getColor(
+                                this@ApplicantDetailsActivity,
+                                R.color.color_chip_bg
+                            )
+                        )
+                        chipStrokeColor = android.content.res.ColorStateList.valueOf(
+                            androidx.core.content.ContextCompat.getColor(
+                                this@ApplicantDetailsActivity,
+                                if (isMatch) R.color.badge_green else android.R.color.transparent
+                            )
+                        )
+                        chipStrokeWidth = if (isMatch) 2f else 0f
+                        chipCornerRadius = 20f
+                        setEnsureMinTouchTargetSize(false)
+                        chipMinHeight = 32f
                     }
                     chipSkills.addView(chip)
                 }
@@ -272,9 +308,20 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     }
 
     private fun avatarColor(seed: String): Int {
-        val palette = listOf("#FF7A45", "#4C6EF5", "#12B886", "#F783AC", "#845EF7", "#FAB005")
+        val palette = listOf(
+            R.color.avatar_1,
+            R.color.avatar_2,
+            R.color.avatar_3,
+            R.color.avatar_4,
+            R.color.avatar_5,
+            R.color.avatar_6,
+            R.color.avatar_7,
+            R.color.avatar_8,
+            R.color.avatar_9,
+            R.color.avatar_10
+        )
         val idx = (seed.hashCode() and 0x7fffffff) % palette.size
-        return android.graphics.Color.parseColor(palette[idx])
+        return androidx.core.content.ContextCompat.getColor(this, palette[idx])
     }
 
 }
