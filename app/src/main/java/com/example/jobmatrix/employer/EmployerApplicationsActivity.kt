@@ -50,6 +50,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             i.putExtra("resumeLink", item.app.resumeLink)
             i.putExtra("appliedAt", item.app.appliedAt)
             i.putExtra("jobLocation", item.job?.location ?: "")
+            i.putStringArrayListExtra("jobSkills", ArrayList(item.job?.skills ?: emptyList()))
             startActivity(i)
         }
         recyclerView.adapter = adapter
