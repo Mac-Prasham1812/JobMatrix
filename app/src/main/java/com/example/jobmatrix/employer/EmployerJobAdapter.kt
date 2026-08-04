@@ -26,6 +26,8 @@ class EmployerJobAdapter(
         val tvApplicants: TextView = view.findViewById(R.id.tvApplicants)
         val ivMoreContainer: View = view.findViewById(R.id.ivMoreContainer)
         val vAccent: View = view.findViewById(R.id.vAccent)
+        val tvCompany: TextView = view.findViewById(R.id.tvCompany)
+        val tvJobLocation: TextView = view.findViewById(R.id.tvJobLocation)
 
     }
 
@@ -40,10 +42,12 @@ class EmployerJobAdapter(
 
         holder.tvTitle.text = job.title.ifBlank { "Untitled Job" }
         holder.tvCategory.text = job.category.ifBlank { "General" }
+        holder.tvCompany.text = job.company.ifBlank { "Company not specified" }
+        holder.tvJobLocation.text = job.location.ifBlank { "Location not specified" }
         holder.tvSalary.text = if (job.salary.isBlank()) "₹0" else "₹${job.salary}"
 
         holder.tvApplicants.text = String.format("%02d Applicants", job.applicantsCount)
-
+        holder.vAccent.setBackgroundColor(jobAccentColor(holder.itemView.context, position))
         val status = job.status.ifBlank { "Active" }
         holder.tvStatus.text = status.replaceFirstChar { it.uppercase() }
 
@@ -129,18 +133,31 @@ class EmployerJobAdapter(
 
             popupWindow.animationStyle = R.style.PopupAnimation
 
+            popupView.measure(
+                android.view.View.MeasureSpec.UNSPECIFIED,
+                android.view.View.MeasureSpec.UNSPECIFIED
+            )
+            val popupHeight = popupView.measuredHeight
+
             val location = IntArray(2)
             it.getLocationOnScreen(location)
             val screenHeight = ctx.resources.displayMetrics.heightPixels
-            val popupHeightEstimate = 220 * ctx.resources.displayMetrics.density.toInt()
-            val spaceBelow = screenHeight - location[1]
+            val spaceBelow = screenHeight - (location[1] + it.height)
 
-            if (spaceBelow < popupHeightEstimate) {
-                popupWindow.showAsDropDown(it, -180, -(popupHeightEstimate + it.height))
+            if (spaceBelow < popupHeight) {
+                popupWindow.showAsDropDown(it, -180, -(popupHeight + it.height))
             } else {
                 popupWindow.showAsDropDown(it, -180, 0)
             }
         }
+    }
+    private fun jobAccentColor(context: android.content.Context, position: Int): Int {
+        val palette = listOf(
+            R.color.avatar_1, R.color.avatar_2, R.color.avatar_3, R.color.avatar_5,
+            R.color.avatar_6, R.color.avatar_7, R.color.avatar_8, R.color.avatar_9, R.color.avatar_10
+        )
+        val idx = position % palette.size
+        return androidx.core.content.ContextCompat.getColor(context, palette[idx])
     }
 
     override fun getItemCount(): Int = list.size

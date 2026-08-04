@@ -1,5 +1,6 @@
 package com.example.jobmatrix.employer
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
@@ -52,8 +53,9 @@ class EmployerMyJobsActivity : AppCompatActivity() {
         tabInactive = findViewById(R.id.tabInactive)
 
         findViewById<ImageView>(R.id.ivBack).setOnClickListener {
-            finish()
+            startActivity(Intent(this, EmployerDashboardActivity::class.java))
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+            finish()
         }
         findViewById<CardView>(R.id.fabAddJob).setOnClickListener {
             startActivity(Intent(this, AddJobActivity::class.java))
@@ -179,5 +181,12 @@ class EmployerMyJobsActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         setActiveNav(R.id.navMyJobs)
+    }
+
+    @SuppressLint("MissingSuperCall")
+    override fun onBackPressed() {
+        startActivity(Intent(this, EmployerDashboardActivity::class.java))
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        finish()
     }
 }
