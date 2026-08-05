@@ -80,6 +80,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnShortlist).setOnClickListener { updateStatus("Shortlisted") }
         findViewById<Button>(R.id.btnReject).setOnClickListener { updateStatus("Rejected") }
+        findViewById<Button>(R.id.btnInReview).setOnClickListener { updateStatus("In Review") }
         findViewById<Button>(R.id.btnMessage).setOnClickListener {
             val intent = Intent(this, com.example.jobmatrix.chat.ChatActivity::class.java)
             intent.putExtra("applicationId", applicationId)
@@ -175,10 +176,14 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         val jobTitle = intent.getStringExtra("jobTitle") ?: ""
         val companyName = intent.getStringExtra("companyName") ?: ""
 
-        val message = if (newStatus == "Shortlisted")
-            "You have been shortlisted for $jobTitle at $companyName."
-        else
-            "Your application for $jobTitle at $companyName was not selected."
+        val message: String
+        if (newStatus == "Shortlisted") {
+            message = "You have been shortlisted for $jobTitle at $companyName."
+        } else if (newStatus == "In Review") {
+            message = "Your application for $jobTitle at $companyName is under review."
+        } else {
+            message = "Your application for $jobTitle at $companyName was not selected."
+        }
 
         db.collection("applications").document(applicationId)
             .update(mapOf("status" to newStatus))
