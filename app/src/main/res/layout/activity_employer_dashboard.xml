@@ -73,11 +73,9 @@
                 android:textColor="@color/color_text_primary" />
         </LinearLayout>
 
-        <androidx.cardview.widget.CardView
+        <FrameLayout
             android:layout_width="44dp"
-            android:layout_height="44dp"
-            app:cardCornerRadius="22dp"
-            app:cardElevation="0dp">
+            android:layout_height="44dp">
 
             <ImageView
                 android:id="@+id/ivBell"
@@ -85,7 +83,7 @@
                 android:layout_height="match_parent"
                 android:padding="11dp"
                 android:src="@drawable/notification"
-                app:tint="@color/color_accent" />
+                app:tint="@color/color_text_primary" />
 
             <TextView
                 android:id="@+id/tvBellBadge"
@@ -97,7 +95,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="10sp"
                 android:visibility="gone" />
-        </androidx.cardview.widget.CardView>
+        </FrameLayout>
     </LinearLayout>
 
     <TextView
@@ -115,9 +113,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:weightSum="3">
+        android:weightSum="4">
 
         <LinearLayout
+            android:id="@+id/pipelineApplied"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -153,6 +152,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/pipelineReview"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -188,13 +188,15 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/pipelineShortlisted"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
             android:background="@drawable/bg_pipeline_card"
             android:padding="12dp"
-            android:gravity="center">
+            android:gravity="center"
+            android:layout_marginEnd="6dp">
 
             <ImageView
                 android:layout_width="32dp"
@@ -219,6 +221,41 @@
                 android:text="Shortlisted"
                 android:textSize="12sp"
                 android:textColor="@color/color_text_secondary" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pipelineRejected"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:background="@drawable/bg_pipeline_card"
+            android:padding="12dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                android:background="@drawable/bg_circle_red"
+                android:layout_marginBottom="6dp"/>
+
+            <TextView
+                android:id="@+id/tvRejectedCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#DC2626"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rejected"
+                android:textSize="12sp"
+                android:textColor="@color/color_text_secondary"/>
         </LinearLayout>
     </LinearLayout>
 

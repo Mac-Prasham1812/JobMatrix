@@ -27,6 +27,8 @@ class EmployerApplicationsActivity : AppCompatActivity() {
     private var currentFilter = "All"
 
     private lateinit var tabAll: TextView
+    private lateinit var tabApplied: TextView
+    private lateinit var tabInReview: TextView
     private lateinit var tabShortlisted: TextView
     private lateinit var tabRejected: TextView
     private var selectedJobFilter: String? = null
@@ -37,6 +39,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_employer_applications)
 
         val filterJobId = intent.getStringExtra("jobId")
+        val filterStatus = intent.getStringExtra("filterStatus") ?: "All"
 
         recyclerView = findViewById(R.id.rvApplications)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -56,6 +59,8 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         tabAll = findViewById(R.id.tabAll)
+        tabApplied = findViewById(R.id.tabApplied)
+        tabInReview = findViewById(R.id.tabInReview)
         tabShortlisted = findViewById(R.id.tabShortlisted)
         tabRejected = findViewById(R.id.tabRejected)
 
@@ -63,10 +68,15 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.ivFilter).setOnClickListener { showFilterSheet() }
 
         tabAll.setOnClickListener { setFilter("All") }
+        tabApplied.setOnClickListener { setFilter("Applied") }
+        tabInReview.setOnClickListener { setFilter("In Review") }
         tabShortlisted.setOnClickListener { setFilter("Shortlisted") }
         tabRejected.setOnClickListener { setFilter("Rejected") }
 
-        loadData(filterJobId)
+        loadData(filterJobId) {
+            // auto-select tab after data loads
+            if (filterStatus != "All") setFilter(filterStatus)
+        }
     }
 
     override fun onResume() {
@@ -76,7 +86,10 @@ class EmployerApplicationsActivity : AppCompatActivity() {
 
     private fun setFilter(filter: String) {
         currentFilter = filter
-        val tabs = listOf(tabAll to "All", tabShortlisted to "Shortlisted", tabRejected to "Rejected")
+        val tabs = listOf(
+            tabAll to "All", tabApplied to "Applied",
+            tabInReview to "In Review", tabShortlisted to "Shortlisted", tabRejected to "Rejected"
+        )
         for ((tab, label) in tabs) {
             if (label == filter) {
                 tab.setBackgroundResource(R.drawable.bg_chip_active)
@@ -93,7 +106,10 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         val filtered = allData.filter {
             (currentFilter == "All" || it.app.status.equals(currentFilter, ignoreCase = true)) &&
                     (selectedJobFilter == null || it.job?.title == selectedJobFilter)
-        }.let{ list -> if (sortNewestFirst) list.sortedByDescending { it.app.appliedAt } else list.sortedBy { it.app.appliedAt } }
+        }.let { list ->
+            if (sortNewestFirst) list.sortedByDescending { it.app.appliedAt }
+            else list.sortedBy { it.app.appliedAt }
+        }
         displayedData.clear()
         displayedData.addAll(filtered)
         adapter.notifyDataSetChanged()
@@ -101,27 +117,23 @@ class EmployerApplicationsActivity : AppCompatActivity() {
     }
 
     private fun updateTabCounts() {
-        val all = allData.size
-        val shortlisted = allData.count { it.app.status.equals("Shortlisted", true) }
-        val rejected = allData.count { it.app.status.equals("Rejected", true) }
-        tabAll.text = "All ($all)"
-        tabShortlisted.text = "Shortlisted ($shortlisted)"
-        tabRejected.text = "Rejected ($rejected)"
+        tabAll.text = "All (${allData.size})"
+        tabApplied.text = "Applied (${allData.count { it.app.status.equals("Applied", true) }})"
+        tabInReview.text = "In Review (${allData.count { it.app.status.equals("In Review", true) }})"
+        tabShortlisted.text = "Shortlisted (${allData.count { it.app.status.equals("Shortlisted", true) }})"
+        tabRejected.text = "Rejected (${allData.count { it.app.status.equals("Rejected", true) }})"
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun loadData(filterJobId: String?) {
+    private fun loadData(filterJobId: String?, onLoaded: () -> Unit = {}) {
         val employerId = auth.currentUser?.uid ?: return
-
         db.collection("jobs").whereEqualTo("employerId", employerId).get()
             .addOnSuccessListener { jobDocs ->
                 val jobMap = HashMap<String, JobModel>()
-                for (doc in jobDocs) {
-                    doc.toObject(JobModel::class.java).let { jobMap[it.jobId] = it }
-                }
+                for (doc in jobDocs) doc.toObject(JobModel::class.java).let { jobMap[it.jobId] = it }
 
                 val jobIds = if (filterJobId != null) listOf(filterJobId) else jobMap.keys.toList()
-                if (jobIds.isEmpty()) { applyFilter(); return@addOnSuccessListener }
+                if (jobIds.isEmpty()) { applyFilter(); onLoaded(); return@addOnSuccessListener }
 
                 db.collection("applications").whereIn("jobId", jobIds.take(30)).get()
                     .addOnSuccessListener { appDocs ->
@@ -131,6 +143,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                             allData.add(AppWithJob(app, jobMap[app.jobId]))
                         }
                         applyFilter()
+                        onLoaded()
                     }
                     .addOnFailureListener {
                         Toast.makeText(this, "Failed to load applications", Toast.LENGTH_SHORT).show()
@@ -147,7 +160,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         val jobTitles = allData.mapNotNull { it.job?.title }.distinct()
         val chipViews = mutableListOf<TextView>()
 
-        fun addChip(label: String, isJob: Boolean) {
+        fun addChip(label: String) {
             val chip = TextView(this).apply {
                 text = label
                 setPadding(32, 16, 32, 16)
@@ -158,7 +171,12 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                 background = resources.getDrawable(
                     if (label == selectedJobFilter || (selectedJobFilter == null && label == "All"))
                         R.drawable.bg_chip_active else R.drawable.bg_chip, theme)
-                (layoutParams as? android.widget.LinearLayout.LayoutParams)?.marginEnd = 16
+                val lp = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.marginEnd = 16
+                layoutParams = lp
                 setOnClickListener {
                     selectedJobFilter = if (label == "All") null else label
                     chipViews.forEach {
@@ -172,8 +190,8 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             chipGroupJobs.addView(chip)
         }
 
-        addChip("All", false)
-        jobTitles.forEach { addChip(it, true) }
+        addChip("All")
+        jobTitles.forEach { addChip(it) }
 
         val chipNewest = view.findViewById<TextView>(R.id.chipSortNewest)
         val chipOldest = view.findViewById<TextView>(R.id.chipSortOldest)
@@ -188,8 +206,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         chipOldest.setOnClickListener { sortNewestFirst = false; refreshSortChips() }
 
         view.findViewById<View>(R.id.btnResetFilter).setOnClickListener {
-            selectedJobFilter = null; sortNewestFirst = true
-            applyFilter(); dialog.dismiss()
+            selectedJobFilter = null; sortNewestFirst = true; applyFilter(); dialog.dismiss()
         }
         view.findViewById<View>(R.id.btnApplyFilter).setOnClickListener {
             applyFilter(); dialog.dismiss()

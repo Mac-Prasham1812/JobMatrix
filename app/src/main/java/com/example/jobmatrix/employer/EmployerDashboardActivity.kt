@@ -27,19 +27,20 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private val db = FirebaseFirestore.getInstance()
     private var jobListener: ListenerRegistration? = null
 
-//    private lateinit var ivProfile: ImageView
+    //    private lateinit var ivProfile: ImageView
     private lateinit var tvEmployerName: TextView
     private lateinit var tvAppliedCount: TextView
     private lateinit var tvReviewCount: TextView
     private lateinit var tvShortlistedCount: TextView
 
-//    private lateinit var tvViewAll: TextView
+    //    private lateinit var tvViewAll: TextView
     private lateinit var rvShimmer: RecyclerView
     private var shimmerStartTime = 0L
 
     private lateinit var ivBell: ImageView
     private lateinit var tvBellBadge: TextView
     private var notifListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private lateinit var tvRejectedCount: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +63,8 @@ class EmployerDashboardActivity : AppCompatActivity() {
     }
 
     private fun setActiveNav(activeId: Int) {
-        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
+        val navItems =
+            listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
         for (id in navItems) {
             findViewById<LinearLayout>(id).isSelected = (id == activeId)
         }
@@ -81,6 +83,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
 
         ivBell = findViewById(R.id.ivBell)
         tvBellBadge = findViewById(R.id.tvBellBadge)
+        tvRejectedCount = findViewById(R.id.tvRejectedCount)
     }
 
     private fun setupRecycler() {
@@ -126,12 +129,18 @@ class EmployerDashboardActivity : AppCompatActivity() {
             finish()
         }
 
-
-//        tvViewAll.setOnClickListener {
-//            if (jobList.isNotEmpty()) {
-//                recyclerView.smoothScrollToPosition(0)
-//            }
-//        }
+        findViewById<LinearLayout>(R.id.pipelineApplied).setOnClickListener {
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java).putExtra("filterStatus", "Applied"))
+        }
+        findViewById<LinearLayout>(R.id.pipelineReview).setOnClickListener {
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java).putExtra("filterStatus", "In Review"))
+        }
+        findViewById<LinearLayout>(R.id.pipelineShortlisted).setOnClickListener {
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java).putExtra("filterStatus", "Shortlisted"))
+        }
+        findViewById<LinearLayout>(R.id.pipelineRejected).setOnClickListener {
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java).putExtra("filterStatus", "Rejected"))
+        }
     }
 
     private fun setEmployerName() {
@@ -148,7 +157,11 @@ class EmployerDashboardActivity : AppCompatActivity() {
                 if (error != null || snapshots == null) return@addSnapshotListener
                 jobList.clear()
                 val allList = snapshots.documents.mapNotNull { doc ->
-                    try { doc.toObject(JobModel::class.java) } catch (_: Exception) { null }
+                    try {
+                        doc.toObject(JobModel::class.java)
+                    } catch (_: Exception) {
+                        null
+                    }
                 }
                 val active = allList.filter { it.status == "Active" }
                     .sortedByDescending { job ->
@@ -238,17 +251,22 @@ class EmployerDashboardActivity : AppCompatActivity() {
         db.collection("applications").whereIn("jobId", jobIds.take(30))
             .addSnapshotListener { docs, _ ->
                 if (docs == null) return@addSnapshotListener
-                var applied = 0; var review = 0; var shortlisted = 0
+                var applied = 0;
+                var review = 0;
+                var shortlisted = 0
+                var rejected = 0
                 for (doc in docs) {
                     when (doc.getString("status")) {
                         "Applied" -> applied++
                         "In Review" -> review++
                         "Shortlisted" -> shortlisted++
+                        "Rejected" -> rejected++
                     }
                 }
                 tvAppliedCount.text = applied.toString().padStart(2, '0')
                 tvReviewCount.text = review.toString().padStart(2, '0')
                 tvShortlistedCount.text = shortlisted.toString().padStart(2, '0')
+                tvRejectedCount.text = rejected.toString().padStart(2, '0')
             }
     }
 

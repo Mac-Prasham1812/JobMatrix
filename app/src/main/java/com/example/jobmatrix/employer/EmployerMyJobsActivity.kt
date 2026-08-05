@@ -67,12 +67,14 @@ class EmployerMyJobsActivity : AppCompatActivity() {
             finish()
         }
 
-        findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
+        findViewById<LinearLayout>(R.id.navApplications).setOnClickListener {
+            setActiveNav(R.id.navApplications)
+            startActivity(Intent(this, EmployerApplicationsActivity::class.java))
         }
 
-        findViewById<LinearLayout>(R.id.navApplications).setOnClickListener {
-            // startActivity(Intent(this, EmployerApplicationsActivity::class.java))
+        findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
+            setActiveNav(R.id.navProfile)
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         tabAll.setOnClickListener { setFilter("All") }
