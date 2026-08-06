@@ -93,7 +93,7 @@ class NotificationActivity : AppCompatActivity() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
         db.collection("notifications")
-            .whereEqualTo("studentId", userId)
+            .whereEqualTo("recipientId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) return@addSnapshotListener
@@ -189,7 +189,7 @@ class NotificationActivity : AppCompatActivity() {
     private fun syncBadgeCount() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         db.collection("notifications")
-            .whereEqualTo("studentId", userId)
+            .whereEqualTo("recipientId", userId)
             .whereEqualTo("isRead", false)
             .get()
             .addOnSuccessListener { snapshot ->

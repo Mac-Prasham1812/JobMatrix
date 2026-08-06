@@ -156,6 +156,9 @@
         <activity android:name="com.example.jobmatrix.employer.EmployerProfileActivity"/>
 
 
+        <activity android:name="com.example.jobmatrix.student.MyApplicationsActivity"/>
+
+
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
             android:exported="false"

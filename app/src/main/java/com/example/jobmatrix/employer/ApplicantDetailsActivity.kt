@@ -208,6 +208,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         val companyName = intent.getStringExtra("companyName") ?: ""
         val notif = hashMapOf(
             "studentId" to studentId,
+            "recipientId" to studentId,
             "applicationId" to applicationId,
             "jobTitle" to jobTitle,
             "companyName" to companyName,
