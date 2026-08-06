@@ -15,6 +15,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.jobmatrix.student.StudentDashboardActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.jobmatrix.app.R
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -64,7 +65,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         )
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // replace with your app icon later
+            .setSmallIcon(R.mipmap.ic_launcher_logo)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -103,7 +104,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
         com.google.firebase.firestore.FirebaseFirestore.getInstance()
             .collection("notifications")
-            .whereEqualTo("studentId", userId)
+            .whereEqualTo("recipientId", userId)
             .whereEqualTo("isRead", false)
             .get()
             .addOnSuccessListener { snapshot ->

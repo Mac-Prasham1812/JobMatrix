@@ -268,12 +268,14 @@ class ChatActivity : AppCompatActivity() {
                                 .update(mapOf(
                                     "message" to text,
                                     "createdAt" to System.currentTimeMillis(),
-                                    "isRead" to false
+                                    "isRead" to false,
+                                    "recipientId" to studentId
                                 ))
                         } else {
                             val notif = hashMapOf(
                                 "studentId" to studentId,
                                 "employerId" to employerId,
+                                "recipientId" to studentId,
                                 "applicationId" to applicationId,
                                 "jobTitle" to jobTitle,
                                 "companyName" to companyName,
@@ -298,7 +300,9 @@ class ChatActivity : AppCompatActivity() {
                                     com.example.jobmatrix.network.RetrofitClient.api.sendNotification(
                                         com.example.jobmatrix.network.NotifyRequest(token, "New message from ${companyName.ifBlank { "Employer" }}", text)
                                     )
-                                } catch (e: Exception) { }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("JM_CHAT", "push failed", e)
+                                }
                             }
                         }
                     }
@@ -326,12 +330,14 @@ class ChatActivity : AppCompatActivity() {
                                 .update(mapOf(
                                     "message" to text,
                                     "createdAt" to System.currentTimeMillis(),
-                                    "isRead" to false
+                                    "isRead" to false,
+                                    "recipientId" to employerId
                                 ))
                         } else {
                             val notif = hashMapOf(
                                 "employerId" to employerId,
                                 "studentId" to studentId,
+                                "recipientId" to employerId,
                                 "applicationId" to applicationId,
                                 "jobTitle" to jobTitle,
                                 "companyName" to companyName,

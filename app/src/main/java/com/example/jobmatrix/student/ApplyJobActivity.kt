@@ -449,11 +449,16 @@ class ApplyJobActivity : AppCompatActivity() {
                         if (!snapshot.isEmpty) {
                             val docId = snapshot.documents[0].id
                             db.collection("notifications").document(docId)
-                                .update(mapOf("createdAt" to System.currentTimeMillis(), "isRead" to false))
+                                .update(mapOf(
+                                    "createdAt" to System.currentTimeMillis(),
+                                    "isRead" to false,
+                                    "recipientId" to employerId
+                                ))
                         } else {
                             val notif = hashMapOf(
                                 "employerId" to employerId,
                                 "studentId" to studentId,
+                                "recipientId" to employerId,
                                 "applicationId" to applicationId,
                                 "jobId" to jobId,
                                 "jobTitle" to jobTitle,

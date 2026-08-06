@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.JobModel
 import com.jobmatrix.app.R
@@ -49,27 +50,18 @@ class JobAdapter(private var jobList: List<JobModel>) :
         holder.tvMatchScore.text = "${job.matchScore}% match"
 
         val score = job.matchScore
-        val (badgeBg, badgeText) = when {
-            score >= 80 -> android.graphics.Color.parseColor("#DCFCE7") to android.graphics.Color.parseColor(
-                "#16A34A"
-            )
-
-            score >= 50 -> android.graphics.Color.parseColor("#FEF3C7") to android.graphics.Color.parseColor(
-                "#D97706"
-            )
-
-            else -> android.graphics.Color.parseColor("#FEE2E2") to android.graphics.Color.parseColor(
-                "#DC2626"
-            )
+        val statusColor = when {
+            score >= 80 -> "#16A34A"
+            score >= 50 -> "#D97706"
+            else -> "#DC2626"
         }
-        val badgeDrawable =
-            holder.tvMatchScore.background.mutate() as android.graphics.drawable.GradientDrawable
-        badgeDrawable.setColor(badgeBg)
-        badgeDrawable.setStroke(0, badgeBg)
-        holder.tvMatchScore.setTextColor(badgeText)
+
+        holder.tvMatchScore.background = ContextCompat.getDrawable(holder.itemView.context, R.drawable.bg_status_shortlisted)?.mutate()
+        holder.tvMatchScore.background?.setTint(android.graphics.Color.parseColor(statusColor))
+        holder.tvMatchScore.setTextColor(android.graphics.Color.parseColor(statusColor))
 
         val stripeColor = holder.itemView.findViewById<View>(R.id.viewStripe)
-        stripeColor.setBackgroundColor(badgeText)
+        stripeColor.setBackgroundColor(android.graphics.Color.parseColor(statusColor))
 
         // Subtle staggered fade-up as each card binds, capped so it doesn't
         // keep re-triggering oddly on fast scroll past the first screenful.

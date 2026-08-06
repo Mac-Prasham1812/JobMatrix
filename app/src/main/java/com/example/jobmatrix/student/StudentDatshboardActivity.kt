@@ -108,6 +108,7 @@ class StudentDashboardActivity : AppCompatActivity() {
         loadJobs()
         checkNotifications()
         loadPipelineCounts()
+        setupPipelineClicks()
 
         // Navbar clicks
         navHome.setOnClickListener {
@@ -258,10 +259,10 @@ class StudentDashboardActivity : AppCompatActivity() {
             .addOnSuccessListener { docs ->
                 val applied = docs.count { it.getString("status") == "Applied" }
                 val shortlisted = docs.count { it.getString("status") == "Shortlisted" }
-                val rejected = docs.count { it.getString("status") == "Rejected" }
+                val inReview = docs.count { it.getString("status") == "In Review" }
 
                 findViewById<TextView>(R.id.tvAppliedCount).text = applied.toString()
-                findViewById<TextView>(R.id.tvInReviewCount).text = rejected.toString()
+                findViewById<TextView>(R.id.tvInReviewCount).text = inReview.toString()
                 findViewById<TextView>(R.id.tvShortlistedCount).text = shortlisted.toString()
             }
     }
@@ -277,5 +278,28 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         val matchedCount = jobSet.count { it in userSet }
         return ((matchedCount.toFloat() / jobSet.size) * 100).toInt()
+    }
+
+
+    private fun animateAndOpen(view: View, status: String) {
+        view.animate().scaleX(0.94f).scaleY(0.94f).setDuration(80)
+            .withEndAction {
+                view.animate().scaleX(1f).scaleY(1f).setDuration(120)
+                    .withEndAction {
+                        startActivity(Intent(this, MyApplicationsActivity::class.java)
+                            .putExtra("statusFilter", status))
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }.start()
+            }.start()
+    }
+
+    private fun setupPipelineClicks() {
+        val cardApplied = findViewById<TextView>(R.id.tvAppliedCount).parent as View
+        val cardInReview = findViewById<TextView>(R.id.tvInReviewCount).parent as View
+        val cardShortlisted = findViewById<TextView>(R.id.tvShortlistedCount).parent as View
+
+        cardApplied.setOnClickListener { animateAndOpen(it, "Applied") }
+        cardInReview.setOnClickListener { animateAndOpen(it, "In Review") }
+        cardShortlisted.setOnClickListener { animateAndOpen(it, "Shortlisted") }
     }
 }
