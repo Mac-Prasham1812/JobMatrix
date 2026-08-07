@@ -15,11 +15,30 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
+
+    private lateinit var googleSignInClient: com.google.android.gms.auth.api.signin.GoogleSignInClient
+
+    private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            firebaseAuthWithGoogle(account.idToken!!)
+
+        } catch (e: ApiException) {
+            showToast("Google sign-in failed")
+            findViewById<TextView>(R.id.tvGoogleLogin).apply { isEnabled = true; text = "  Continue with Google" }
+        }
+    }
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,8 +57,20 @@ class LoginActivity : AppCompatActivity() {
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
         findViewById<TextView>(R.id.tvForgotPassword).setOnClickListener { showToast("Coming soon") }
-        findViewById<TextView>(R.id.tvGoogleLogin).setOnClickListener { showToast("Coming soon") }
-        findViewById<TextView>(R.id.tvFacebookLogin).setOnClickListener { showToast("Coming soon") }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("849887541998-6imgmbr347c5eufsso4bttnev9eoru85.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        findViewById<TextView>(R.id.tvGoogleLogin).setOnClickListener {
+            it.isEnabled = false
+            (it as TextView).text = "Signing in..."
+            googleSignInClient.signOut().addOnCompleteListener {
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+            }
+        }
+
 
         // Entrance animations
         logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
@@ -90,6 +121,25 @@ class LoginActivity : AppCompatActivity() {
                     showToast(e.message ?: "Login failed")
                 }
         }
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val uid = result.user!!.uid
+                db.collection("users").document(uid).get()
+                    .addOnSuccessListener { doc ->
+                        if (doc.exists()) {
+                            checkUserRole(uid)
+                        } else {
+                            showToast("Please sign up first")
+                            auth.signOut()
+                            googleSignInClient.signOut()
+                        }
+                    }
+            }
+            .addOnFailureListener { showToast("Google sign-in failed") }
     }
 
     private fun checkUserRole(uid: String) {
