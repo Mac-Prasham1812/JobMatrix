@@ -64,6 +64,7 @@ dependencies {
 
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation ("me.leolin:ShortcutBadger:1.1.22@aar")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
 
 

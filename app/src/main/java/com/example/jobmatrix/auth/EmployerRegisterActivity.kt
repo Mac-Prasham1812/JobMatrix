@@ -11,11 +11,34 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.GoogleAuthProvider
+
 
 class EmployerRegisterActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
+
+    private lateinit var googleSignInClient: com.google.android.gms.auth.api.signin.GoogleSignInClient
+
+    private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            firebaseAuthWithGoogle(account.idToken!!)
+        } catch (e: ApiException) {
+            showToast("Google sign-in failed: ${e.statusCode}")
+            resetGoogleButton()
+        }
+    }
+
+    private fun resetGoogleButton() {
+        findViewById<TextView>(R.id.tvGoogleRegister).apply { isEnabled = true; text = "  Continue with Google" }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +61,19 @@ class EmployerRegisterActivity : AppCompatActivity() {
 
         logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
         registerContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_card_entrance))
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken("849887541998-6imgmbr347c5eufsso4bttnev9eoru85.apps.googleusercontent.com")
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        findViewById<TextView>(R.id.tvGoogleRegister).setOnClickListener {
+            it.isEnabled = false
+            (it as TextView).text = "Signing in..."
+            googleSignInClient.signOut().addOnCompleteListener {
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+            }
+        }
 
         tvLoginLink.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -108,6 +144,33 @@ class EmployerRegisterActivity : AppCompatActivity() {
 
 
         }
+    }
+
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener { result ->
+                val uid = result.user!!.uid
+                val userMap = hashMapOf(
+                    "uid" to uid,
+                    "name" to (result.user?.displayName ?: ""),
+                    "email" to (result.user?.email ?: ""),
+                    "phone" to "",
+                    "role" to "Employer",
+                    "createdAt" to System.currentTimeMillis(),
+                    "fcmToken" to ""
+                )
+                db.collection("users").document(uid).set(userMap)
+                    .addOnSuccessListener {
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+                            .addOnSuccessListener { t -> db.collection("users").document(uid).update("fcmToken", t) }
+                        showToast("Registration successful")
+                        startActivity(Intent(this, EmployerDashboardActivity::class.java))
+                        finish()
+                    }
+            }
+            .addOnFailureListener { showToast("Google sign-in failed") }
     }
 
     private fun showToast(message: String) {

@@ -156,28 +156,17 @@
                     android:layout_marginTop="16dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:id="@+id/tvGoogleLogin"
+                        android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
                         android:gravity="center"
-                        android:text="G  Google"
+                        android:text="  Continue with Google"
                         android:textStyle="bold"
                         android:textColor="@color/color_text_primary"
-                        android:background="@drawable/bg_input"
-                        android:id="@+id/tvGoogleLogin"/>
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        android:gravity="center"
-                        android:text="f  Facebook"
-                        android:textStyle="bold"
-                        android:textColor="@color/color_text_primary"
-                        android:background="@drawable/bg_input"
-                        android:id="@+id/tvFacebookLogin"/>
+                        android:background="@drawable/bg_google_button"
+                        android:drawableStart="@drawable/ic_google"
+                        android:drawablePadding="10dp"
+                        android:paddingStart="16dp" />
                 </LinearLayout>
 
                 <!-- Register Link (Student) -->
