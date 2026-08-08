@@ -21,20 +21,16 @@
 
         <!-- ================= AUTH MODULE ================= -->
 
+        <activity android:name="com.example.jobmatrix.auth.RegisterActivity" android:exported="true" />
+
         <activity
-            android:name="com.example.jobmatrix.auth.RegisterActivity"
+            android:name="com.example.jobmatrix.auth.LoginActivity"
             android:exported="true">
-            <!-- App starts from Register -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name="com.example.jobmatrix.auth.LoginActivity"
-            android:exported="false" />
-
 
         <!-- ================= STUDENT MODULE ================= -->
 
@@ -157,6 +153,9 @@
 
 
         <activity android:name="com.example.jobmatrix.student.MyApplicationsActivity"/>
+
+
+        <activity android:name="com.example.jobmatrix.auth.ForgotPasswordActivity"/>
 
 
         <service

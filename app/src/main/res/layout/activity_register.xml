@@ -133,20 +133,31 @@
                     app:cornerRadius="16dp"
                     android:elevation="2dp"/>
 
-                <TextView
-                    android:id="@+id/tvGoogleRegister"
+                <LinearLayout
+                    android:id="@+id/tvGoogleRegisterWrapper"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
+                    android:orientation="horizontal"
                     android:gravity="center"
-                    android:text="  Continue with Google"
-                    android:textStyle="bold"
-                    android:textColor="@color/color_text_primary"
                     android:background="@drawable/bg_google_button"
-                    android:drawableStart="@drawable/ic_google"
-                    android:drawablePadding="10dp"
-                    android:paddingStart="16dp"
-                    android:layout_marginTop="12dp"
-                    />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:layout_marginTop="16dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_google"
+                        android:layout_marginEnd="10dp"/>
+
+                    <TextView
+                        android:id="@+id/tvGoogleRegister"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Continue with Google"
+                        android:textStyle="bold"
+                        android:textColor="@color/color_text_primary"/>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/tvLoginLink"

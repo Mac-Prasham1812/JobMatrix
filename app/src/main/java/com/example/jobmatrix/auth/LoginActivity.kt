@@ -36,17 +36,25 @@ class LoginActivity : AppCompatActivity() {
 
         } catch (e: ApiException) {
             showToast("Google sign-in failed")
-            findViewById<TextView>(R.id.tvGoogleLogin).apply { isEnabled = true; text = "  Continue with Google" }
+            findViewById<LinearLayout>(R.id.tvGoogleLoginWrapper).isEnabled = true
+            findViewById<TextView>(R.id.tvGoogleLogin).text = "Continue with Google"
         }
     }
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
+
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            checkUserRole(currentUser.uid)
+            return
+        }
+
+        setContentView(R.layout.activity_login)
 
         val etEmail = findViewById<TextInputEditText>(R.id.etEmail)
         val etPassword = findViewById<TextInputEditText>(R.id.etPassword)
@@ -56,45 +64,38 @@ class LoginActivity : AppCompatActivity() {
         val loginContainer = findViewById<LinearLayout>(R.id.loginContainer)
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
 
-        findViewById<TextView>(R.id.tvForgotPassword).setOnClickListener { showToast("Coming soon") }
+        findViewById<TextView>(R.id.tvForgotPassword).setOnClickListener {
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
+        }
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("849887541998-6imgmbr347c5eufsso4bttnev9eoru85.apps.googleusercontent.com")
             .requestEmail()
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        findViewById<TextView>(R.id.tvGoogleLogin).setOnClickListener {
+        findViewById<LinearLayout>(R.id.tvGoogleLoginWrapper).setOnClickListener {
             it.isEnabled = false
-            (it as TextView).text = "Signing in..."
-            googleSignInClient.signOut().addOnCompleteListener {
-                googleSignInLauncher.launch(googleSignInClient.signInIntent)
-            }
+            findViewById<TextView>(R.id.tvGoogleLogin).text = "Login ..."
+            googleSignInLauncher.launch(googleSignInClient.signInIntent)
         }
 
-
-        // Entrance animations
         logoMark.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_logo_entrance))
         loginContainer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.anim_card_entrance))
 
-        // Navigate to Register (Student)
         tvRegisterLink.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
             finish()
         }
 
-        // Navigate to Register (Employer)
         tvEmployerRegisterLink.setOnClickListener {
             startActivity(Intent(this, EmployerRegisterActivity::class.java))
             finish()
         }
 
-
         btnLogin.setOnClickListener {
-
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
 
-            // Validation
             if (email.isEmpty() || password.isEmpty()) {
                 showToast("Please fill all fields")
                 return@setOnClickListener
@@ -109,7 +110,6 @@ class LoginActivity : AppCompatActivity() {
             btnLogin.text = "Logging in..."
             btnLogin.isEnabled = false
 
-            // Firebase login
             auth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener {
                     val uid = auth.currentUser!!.uid
@@ -135,7 +135,6 @@ class LoginActivity : AppCompatActivity() {
                         } else {
                             showToast("Please sign up first")
                             auth.signOut()
-                            googleSignInClient.signOut()
                         }
                     }
             }
