@@ -38,7 +38,8 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun resetGoogleButton() {
-        findViewById<TextView>(R.id.tvGoogleRegister).apply { isEnabled = true; text = "  Continue with Google" }
+        findViewById<LinearLayout>(R.id.tvGoogleRegisterWrapper).isEnabled = true
+        findViewById<TextView>(R.id.tvGoogleRegister).text = "Continue with Google"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,12 +70,10 @@ class RegisterActivity : AppCompatActivity() {
             .build()
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-        findViewById<TextView>(R.id.tvGoogleRegister).setOnClickListener {
+        findViewById<LinearLayout>(R.id.tvGoogleRegisterWrapper).setOnClickListener {
             it.isEnabled = false
-            (it as TextView).text = "Signing in..."
-            googleSignInClient.signOut().addOnCompleteListener {
-                googleSignInLauncher.launch(googleSignInClient.signInIntent)
-            }
+            findViewById<TextView>(R.id.tvGoogleRegister).text = "Signing in..."
+            googleSignInLauncher.launch(googleSignInClient.signInIntent)
         }
 
 

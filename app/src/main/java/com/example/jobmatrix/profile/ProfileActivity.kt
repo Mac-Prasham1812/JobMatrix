@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 import com.example.jobmatrix.auth.LoginActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -79,6 +80,7 @@ class ProfileActivity : AppCompatActivity() {
         }
         btnLogout.setOnClickListener {
             auth.signOut()
+            GoogleSignIn.getClient(this, com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
