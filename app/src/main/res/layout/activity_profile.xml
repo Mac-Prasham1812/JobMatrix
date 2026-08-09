@@ -376,7 +376,7 @@
                     <ImageView
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_applications"
+                        android:src="@drawable/ic_settings"
                         app:tint="@color/color_text_secondary" />
 
                     <TextView
@@ -384,7 +384,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="14dp"
                         android:layout_weight="1"
-                        android:text="Theme"
+                        android:text="Settings"
                         android:textColor="@color/color_text_primary"
                         android:textSize="14sp" />
 

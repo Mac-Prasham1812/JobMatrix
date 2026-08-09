@@ -53,21 +53,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.rowApplications).setOnClickListener {
-            Toast.makeText(this, "Coming soon", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, com.example.jobmatrix.student.MyApplicationsActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.rowResume).setOnClickListener {
-            val currentMode = androidx.appcompat.app.AppCompatDelegate.getDefaultNightMode()
-            var newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
-
-            if (currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES) {
-                newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
-            } else {
-                newMode = androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
-            }
-
-            getSharedPreferences("prefs", MODE_PRIVATE).edit().putInt("night_mode", newMode).apply()
-            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(newMode)
+            startActivity(Intent(this, com.example.jobmatrix.settings.SettingsActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.rowNotifications).setOnClickListener {
