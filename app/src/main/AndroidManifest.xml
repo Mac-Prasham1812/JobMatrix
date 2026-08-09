@@ -157,6 +157,8 @@
 
         <activity android:name="com.example.jobmatrix.auth.ForgotPasswordActivity"/>
 
+        <activity android:name="com.example.jobmatrix.settings.ChangePasswordActivity"/>
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
