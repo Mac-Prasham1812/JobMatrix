@@ -26,15 +26,13 @@ class JobDetailsActivity : AppCompatActivity() {
     private lateinit var tvMatchBadge: com.google.android.material.chip.Chip
     private lateinit var tvPostedOn: TextView
     private lateinit var chipGroupJobSkills: com.google.android.material.chip.ChipGroup
-
+    private lateinit var btnSaveJob: com.google.android.material.button.MaterialButton
+    private lateinit var tvApplicants: TextView
 
     private var jobId: String? = null
     private var currentJob: JobModel? = null
     private var passedMatchScore: Int = 0
-
-    private lateinit var tvApplicants: TextView
-
-
+    private var isJobSaved = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +49,11 @@ class JobDetailsActivity : AppCompatActivity() {
         tvMatchBadge = findViewById(R.id.tvMatchBadge)
         tvPostedOn = findViewById(R.id.tvPostedOn)
         addPressEffect(btnApply)
-        addPressEffect(findViewById(R.id.btnSaveJob))
+
+        btnSaveJob = findViewById(R.id.btnSaveJob)
+        addPressEffect(btnSaveJob)
+        btnSaveJob.setOnClickListener { toggleSaveJob() }
+
         passedMatchScore = intent.getIntExtra("matchScore", 0)
         tvApplicants = findViewById(R.id.tvApplicants)
 
@@ -64,7 +66,7 @@ class JobDetailsActivity : AppCompatActivity() {
         jobId = intent.getStringExtra("jobId")
 
         if (jobId.isNullOrEmpty()) {
-            Toast.makeText(this, "Job not found", Toast.LENGTH_SHORT).show()
+            showToast("Job not found")
             finish()
             return
         }
@@ -85,7 +87,10 @@ class JobDetailsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        jobId?.let { loadJobDetails(it) }
+        jobId?.let {
+            loadJobDetails(it)
+            checkSavedState(it)
+        }
     }
 
     private fun loadJobDetails(jobId: String) {
@@ -101,7 +106,7 @@ class JobDetailsActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to load job", Toast.LENGTH_SHORT).show()
+                showToast("Failed to load job")
             }
     }
 
@@ -226,6 +231,60 @@ class JobDetailsActivity : AppCompatActivity() {
                 android.view.MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f).scaleY(1f).setDuration(80).start()
             }
             false
+        }
+    }
+    private fun checkSavedState(jobId: String) {
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val savedMap = doc.get("savedJobs") as? Map<*, *>
+                isJobSaved = savedMap?.containsKey(jobId) == true
+                updateSaveButtonUI()
+            }
+    }
+
+    private fun toggleSaveJob() {
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val id = jobId ?: return
+        val userRef = db.collection("users").document(uid)
+
+        val update: Any = if (isJobSaved)
+            com.google.firebase.firestore.FieldValue.delete()
+        else
+            com.google.firebase.Timestamp.now()
+
+        userRef.update("savedJobs.$id", update)
+            .addOnSuccessListener {
+                isJobSaved = !isJobSaved
+                updateSaveButtonUI()
+                showToast(if (isJobSaved) "Job saved" else "Removed from saved")
+            }
+            .addOnFailureListener {
+                // field may not exist yet on first save
+                if (!isJobSaved) {
+                    userRef.update("savedJobs", mapOf(id to com.google.firebase.Timestamp.now()))
+                        .addOnSuccessListener {
+                            isJobSaved = true
+                            updateSaveButtonUI()
+                            showToast("Job saved")
+                        }
+                } else {
+                    showToast("Failed to update saved job")
+                }
+            }
+    }
+
+    private fun updateSaveButtonUI() {
+        btnSaveJob.text = if (isJobSaved) "Saved" else "Save Job"
+    }
+
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
         }
     }
 }

@@ -28,6 +28,7 @@ class StudentDashboardActivity : AppCompatActivity() {
     private lateinit var navSearch: LinearLayout
     private lateinit var ivNotification: LinearLayout
     private lateinit var ivSettings: ImageView
+    private lateinit var ivSavedJobs: ImageView
 
     // RecyclerView
     private lateinit var recyclerView: RecyclerView
@@ -78,6 +79,7 @@ class StudentDashboardActivity : AppCompatActivity() {
         navSearch = findViewById(R.id.navSearch)
         ivNotification = findViewById(R.id.ivNotification)
         ivSettings = findViewById(R.id.ivSettings)
+        ivSavedJobs = findViewById(R.id.ivSavedJobs)
 
         setActiveNav(navHome)
 
@@ -132,6 +134,10 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         ivSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+
+        ivSavedJobs.setOnClickListener {
+            startActivity(Intent(this, SavedJobsActivity::class.java))
         }
     }
 
