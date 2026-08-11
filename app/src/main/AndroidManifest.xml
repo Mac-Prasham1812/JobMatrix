@@ -159,6 +159,8 @@
 
         <activity android:name="com.example.jobmatrix.settings.ChangePasswordActivity"/>
 
+        <activity android:name="com.example.jobmatrix.student.SavedJobsActivity" />
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"

@@ -56,6 +56,10 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this, com.example.jobmatrix.student.MyApplicationsActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.rowSavedJobs).setOnClickListener {
+            startActivity(Intent(this, com.example.jobmatrix.student.SavedJobsActivity::class.java))
+        }
+
         findViewById<LinearLayout>(R.id.rowResume).setOnClickListener {
             startActivity(Intent(this, com.example.jobmatrix.settings.SettingsActivity::class.java))
         }

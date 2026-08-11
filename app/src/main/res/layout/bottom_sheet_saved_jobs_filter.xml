@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/color_surface"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter Saved Jobs"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_text_primary"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Match Score"
+        android:textSize="13sp"
+        android:textColor="@color/color_text_secondary"
+        android:layout_marginBottom="6dp"/>
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                style="@style/ChipActive"
+                android:id="@+id/chipMatchAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All"/>
+
+            <TextView
+                style="@style/Chip"
+                android:id="@+id/chipMatch80"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="80%+"/>
+
+            <TextView
+                style="@style/Chip"
+                android:id="@+id/chipMatch50"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%+"/>
+
+            <TextView
+                style="@style/Chip"
+                android:id="@+id/chipMatchBelow50"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Below 50%"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sort By"
+        android:textSize="13sp"
+        android:textColor="@color/color_text_secondary"
+        android:layout_marginBottom="6dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <TextView
+            style="@style/ChipActive"
+            android:id="@+id/chipSortNewest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Latest Saved"/>
+
+        <TextView
+            style="@style/Chip"
+            android:id="@+id/chipSortOldest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Oldest Saved"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetFilter"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Reset"
+            android:textColor="@color/color_accent"
+            app:strokeColor="@color/color_accent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApplyFilter"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="Apply"
+            android:textColor="#FFFFFF"
+            app:backgroundTint="@null"
+            android:background="@drawable/bg_button"/>
+    </LinearLayout>
+</LinearLayout>
