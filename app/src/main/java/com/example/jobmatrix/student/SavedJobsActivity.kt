@@ -1,5 +1,6 @@
 package com.example.jobmatrix.student
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -46,6 +47,18 @@ class SavedJobsActivity : AppCompatActivity() {
         jobAdapter = JobAdapter(jobList)
         rvSavedJobs.adapter = jobAdapter
 
+        val swipeHandler = object : androidx.recyclerview.widget.ItemTouchHelper.SimpleCallback(
+            0, androidx.recyclerview.widget.ItemTouchHelper.LEFT
+        ) {
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                if (position != RecyclerView.NO_POSITION) unsaveJob(position)
+            }
+        }
+        androidx.recyclerview.widget.ItemTouchHelper(swipeHandler).attachToRecyclerView(rvSavedJobs)
+
         emptyState = findViewById(R.id.emptyState)
         tvSavedCount = findViewById(R.id.tvSavedCount)
     }
@@ -88,6 +101,7 @@ class SavedJobsActivity : AppCompatActivity() {
             .addOnFailureListener { showEmpty() }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun applyFilter() {
         var filtered = allSaved.filter { item ->
             when (matchFilter) {
@@ -130,6 +144,7 @@ class SavedJobsActivity : AppCompatActivity() {
         emptyState.visibility = View.GONE
     }
 
+    @SuppressLint("SetTextI18n")
     private fun showEmpty() {
         rvShimmer.visibility = View.GONE
         rvSavedJobs.visibility = View.GONE
@@ -137,6 +152,7 @@ class SavedJobsActivity : AppCompatActivity() {
         tvSavedCount.text = "0 saved"
     }
 
+    @SuppressLint("InflateParams")
     private fun showFilterSheet() {
         val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_saved_jobs_filter, null)
@@ -177,5 +193,37 @@ class SavedJobsActivity : AppCompatActivity() {
             applyFilter(); dialog.dismiss()
         }
         dialog.show()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun unsaveJob(position: Int) {
+        val job = jobList.getOrNull(position) ?: return
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        db.collection("users").document(uid)
+            .update("savedJobs.${job.jobId}", com.google.firebase.firestore.FieldValue.delete())
+            .addOnSuccessListener {
+                allSaved.removeAll { it.job.jobId == job.jobId }
+                jobList.removeAt(position)
+                jobAdapter.notifyItemRemoved(position)
+                tvSavedCount.text = "${jobList.size} saved"
+                if (jobList.isEmpty()) showEmpty()
+                showToast("Removed from saved")
+            }
+            .addOnFailureListener {
+                jobAdapter.notifyItemChanged(position)
+                showToast("Failed to remove")
+            }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        android.widget.Toast(this).apply {
+            duration = android.widget.Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }
