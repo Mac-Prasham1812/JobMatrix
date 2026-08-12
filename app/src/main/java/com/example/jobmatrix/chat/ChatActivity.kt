@@ -14,6 +14,7 @@ import com.google.firebase.firestore.Query
 import com.jobmatrix.app.R
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import com.google.firebase.firestore.ListenerRegistration
 
 class ChatActivity : AppCompatActivity() {
 
@@ -37,6 +38,7 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var editBar: android.widget.LinearLayout
     private lateinit var emptyStateContainer: android.widget.LinearLayout
     private var messagesLoadedOnce = false
+    private var messagesListener: ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,56 +100,22 @@ class ChatActivity : AppCompatActivity() {
             }
     }
 
-//    private fun ensureChatDoc(companyName: String, jobTitle: String) {
-//        val chatData = hashMapOf(
-//            "studentId" to studentId,
-//            "employerId" to employerId,
-//            "jobTitle" to jobTitle,
-//            "companyName" to companyName
-//        )
-//        db.collection("chats").document(applicationId).set(chatData, com.google.firebase.firestore.SetOptions.merge())
-//    }
-
-//    private fun loadMessages() {
-//        db.collection("chats").document(applicationId)
-//            .collection("messages")
-//            .orderBy("timestamp", Query.Direction.ASCENDING)
-//            .addSnapshotListener { snapshot, error ->
-//                if (error != null || snapshot == null) return@addSnapshotListener
-//
-//                messages.clear()
-//                for (doc in snapshot.documents) {
-//                    doc.toObject(ChatMessage::class.java)?.let {
-//                        val fixedIsRead = doc.getBoolean("isRead") ?: false
-//                        val fixedIsDeleted = doc.getBoolean("isDeleted") ?: false
-//                        messages.add(it.copy(messageId = doc.id, isRead = fixedIsRead, isDeleted = fixedIsDeleted))
-//                    }
-//                }
-//
-//                val myUid = auth.currentUser?.uid ?: ""
-//                for (doc in snapshot.documents) {
-//                    val senderId = doc.getString("senderId") ?: ""
-//                    val isRead = doc.getBoolean("isRead") ?: false
-//                    if (senderId != myUid && !isRead) {
-//                        doc.reference.update("isRead", true)
-//                    }
-//                }
-//
-//                buildListItems()
-//                adapter.notifyDataSetChanged()
-//                emptyStateContainer.visibility = if (messages.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
-//                if (listItems.isNotEmpty()) recyclerView.scrollToPosition(listItems.size - 1)
-//            }
-//    }
-
-
     private fun loadMessages() {
         db.collection("chats").document(applicationId)
             .collection("messages")
             .orderBy("timestamp", Query.Direction.ASCENDING)
+            messagesListener = db.collection("chats")
+            .document(applicationId)
+            .collection("messages")
+            .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
 
-                if (error != null || snapshot == null) return@addSnapshotListener
+                if (error != null) {
+                    android.util.Log.e("JM_CHAT", "Message load failed", error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) return@addSnapshotListener
 
                 val layoutManager =
                     recyclerView.layoutManager as LinearLayoutManager
@@ -251,122 +219,288 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun createStudentNotification(text: String) {
-        db.collection("applications").document(applicationId).get()
+        db.collection("applications")
+            .document(applicationId)
+            .get()
             .addOnSuccessListener { appDoc ->
+
                 val jobTitle = appDoc.getString("jobTitle") ?: ""
                 val companyName = appDoc.getString("companyName") ?: ""
 
+                val notificationId = "${applicationId}_student_message"
+
+                val notificationData = hashMapOf(
+                    "studentId" to studentId,
+                    "employerId" to employerId,
+                    "recipientId" to studentId,
+                    "applicationId" to applicationId,
+                    "jobTitle" to jobTitle,
+                    "companyName" to companyName,
+                    "message" to text,
+                    "type" to "Message",
+                    "createdAt" to System.currentTimeMillis(),
+                    "isRead" to false
+                )
+
                 db.collection("notifications")
-                    .whereEqualTo("applicationId", applicationId)
-                    .whereEqualTo("employerId", employerId)
-                    .whereEqualTo("type", "Message")
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        if (!snapshot.isEmpty) {
-                            val docId = snapshot.documents[0].id
-                            db.collection("notifications").document(docId)
-                                .update(mapOf(
-                                    "message" to text,
-                                    "createdAt" to System.currentTimeMillis(),
-                                    "isRead" to false,
-                                    "recipientId" to studentId
-                                ))
-                        } else {
-                            val notif = hashMapOf(
-                                "studentId" to studentId,
-                                "employerId" to employerId,
-                                "recipientId" to studentId,
-                                "applicationId" to applicationId,
-                                "jobTitle" to jobTitle,
-                                "companyName" to companyName,
-                                "message" to text,
-                                "type" to "Message",
-                                "createdAt" to System.currentTimeMillis(),
-                                "isRead" to false
-                            )
-                            db.collection("notifications").add(notif)
-                        }
+                    .document(notificationId)
+                    .set(
+                        notificationData,
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
+                    .addOnSuccessListener {
+                        android.util.Log.d(
+                            "JM_CHAT",
+                            "Student notification created successfully"
+                        )
                     }
                     .addOnFailureListener { e ->
-                        android.util.Log.e("JM_CHAT", "notif query failed", e)
+                        android.util.Log.e(
+                            "JM_CHAT",
+                            "Student notification failed",
+                            e
+                        )
                     }
 
-                db.collection("users").document(studentId).get()
+                // Send push notification to student
+                db.collection("users")
+                    .document(studentId)
+                    .get()
                     .addOnSuccessListener { userDoc ->
+
                         val token = userDoc.getString("fcmToken") ?: ""
+
                         if (token.isNotBlank()) {
                             lifecycleScope.launch {
                                 try {
-                                    com.example.jobmatrix.network.RetrofitClient.api.sendNotification(
-                                        com.example.jobmatrix.network.NotifyRequest(token, "New message from ${companyName.ifBlank { "Employer" }}", text)
-                                    )
+                                    com.example.jobmatrix.network.RetrofitClient.api
+                                        .sendNotification(
+                                            com.example.jobmatrix.network.NotifyRequest(
+                                                token,
+                                                "New message from ${
+                                                    companyName.ifBlank { "Employer" }
+                                                }",
+                                                text
+                                            )
+                                        )
                                 } catch (e: Exception) {
-                                    android.util.Log.e("JM_CHAT", "push failed", e)
+                                    android.util.Log.e(
+                                        "JM_CHAT",
+                                        "Push notification failed",
+                                        e
+                                    )
                                 }
                             }
                         }
                     }
             }
             .addOnFailureListener { e ->
-                android.util.Log.e("JM_CHAT", "appDoc fetch failed", e)
+                android.util.Log.e(
+                    "JM_CHAT",
+                    "Application document fetch failed",
+                    e
+                )
             }
     }
+
+//    private fun createStudentNotification(text: String) {
+//        db.collection("applications").document(applicationId).get()
+//            .addOnSuccessListener { appDoc ->
+//                val jobTitle = appDoc.getString("jobTitle") ?: ""
+//                val companyName = appDoc.getString("companyName") ?: ""
+//
+//                db.collection("notifications")
+//                    .whereEqualTo("applicationId", applicationId)
+//                    .whereEqualTo("employerId", employerId)
+//                    .whereEqualTo("type", "Message")
+//                    .get()
+//                    .addOnSuccessListener { snapshot ->
+//                        if (!snapshot.isEmpty) {
+//                            val docId = snapshot.documents[0].id
+//                            db.collection("notifications").document(docId)
+//                                .update(mapOf(
+//                                    "message" to text,
+//                                    "createdAt" to System.currentTimeMillis(),
+//                                    "isRead" to false,
+//                                    "recipientId" to studentId
+//                                ))
+//                        } else {
+//                            val notif = hashMapOf(
+//                                "studentId" to studentId,
+//                                "employerId" to employerId,
+//                                "recipientId" to studentId,
+//                                "applicationId" to applicationId,
+//                                "jobTitle" to jobTitle,
+//                                "companyName" to companyName,
+//                                "message" to text,
+//                                "type" to "Message",
+//                                "createdAt" to System.currentTimeMillis(),
+//                                "isRead" to false
+//                            )
+//                            db.collection("notifications").add(notif)
+//                        }
+//                    }
+//                    .addOnFailureListener { e ->
+//                        android.util.Log.e("JM_CHAT", "notif query failed", e)
+//                    }
+//
+//                db.collection("users").document(studentId).get()
+//                    .addOnSuccessListener { userDoc ->
+//                        val token = userDoc.getString("fcmToken") ?: ""
+//                        if (token.isNotBlank()) {
+//                            lifecycleScope.launch {
+//                                try {
+//                                    com.example.jobmatrix.network.RetrofitClient.api.sendNotification(
+//                                        com.example.jobmatrix.network.NotifyRequest(token, "New message from ${companyName.ifBlank { "Employer" }}", text)
+//                                    )
+//                                } catch (e: Exception) {
+//                                    android.util.Log.e("JM_CHAT", "push failed", e)
+//                                }
+//                            }
+//                        }
+//                    }
+//            }
+//            .addOnFailureListener { e ->
+//                android.util.Log.e("JM_CHAT", "appDoc fetch failed", e)
+//            }
+//    }
 
     private fun createEmployerNotification(text: String) {
         db.collection("applications").document(applicationId).get()
             .addOnSuccessListener { appDoc ->
+
                 val jobTitle = appDoc.getString("jobTitle") ?: ""
                 val companyName = appDoc.getString("companyName") ?: ""
 
+                val notificationId = "${applicationId}_employer_message"
+
+                val notification = hashMapOf(
+                    "employerId" to employerId,
+                    "studentId" to studentId,
+                    "recipientId" to employerId,
+                    "applicationId" to applicationId,
+                    "jobTitle" to jobTitle,
+                    "companyName" to companyName,
+                    "message" to text,
+                    "type" to "Message",
+                    "createdAt" to System.currentTimeMillis(),
+                    "isRead" to false
+                )
+
                 db.collection("notifications")
-                    .whereEqualTo("applicationId", applicationId)
-                    .whereEqualTo("studentId", studentId)
-                    .whereEqualTo("type", "Message")
-                    .get()
-                    .addOnSuccessListener { snapshot ->
-                        if (!snapshot.isEmpty) {
-                            val docId = snapshot.documents[0].id
-                            db.collection("notifications").document(docId)
-                                .update(mapOf(
-                                    "message" to text,
-                                    "createdAt" to System.currentTimeMillis(),
-                                    "isRead" to false,
-                                    "recipientId" to employerId
-                                ))
-                        } else {
-                            val notif = hashMapOf(
-                                "employerId" to employerId,
-                                "studentId" to studentId,
-                                "recipientId" to employerId,
-                                "applicationId" to applicationId,
-                                "jobTitle" to jobTitle,
-                                "companyName" to companyName,
-                                "message" to text,
-                                "type" to "Message",
-                                "createdAt" to System.currentTimeMillis(),
-                                "isRead" to false
-                            )
-                            db.collection("notifications").add(notif)
-                        }
+                    .document(notificationId)
+                    .set(
+                        notification,
+                        com.google.firebase.firestore.SetOptions.merge()
+                    )
+                    .addOnSuccessListener {
+                        android.util.Log.d(
+                            "JM_CHAT",
+                            "Employer notification created: $notificationId"
+                        )
                     }
                     .addOnFailureListener { e ->
-                        android.util.Log.e("JM_CHAT", "employer notif query failed", e)
+                        android.util.Log.e(
+                            "JM_CHAT",
+                            "Employer notification failed",
+                            e
+                        )
                     }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e(
+                    "JM_CHAT",
+                    "Application fetch failed",
+                    e
+                )
             }
     }
 
-    private fun ensureChatDoc(companyName: String, jobTitle: String, onDone: () -> Unit) {
+//    private fun createEmployerNotification(text: String) {
+//        db.collection("applications").document(applicationId).get()
+//            .addOnSuccessListener { appDoc ->
+//                val jobTitle = appDoc.getString("jobTitle") ?: ""
+//                val companyName = appDoc.getString("companyName") ?: ""
+//
+//                db.collection("notifications")
+//                    .whereEqualTo("applicationId", applicationId)
+//                    .whereEqualTo("studentId", studentId)
+//                    .whereEqualTo("type", "Message")
+//                    .get()
+//                    .addOnSuccessListener { snapshot ->
+//                        if (!snapshot.isEmpty) {
+//                            val docId = snapshot.documents[0].id
+//                            db.collection("notifications").document(docId)
+//                                .update(mapOf(
+//                                    "message" to text,
+//                                    "createdAt" to System.currentTimeMillis(),
+//                                    "isRead" to false,
+//                                    "recipientId" to employerId
+//                                ))
+//                        } else {
+//                            val notif = hashMapOf(
+//                                "employerId" to employerId,
+//                                "studentId" to studentId,
+//                                "recipientId" to employerId,
+//                                "applicationId" to applicationId,
+//                                "jobTitle" to jobTitle,
+//                                "companyName" to companyName,
+//                                "message" to text,
+//                                "type" to "Message",
+//                                "createdAt" to System.currentTimeMillis(),
+//                                "isRead" to false
+//                            )
+//                            db.collection("notifications").add(notif)
+//                        }
+//                    }
+//                    .addOnFailureListener { e ->
+//                        android.util.Log.e("JM_CHAT", "employer notif query failed", e)
+//                    }
+//            }
+//    }
+
+
+    private fun ensureChatDoc(
+        companyName: String,
+        jobTitle: String,
+        onDone: () -> Unit
+    ) {
+        if (studentId.isBlank() || employerId.isBlank()) {
+            android.util.Log.e(
+                "JM_CHAT",
+                "Cannot create chat: studentId or employerId is empty"
+            )
+            return
+        }
+
         val chatData = hashMapOf(
             "studentId" to studentId,
             "employerId" to employerId,
             "jobTitle" to jobTitle,
             "companyName" to companyName
         )
-        db.collection("chats").document(applicationId)
-            .set(chatData, com.google.firebase.firestore.SetOptions.merge())
+
+        db.collection("chats")
+            .document(applicationId)
+            .set(
+                chatData,
+                com.google.firebase.firestore.SetOptions.merge()
+            )
             .addOnSuccessListener {
+                android.util.Log.d(
+                    "JM_CHAT",
+                    "Chat document ready: $applicationId"
+                )
+
                 chatReady = true
                 onDone()
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e(
+                    "JM_CHAT",
+                    "Chat document write failed",
+                    e
+                )
             }
     }
 
@@ -439,5 +573,11 @@ class ChatActivity : AppCompatActivity() {
             }
             listItems.add(ChatListItem.MessageItem(msg))
         }
+    }
+    override fun onStop() {
+        super.onStop()
+
+        messagesListener?.remove()
+        messagesListener = null
     }
 }

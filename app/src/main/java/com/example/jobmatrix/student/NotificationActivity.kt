@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.jobmatrix.app.R
+import android.widget.Toast
 
 class NotificationActivity : AppCompatActivity() {
 
@@ -52,7 +53,32 @@ class NotificationActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val position = viewHolder.adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    adapter.deleteImmediately(position)
+                    val item = visibleNotifications[position]
+
+                    if (item is NotificationListItem.Item) {
+                        val notification = item.notification
+
+                        db.collection("notifications")
+                            .document(notification.notificationId)
+                            .delete()
+                            .addOnSuccessListener {
+                                visibleNotifications.removeAt(position)
+                                adapter.notifyItemRemoved(position)
+                                syncBadgeCount()
+
+                                showToast("Notification deleted")
+                            }
+                            .addOnFailureListener { e ->
+                                android.util.Log.e(
+                                    "JM_NOTIFICATION",
+                                    "Notification delete failed",
+                                    e
+                                )
+                                adapter.notifyItemChanged(position)
+                            }
+                    } else {
+                        adapter.notifyItemChanged(position)
+                    }
                 }
             }
         }
@@ -96,7 +122,16 @@ class NotificationActivity : AppCompatActivity() {
             .whereEqualTo("recipientId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) return@addSnapshotListener
+                if (error != null) {
+                    android.util.Log.e(
+                        "JM_NOTIFICATION",
+                        "Notification query failed",
+                        error
+                    )
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) return@addSnapshotListener
 
                 allNotifications.clear()
 
@@ -200,5 +235,27 @@ class NotificationActivity : AppCompatActivity() {
                     me.leolin.shortcutbadger.ShortcutBadger.removeCount(applicationContext)
                 }
             }
+            .addOnFailureListener { e ->
+                android.util.Log.e(
+                    "JM_NOTIFICATION",
+                    "Badge count query failed",
+                    e
+                )
+            }
+    }
+
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(
+            R.layout.toast_custom,
+            null
+        )
+
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }
