@@ -101,9 +101,6 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun loadMessages() {
-        db.collection("chats").document(applicationId)
-            .collection("messages")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
             messagesListener = db.collection("chats")
             .document(applicationId)
             .collection("messages")
@@ -178,10 +175,30 @@ class ChatActivity : AppCompatActivity() {
         if (text.isEmpty()) return
 
         if (editingMessageId != null) {
-            db.collection("chats").document(applicationId)
-                .collection("messages").document(editingMessageId!!)
-                .update(mapOf("text" to text, "edited" to true))
-            cancelEdit()
+            val messageId = editingMessageId!!
+
+            db.collection("chats")
+                .document(applicationId)
+                .collection("messages")
+                .document(messageId)
+                .update(
+                    mapOf(
+                        "text" to text,
+                        "edited" to true
+                    )
+                )
+                .addOnSuccessListener {
+                    updateNotificationIfLatest(messageId, text)
+                    cancelEdit()
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e(
+                        "JM_CHAT",
+                        "Message edit failed",
+                        e
+                    )
+                }
+
             return
         }
 
@@ -209,10 +226,25 @@ class ChatActivity : AppCompatActivity() {
             .update(mapOf("lastMessage" to text, "lastMessageAt" to System.currentTimeMillis()))
 
         if (role == "Employer") {
-            android.util.Log.d("JM_CHAT", "calling createStudentNotification")
+            // Receiver preview + student push notification
             createStudentNotification(text)
+
+            // Sender preview
+            updateOwnNotificationPreview(
+                recipientId = employerId,
+                notificationId = "${applicationId}_employer_message",
+                text = text
+            )
         } else {
+            // Receiver preview
             createEmployerNotification(text)
+
+            // Sender preview
+            updateOwnNotificationPreview(
+                recipientId = studentId,
+                notificationId = "${applicationId}_student_message",
+                text = text
+            )
         }
 
         etMessage.setText("")
@@ -303,68 +335,6 @@ class ChatActivity : AppCompatActivity() {
             }
     }
 
-//    private fun createStudentNotification(text: String) {
-//        db.collection("applications").document(applicationId).get()
-//            .addOnSuccessListener { appDoc ->
-//                val jobTitle = appDoc.getString("jobTitle") ?: ""
-//                val companyName = appDoc.getString("companyName") ?: ""
-//
-//                db.collection("notifications")
-//                    .whereEqualTo("applicationId", applicationId)
-//                    .whereEqualTo("employerId", employerId)
-//                    .whereEqualTo("type", "Message")
-//                    .get()
-//                    .addOnSuccessListener { snapshot ->
-//                        if (!snapshot.isEmpty) {
-//                            val docId = snapshot.documents[0].id
-//                            db.collection("notifications").document(docId)
-//                                .update(mapOf(
-//                                    "message" to text,
-//                                    "createdAt" to System.currentTimeMillis(),
-//                                    "isRead" to false,
-//                                    "recipientId" to studentId
-//                                ))
-//                        } else {
-//                            val notif = hashMapOf(
-//                                "studentId" to studentId,
-//                                "employerId" to employerId,
-//                                "recipientId" to studentId,
-//                                "applicationId" to applicationId,
-//                                "jobTitle" to jobTitle,
-//                                "companyName" to companyName,
-//                                "message" to text,
-//                                "type" to "Message",
-//                                "createdAt" to System.currentTimeMillis(),
-//                                "isRead" to false
-//                            )
-//                            db.collection("notifications").add(notif)
-//                        }
-//                    }
-//                    .addOnFailureListener { e ->
-//                        android.util.Log.e("JM_CHAT", "notif query failed", e)
-//                    }
-//
-//                db.collection("users").document(studentId).get()
-//                    .addOnSuccessListener { userDoc ->
-//                        val token = userDoc.getString("fcmToken") ?: ""
-//                        if (token.isNotBlank()) {
-//                            lifecycleScope.launch {
-//                                try {
-//                                    com.example.jobmatrix.network.RetrofitClient.api.sendNotification(
-//                                        com.example.jobmatrix.network.NotifyRequest(token, "New message from ${companyName.ifBlank { "Employer" }}", text)
-//                                    )
-//                                } catch (e: Exception) {
-//                                    android.util.Log.e("JM_CHAT", "push failed", e)
-//                                }
-//                            }
-//                        }
-//                    }
-//            }
-//            .addOnFailureListener { e ->
-//                android.util.Log.e("JM_CHAT", "appDoc fetch failed", e)
-//            }
-//    }
-
     private fun createEmployerNotification(text: String) {
         db.collection("applications").document(applicationId).get()
             .addOnSuccessListener { appDoc ->
@@ -415,50 +385,6 @@ class ChatActivity : AppCompatActivity() {
                 )
             }
     }
-
-//    private fun createEmployerNotification(text: String) {
-//        db.collection("applications").document(applicationId).get()
-//            .addOnSuccessListener { appDoc ->
-//                val jobTitle = appDoc.getString("jobTitle") ?: ""
-//                val companyName = appDoc.getString("companyName") ?: ""
-//
-//                db.collection("notifications")
-//                    .whereEqualTo("applicationId", applicationId)
-//                    .whereEqualTo("studentId", studentId)
-//                    .whereEqualTo("type", "Message")
-//                    .get()
-//                    .addOnSuccessListener { snapshot ->
-//                        if (!snapshot.isEmpty) {
-//                            val docId = snapshot.documents[0].id
-//                            db.collection("notifications").document(docId)
-//                                .update(mapOf(
-//                                    "message" to text,
-//                                    "createdAt" to System.currentTimeMillis(),
-//                                    "isRead" to false,
-//                                    "recipientId" to employerId
-//                                ))
-//                        } else {
-//                            val notif = hashMapOf(
-//                                "employerId" to employerId,
-//                                "studentId" to studentId,
-//                                "recipientId" to employerId,
-//                                "applicationId" to applicationId,
-//                                "jobTitle" to jobTitle,
-//                                "companyName" to companyName,
-//                                "message" to text,
-//                                "type" to "Message",
-//                                "createdAt" to System.currentTimeMillis(),
-//                                "isRead" to false
-//                            )
-//                            db.collection("notifications").add(notif)
-//                        }
-//                    }
-//                    .addOnFailureListener { e ->
-//                        android.util.Log.e("JM_CHAT", "employer notif query failed", e)
-//                    }
-//            }
-//    }
-
 
     private fun ensureChatDoc(
         companyName: String,
@@ -579,5 +505,117 @@ class ChatActivity : AppCompatActivity() {
 
         messagesListener?.remove()
         messagesListener = null
+    }
+
+    private fun updateNotificationIfLatest(
+        editedMessageId: String,
+        newText: String
+    ) {
+        db.collection("chats")
+            .document(applicationId)
+            .collection("messages")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+
+                val latestMessage = snapshot.documents.firstOrNull()
+                    ?: return@addOnSuccessListener
+
+                // Do not update previews if an older message was edited
+                if (latestMessage.id != editedMessageId) {
+                    return@addOnSuccessListener
+                }
+
+                val batch = db.batch()
+
+                val studentNotificationRef = db.collection("notifications")
+                    .document("${applicationId}_student_message")
+
+                val employerNotificationRef = db.collection("notifications")
+                    .document("${applicationId}_employer_message")
+
+                val previewData = mapOf(
+                    "message" to newText
+                )
+
+                batch.set(
+                    studentNotificationRef,
+                    previewData,
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+
+                batch.set(
+                    employerNotificationRef,
+                    previewData,
+                    com.google.firebase.firestore.SetOptions.merge()
+                )
+
+                batch.update(
+                    db.collection("chats").document(applicationId),
+                    "lastMessage",
+                    newText
+                )
+
+                batch.commit()
+                    .addOnSuccessListener {
+                        android.util.Log.d(
+                            "JM_CHAT",
+                            "Both latest notification previews updated"
+                        )
+                    }
+                    .addOnFailureListener { e ->
+                        android.util.Log.e(
+                            "JM_CHAT",
+                            "Notification preview update failed",
+                            e
+                        )
+                    }
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e(
+                    "JM_CHAT",
+                    "Latest message check failed",
+                    e
+                )
+            }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        if (chatReady && messagesListener == null) {
+            loadMessages()
+        }
+    }
+
+
+    private fun updateOwnNotificationPreview(
+        recipientId: String,
+        notificationId: String,
+        text: String
+    ) {
+        val data = hashMapOf(
+            "recipientId" to recipientId,
+            "applicationId" to applicationId,
+            "message" to text,
+            "type" to "Message",
+            "createdAt" to System.currentTimeMillis(),
+            "isRead" to true
+        )
+
+        db.collection("notifications")
+            .document(notificationId)
+            .set(
+                data,
+                com.google.firebase.firestore.SetOptions.merge()
+            )
+            .addOnFailureListener { e ->
+                android.util.Log.e(
+                    "JM_CHAT",
+                    "Own notification preview update failed",
+                    e
+                )
+            }
     }
 }

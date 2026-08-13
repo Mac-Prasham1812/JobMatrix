@@ -43,6 +43,10 @@ class StudentDashboardActivity : AppCompatActivity() {
     private lateinit var tvGreeting: TextView
     private lateinit var tvUserName: TextView
 
+    private lateinit var tvNotificationBadge: TextView
+    private var notificationListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var lastNotificationCount = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_student_dashboard)
@@ -60,13 +64,7 @@ class StudentDashboardActivity : AppCompatActivity() {
                 }
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             requestPermissions(
                 arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                 1001
@@ -78,6 +76,8 @@ class StudentDashboardActivity : AppCompatActivity() {
         navHome = findViewById(R.id.navHome)
         navSearch = findViewById(R.id.navSearch)
         ivNotification = findViewById(R.id.ivNotification)
+        tvNotificationBadge = findViewById(R.id.tvNotificationBadge)
+        listenUnreadNotifications()
         ivSettings = findViewById(R.id.ivSettings)
         ivSavedJobs = findViewById(R.id.ivSavedJobs)
 
@@ -108,7 +108,6 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         showShimmer()
         loadJobs()
-        checkNotifications()
         loadPipelineCounts()
         setupPipelineClicks()
 
@@ -232,21 +231,52 @@ class StudentDashboardActivity : AppCompatActivity() {
             }
     }
 
-    private fun checkNotifications() {
+    private fun listenUnreadNotifications() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        FirebaseFirestore.getInstance()
-            .collection("applications")
-            .whereEqualTo("studentId", userId)
-            .whereEqualTo("hasNotification", true)
+        notificationListener = db.collection("notifications")
+            .whereEqualTo("recipientId", userId)
             .whereEqualTo("isRead", false)
-            .addSnapshotListener { _, _ ->
-                ivNotification.visibility = View.VISIBLE
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    android.util.Log.e(
+                        "JM_NOTIFICATION",
+                        "Student badge listener failed",
+                        error
+                    )
+                    return@addSnapshotListener
+                }
+
+                val count = snapshot?.size() ?: 0
+
+                tvNotificationBadge.text =
+                    if (count > 9) "9+" else count.toString()
+
+                tvNotificationBadge.visibility =
+                    if (count > 0) View.VISIBLE else View.GONE
+
+                if (count != lastNotificationCount && count > 0) {
+                    tvNotificationBadge.scaleX = 0.7f
+                    tvNotificationBadge.scaleY = 0.7f
+                    tvNotificationBadge.animate()
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(180)
+                        .start()
+                }
+
+                lastNotificationCount = count
             }
     }
 
     override fun onResume() {
         super.onResume()
+
+        if (notificationListener == null) {
+            listenUnreadNotifications()
+        }
+
         setActiveNav(navHome)
         loadJobs()
     }
@@ -307,5 +337,11 @@ class StudentDashboardActivity : AppCompatActivity() {
         cardApplied.setOnClickListener { animateAndOpen(it, "Applied") }
         cardInReview.setOnClickListener { animateAndOpen(it, "In Review") }
         cardShortlisted.setOnClickListener { animateAndOpen(it, "Shortlisted") }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        notificationListener?.remove()
+        notificationListener = null
     }
 }
