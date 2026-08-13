@@ -301,30 +301,48 @@
                 android:duplicateParentState="true"/>
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/ivNotification"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:layout_weight="1">
 
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/notification"
-                app:tint="@color/nav_icon_selector"
-                android:duplicateParentState="true"/>
+            <LinearLayout
+                android:id="@+id/ivNotification"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:src="@drawable/notification"
+                    app:tint="@color/nav_icon_selector"
+                    android:duplicateParentState="true"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Notifications"
+                    android:textSize="10sp"
+                    android:textColor="@color/nav_icon_selector"
+                    android:duplicateParentState="true"/>
+            </LinearLayout>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Notifications"
+                android:id="@+id/tvNotificationBadge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="18dp"
+                android:background="@drawable/bg_badge_red"
+                android:gravity="center"
+                android:textColor="@android:color/white"
                 android:textSize="10sp"
-                android:textColor="@color/nav_icon_selector"
-                android:layout_marginTop="2dp"
-                android:duplicateParentState="true"/>
-        </LinearLayout>
+                android:textStyle="bold"
+                android:visibility="gone"/>
+        </FrameLayout>
 
 
 

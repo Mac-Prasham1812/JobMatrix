@@ -225,6 +225,11 @@ class EmployerDashboardActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+
+        if (notifListener == null) {
+            listenBadgeCount()
+        }
+
         setActiveNav(R.id.navDashboard)
     }
 
@@ -273,7 +278,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     private fun listenBadgeCount() {
         val employerId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         notifListener = db.collection("notifications")
-            .whereEqualTo("employerId", employerId)
+            .whereEqualTo("recipientId", employerId)
             .whereEqualTo("isRead", false)
             .addSnapshotListener { snap, _ ->
                 val count = snap?.size() ?: 0
