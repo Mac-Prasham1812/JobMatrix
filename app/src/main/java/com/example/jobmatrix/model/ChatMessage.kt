@@ -8,5 +8,8 @@ data class ChatMessage(
     val timestamp: Long = 0L,
     val edited: Boolean = false,
     val isDeleted: Boolean = false,
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val replyToId: String = "",
+    val replyToText: String = "",
+    val replyToSender: String = ""
 )

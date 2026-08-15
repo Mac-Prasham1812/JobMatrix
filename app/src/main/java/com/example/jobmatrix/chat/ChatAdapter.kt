@@ -12,7 +12,8 @@ import com.jobmatrix.app.R
 class ChatAdapter(
     private val items: MutableList<ChatListItem>,
     private val currentUid: String,
-    private val onLongPress: (com.example.jobmatrix.model.ChatMessage) -> Unit
+    private val onLongPress: (com.example.jobmatrix.model.ChatMessage) -> Unit,
+    private val onQuoteClick: (String) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -62,15 +63,32 @@ class ChatAdapter(
         val editedLabel = if (message.edited && !message.isDeleted) " • edited" else ""
         tvTime.text = "$timeText$editedLabel"
 
+        val quoteContainer = holder.itemView.findViewById<android.widget.LinearLayout>(R.id.quoteContainer)
+
+        if (!message.isDeleted && message.replyToId.isNotEmpty()) {
+            quoteContainer.visibility = View.VISIBLE
+            holder.itemView.findViewById<TextView>(R.id.tvQuoteSender).text = message.replyToSender
+            holder.itemView.findViewById<TextView>(R.id.tvQuoteText).text = message.replyToText
+            quoteContainer.setOnClickListener { onQuoteClick(message.replyToId) }
+
+        } else {
+            quoteContainer.visibility = View.GONE
+        }
+
+
         if (message.senderId == currentUid) {
             val ivTick = holder.itemView.findViewById<android.widget.ImageView>(R.id.ivReadStatus)
+
             if (message.isDeleted) {
                 ivTick.visibility = View.GONE
+
             } else {
                 ivTick.visibility = View.VISIBLE
+
                 if (message.isRead) {
                     ivTick.setImageResource(R.drawable.ic_tick_double)
                     ivTick.setColorFilter(android.graphics.Color.parseColor("#4FC3F7"))
+
                 } else {
                     ivTick.setImageResource(R.drawable.ic_tick_single)
                     ivTick.clearColorFilter()
@@ -82,7 +100,7 @@ class ChatAdapter(
         holder.itemView.animate().alpha(1f).setDuration(200).start()
 
         holder.itemView.setOnLongClickListener {
-            if (message.senderId == currentUid && !message.isDeleted) onLongPress(message)
+            if (!message.isDeleted) onLongPress(message)
             true
         }
     }

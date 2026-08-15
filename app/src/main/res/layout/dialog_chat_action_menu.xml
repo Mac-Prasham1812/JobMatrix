@@ -8,6 +8,18 @@
     android:elevation="10dp">
 
     <TextView
+        android:id="@+id/btnReplyMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Reply"
+        android:textColor="@color/color_text_primary"
+        android:textSize="14sp"
+        android:padding="14dp"
+        android:background="@drawable/ripple_text"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <TextView
         android:id="@+id/btnEditMsg"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

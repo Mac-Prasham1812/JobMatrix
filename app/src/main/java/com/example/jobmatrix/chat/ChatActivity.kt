@@ -40,6 +40,13 @@ class ChatActivity : AppCompatActivity() {
     private var messagesLoadedOnce = false
     private var messagesListener: ListenerRegistration? = null
 
+    private var typingHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var typingRunnable: Runnable? = null
+    private var chatDocListener: ListenerRegistration? = null
+    private var myRole = ""
+    private var replyToMessage: ChatMessage? = null
+    private lateinit var replyBar: android.widget.LinearLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -51,14 +58,29 @@ class ChatActivity : AppCompatActivity() {
         emptyStateContainer = findViewById(R.id.emptyStateContainer)
         etMessage = findViewById(R.id.etMessage)
 
+        etMessage.addTextChangedListener(object : android.text.TextWatcher {
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (!chatReady) return
+                setTyping(true)
+                typingRunnable?.let { typingHandler.removeCallbacks(it) }
+                typingRunnable = Runnable { setTyping(false) }
+                typingHandler.postDelayed(typingRunnable!!, 2000)
+            }
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+        })
+
         editBar = findViewById(R.id.editBar)
+        replyBar = findViewById(R.id.replyBar)
+        findViewById<ImageView>(R.id.btnCancelReply).setOnClickListener { cancelReply() }
         findViewById<ImageView>(R.id.btnCancelEdit).setOnClickListener { cancelEdit() }
         recyclerView.itemAnimator?.changeDuration = 250
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "") { message ->
-            showEditDeleteDialog(message)
-        }
+        adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "",
+            { message -> showEditDeleteDialog(message) },
+            { replyId -> scrollToMessage(replyId) }
+        )
         recyclerView.adapter = adapter
         recyclerView.itemAnimator?.changeDuration = 250
 
@@ -83,6 +105,7 @@ class ChatActivity : AppCompatActivity() {
                         employerId = jobDoc.getString("employerId") ?: ""
 
                         val myUid = auth.currentUser?.uid ?: ""
+                        myRole = if (myUid == studentId) "Student" else "Employer"
                         if (myUid == studentId) {
                             findViewById<TextView>(R.id.tvChatTitle).text = companyName
                         } else {
@@ -215,7 +238,10 @@ class ChatActivity : AppCompatActivity() {
             "senderId" to myUid,
             "senderRole" to role,
             "text" to text,
-            "timestamp" to System.currentTimeMillis()
+            "timestamp" to System.currentTimeMillis(),
+            "replyToId" to (replyToMessage?.messageId ?: ""),
+            "replyToText" to (replyToMessage?.text?.take(80) ?: ""),
+            "replyToSender" to (replyToMessage?.let { if (it.senderId == myUid) "You" else findViewById<TextView>(R.id.tvChatTitle).text.toString() } ?: "")
         )
 
         db.collection("chats").document(applicationId)
@@ -248,6 +274,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         etMessage.setText("")
+        if (replyToMessage != null) cancelReply()
     }
 
     private fun createStudentNotification(text: String) {
@@ -419,6 +446,7 @@ class ChatActivity : AppCompatActivity() {
                 )
 
                 chatReady = true
+                listenTyping()
                 onDone()
             }
             .addOnFailureListener { e ->
@@ -435,14 +463,18 @@ class ChatActivity : AppCompatActivity() {
         val dialog = android.app.AlertDialog.Builder(this).setView(view).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        view.findViewById<TextView>(R.id.btnEditMsg).setOnClickListener {
+        val isOwn = message.senderId == (auth.currentUser?.uid ?: "")
+        val btnEdit = view.findViewById<TextView>(R.id.btnEditMsg)
+        val btnDelete = view.findViewById<TextView>(R.id.btnDeleteMsg)
+        btnEdit.visibility = if (isOwn) android.view.View.VISIBLE else android.view.View.GONE
+        btnDelete.visibility = if (isOwn) android.view.View.VISIBLE else android.view.View.GONE
+
+        view.findViewById<TextView>(R.id.btnReplyMsg).setOnClickListener {
             dialog.dismiss()
-            startEdit(message)
+            startReply(message)
         }
-        view.findViewById<TextView>(R.id.btnDeleteMsg).setOnClickListener {
-            dialog.dismiss()
-            confirmDelete(message)
-        }
+        btnEdit.setOnClickListener { dialog.dismiss(); startEdit(message) }
+        btnDelete.setOnClickListener { dialog.dismiss(); confirmDelete(message) }
         dialog.show()
     }
 
@@ -502,6 +534,9 @@ class ChatActivity : AppCompatActivity() {
     }
     override fun onStop() {
         super.onStop()
+        setTyping(false)
+        chatDocListener?.remove()
+        chatDocListener = null
 
         messagesListener?.remove()
         messagesListener = null
@@ -617,5 +652,65 @@ class ChatActivity : AppCompatActivity() {
                     e
                 )
             }
+    }
+
+    private fun setTyping(isTyping: Boolean) {
+        if (myRole.isEmpty() || applicationId.isEmpty()) return
+        db.collection("chats").document(applicationId)
+            .update("typing_${myRole.lowercase()}", isTyping)
+    }
+
+    private fun listenTyping() {
+        chatDocListener = db.collection("chats").document(applicationId)
+            .addSnapshotListener { doc, _ ->
+                if (doc == null || !doc.exists()) return@addSnapshotListener
+                val otherRole = if (myRole == "Student") "employer" else "student"
+                val isOtherTyping = doc.getBoolean("typing_$otherRole") ?: false
+                val subtitle = findViewById<TextView>(R.id.tvChatSubtitle)
+                if (isOtherTyping) {
+                    subtitle.text = "Typing..."
+                } else {
+                    subtitle.text = doc.getString("jobTitle") ?: ""
+                }
+            }
+    }
+
+    private fun startReply(message: com.example.jobmatrix.model.ChatMessage) {
+        replyToMessage = message
+        val myUid = auth.currentUser?.uid ?: ""
+        val senderLabel = if (message.senderId == myUid) "You" else findViewById<TextView>(R.id.tvChatTitle).text.toString()
+        findViewById<TextView>(R.id.tvReplySender).text = senderLabel
+        findViewById<TextView>(R.id.tvReplyText).text = message.text
+        replyBar.alpha = 0f
+        replyBar.visibility = android.view.View.VISIBLE
+        replyBar.animate().alpha(1f).setDuration(200).start()
+    }
+
+    private fun cancelReply() {
+        replyToMessage = null
+        replyBar.animate().alpha(0f).setDuration(150)
+            .withEndAction { replyBar.visibility = android.view.View.GONE }.start()
+    }
+
+    private fun scrollToMessage(messageId: String) {
+        val index = listItems.indexOfFirst { it is ChatListItem.MessageItem && it.message.messageId == messageId }
+        if (index == -1) return
+        recyclerView.smoothScrollToPosition(index)
+        recyclerView.postDelayed({
+            val vh = recyclerView.findViewHolderForAdapterPosition(index)
+            vh?.itemView?.let { row ->
+                val original = row.background
+                row.setBackgroundColor(androidx.core.graphics.ColorUtils.setAlphaComponent(
+                    androidx.core.content.ContextCompat.getColor(this, R.color.color_accent), 60
+                ))
+                row.alpha = 0.7f
+                row.animate().alpha(1f).setDuration(200).start()
+                row.postDelayed({
+                    row.animate().alpha(1f).setDuration(300).withEndAction {
+                        row.background = original
+                    }.start()
+                }, 500)
+            }
+        }, 450)
     }
 }
