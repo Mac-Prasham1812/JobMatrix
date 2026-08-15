@@ -9,6 +9,47 @@
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
+    <LinearLayout
+        android:id="@+id/quoteContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_quote_reply"
+        android:layout_marginBottom="4dp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <View
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="@color/color_accent" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="6dp">
+
+            <TextView
+                android:id="@+id/tvQuoteSender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/color_accent"
+                android:textStyle="bold"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvQuoteText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/color_text_secondary"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvMessageText"
         android:layout_width="wrap_content"
