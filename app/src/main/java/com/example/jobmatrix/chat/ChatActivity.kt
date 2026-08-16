@@ -46,6 +46,7 @@ class ChatActivity : AppCompatActivity() {
     private var myRole = ""
     private var replyToMessage: ChatMessage? = null
     private lateinit var replyBar: android.widget.LinearLayout
+    private var clearedAt: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +87,7 @@ class ChatActivity : AppCompatActivity() {
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
+        findViewById<ImageView>(R.id.btnChatMenu).setOnClickListener { showChatMenu(it) }
 
         resolveParticipants()
     }
@@ -175,7 +177,7 @@ class ChatActivity : AppCompatActivity() {
                 adapter.notifyDataSetChanged()
 
                 emptyStateContainer.visibility =
-                    if (messages.isEmpty()) {
+                    if (listItems.isEmpty()) {
                         android.view.View.VISIBLE
                     } else {
                         android.view.View.GONE
@@ -444,10 +446,9 @@ class ChatActivity : AppCompatActivity() {
                     "JM_CHAT",
                     "Chat document ready: $applicationId"
                 )
-
                 chatReady = true
                 listenTyping()
-                onDone()
+                loadClearance { onDone() }
             }
             .addOnFailureListener { e ->
                 android.util.Log.e(
@@ -523,7 +524,7 @@ class ChatActivity : AppCompatActivity() {
     private fun buildListItems() {
         listItems.clear()
         var lastLabel = ""
-        for (msg in messages) {
+        for (msg in messages.filter { it.timestamp > clearedAt }) {
             val label = dateLabelFor(msg.timestamp)
             if (label != lastLabel) {
                 listItems.add(ChatListItem.Header(label))
@@ -712,5 +713,65 @@ class ChatActivity : AppCompatActivity() {
                 }, 500)
             }
         }, 450)
+    }
+
+    private fun showChatMenu(anchor: android.view.View) {
+        val wrapper = android.view.ContextThemeWrapper(this, R.style.PopupMenuTheme)
+        val popup = android.widget.PopupMenu(wrapper, anchor)
+        popup.menu.add("Clear Chat")
+        popup.setOnMenuItemClickListener { item ->
+            if (item.title == "Clear Chat") confirmClearChat()
+            true
+        }
+        popup.show()
+    }
+
+    private fun confirmClearChat() {
+        val view = layoutInflater.inflate(R.layout.dialog_clear_chat, null)
+        val dialog = android.app.AlertDialog.Builder(this).setView(view).setCancelable(false).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        view.findViewById<TextView>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<TextView>(R.id.btnDelete).setOnClickListener {
+            dialog.dismiss()
+            clearChatForMe()
+        }
+        dialog.show()
+        dialog.window?.attributes?.windowAnimations = android.R.style.Animation_Dialog
+    }
+
+    private fun clearChatForMe() {
+        val myUid = auth.currentUser?.uid ?: return
+        val docId = "${applicationId}_${myUid}"
+        val now = System.currentTimeMillis()
+        db.collection("chatClearance").document(docId)
+            .set(mapOf("clearedAt" to now))
+            .addOnSuccessListener {
+                clearedAt = now
+                buildListItems()
+                adapter.notifyDataSetChanged()
+                showCustomToast("Chat cleared")
+            }
+    }
+
+    private fun loadClearance(onDone: () -> Unit) {
+        val myUid = auth.currentUser?.uid ?: return
+        val docId = "${applicationId}_${myUid}"
+        db.collection("chatClearance").document(docId).get()
+            .addOnSuccessListener { doc ->
+                clearedAt = doc.getLong("clearedAt") ?: 0L
+                onDone()
+            }
+            .addOnFailureListener { onDone() }
+    }
+
+    private fun showCustomToast(message: String) {
+        val view = layoutInflater.inflate(R.layout.toast_custom, null)
+        view.findViewById<TextView>(R.id.tvToastMessage).text = message
+        val toast = android.widget.Toast(this)
+        toast.duration = android.widget.Toast.LENGTH_SHORT
+        toast.view = view
+        toast.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
+        toast.show()
     }
 }

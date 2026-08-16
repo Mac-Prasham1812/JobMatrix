@@ -47,6 +47,13 @@
 
         </LinearLayout>
 
+        <ImageView
+            android:id="@+id/btnChatMenu"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_menu_dots"
+            app:tint="@color/color_text_primary" />
+
     </LinearLayout>
 
     <FrameLayout

@@ -110,4 +110,19 @@
         <item name="android:windowExitAnimation">@anim/popup_exit</item>
     </style>
 
+    <style name="PopupMenuTheme" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
+        <item name="android:itemTextAppearance">@style/PopupMenuItemText</item>
+        <item name="android:popupAnimationStyle">@style/PopupAnimation</item>
+    </style>
+
+    <style name="PopupMenuStyle" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+    </style>
+
+    <style name="PopupMenuItemText" parent="android:TextAppearance.Widget.PopupMenu.Small">
+        <item name="android:textColor">@color/color_text_primary</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
 </resources>
