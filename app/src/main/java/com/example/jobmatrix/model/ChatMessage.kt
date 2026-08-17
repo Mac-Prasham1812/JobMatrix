@@ -11,5 +11,6 @@ data class ChatMessage(
     val isRead: Boolean = false,
     val replyToId: String = "",
     val replyToText: String = "",
-    val replyToSender: String = ""
+    val replyToSender: String = "",
+    val deletedFor: List<String> = emptyList()
 )

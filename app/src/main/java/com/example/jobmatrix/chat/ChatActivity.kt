@@ -156,7 +156,8 @@ class ChatActivity : AppCompatActivity() {
                             it.copy(
                                 messageId = doc.id,
                                 isRead = fixedIsRead,
-                                isDeleted = fixedIsDeleted
+                                isDeleted = fixedIsDeleted,
+                                deletedFor = doc.get("deletedFor") as? List<String> ?: emptyList()
                             )
                         )
                     }
@@ -474,6 +475,12 @@ class ChatActivity : AppCompatActivity() {
             dialog.dismiss()
             startReply(message)
         }
+
+        view.findViewById<TextView>(R.id.btnDeleteForMe).setOnClickListener {
+            dialog.dismiss()
+            deleteForMe(message)
+        }
+
         btnEdit.setOnClickListener { dialog.dismiss(); startEdit(message) }
         btnDelete.setOnClickListener { dialog.dismiss(); confirmDelete(message) }
         dialog.show()
@@ -524,7 +531,8 @@ class ChatActivity : AppCompatActivity() {
     private fun buildListItems() {
         listItems.clear()
         var lastLabel = ""
-        for (msg in messages.filter { it.timestamp > clearedAt }) {
+        val myUid = auth.currentUser?.uid ?: ""
+        for (msg in messages.filter { it.timestamp > clearedAt && !it.deletedFor.contains(myUid) }) {
             val label = dateLabelFor(msg.timestamp)
             if (label != lastLabel) {
                 listItems.add(ChatListItem.Header(label))
@@ -533,6 +541,7 @@ class ChatActivity : AppCompatActivity() {
             listItems.add(ChatListItem.MessageItem(msg))
         }
     }
+
     override fun onStop() {
         super.onStop()
         setTyping(false)
@@ -773,5 +782,13 @@ class ChatActivity : AppCompatActivity() {
         toast.view = view
         toast.setGravity(android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL, 0, 200)
         toast.show()
+    }
+
+    private fun deleteForMe(message: com.example.jobmatrix.model.ChatMessage) {
+        val myUid = auth.currentUser?.uid ?: return
+        db.collection("chats").document(applicationId)
+            .collection("messages").document(message.messageId)
+            .update("deletedFor", com.google.firebase.firestore.FieldValue.arrayUnion(myUid))
+            .addOnSuccessListener { showCustomToast("Message deleted for you") }
     }
 }
