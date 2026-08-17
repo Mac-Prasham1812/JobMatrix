@@ -100,7 +100,15 @@ class ChatAdapter(
         holder.itemView.animate().alpha(1f).setDuration(200).start()
 
         holder.itemView.setOnLongClickListener {
-            if (!message.isDeleted) onLongPress(message)
+            if (!message.isDeleted) {
+                val row = holder.itemView
+                val original = row.background
+                row.setBackgroundColor(androidx.core.graphics.ColorUtils.setAlphaComponent(
+                    androidx.core.content.ContextCompat.getColor(row.context, R.color.color_accent), 60
+                ))
+                row.postDelayed({ row.background = original }, 250)
+                onLongPress(message)
+            }
             true
         }
     }
