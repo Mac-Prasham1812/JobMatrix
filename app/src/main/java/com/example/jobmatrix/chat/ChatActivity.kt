@@ -15,6 +15,10 @@ import com.jobmatrix.app.R
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ChatActivity : AppCompatActivity() {
 
@@ -48,6 +52,18 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var replyBar: android.widget.LinearLayout
     private var clearedAt: Long = 0L
 
+    private var pendingAttachmentUri: android.net.Uri? = null
+    private var pendingAttachmentType = ""
+    private var pendingAttachmentName = ""
+    private lateinit var attachPreviewBar: android.widget.LinearLayout
+
+    private val galleryLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { handlePickedFile(it, "image") }
+    }
+    private val documentLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { handlePickedFile(it, "file") }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -73,6 +89,9 @@ class ChatActivity : AppCompatActivity() {
 
         editBar = findViewById(R.id.editBar)
         replyBar = findViewById(R.id.replyBar)
+        attachPreviewBar = findViewById(R.id.attachPreviewBar)
+        findViewById<ImageView>(R.id.btnAttach).setOnClickListener { showAttachSheet() }
+        findViewById<ImageView>(R.id.btnCancelAttach).setOnClickListener { cancelAttachment() }
         findViewById<ImageView>(R.id.btnCancelReply).setOnClickListener { cancelReply() }
         findViewById<ImageView>(R.id.btnCancelEdit).setOnClickListener { cancelEdit() }
         recyclerView.itemAnimator?.changeDuration = 250
@@ -80,7 +99,8 @@ class ChatActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "",
             { message -> showEditDeleteDialog(message) },
-            { replyId -> scrollToMessage(replyId) }
+            { replyId -> scrollToMessage(replyId) },
+            { message -> openAttachment(message) }
         )
         recyclerView.adapter = adapter
         recyclerView.itemAnimator?.changeDuration = 250
@@ -197,6 +217,11 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage() {
+        if (pendingAttachmentUri != null) {
+            uploadAndSendAttachment()
+            return
+        }
+
         val text = etMessage.text.toString().trim()
         if (text.isEmpty()) return
 
@@ -386,6 +411,8 @@ class ChatActivity : AppCompatActivity() {
                     "createdAt" to System.currentTimeMillis(),
                     "isRead" to false
                 )
+
+                android.util.Log.d("JM_CHAT", "Writing employer notif: employerId=$employerId studentId=$studentId recipientId=$employerId")
 
                 db.collection("notifications")
                     .document(notificationId)
@@ -790,5 +817,157 @@ class ChatActivity : AppCompatActivity() {
             .collection("messages").document(message.messageId)
             .update("deletedFor", com.google.firebase.firestore.FieldValue.arrayUnion(myUid))
             .addOnSuccessListener { showCustomToast("Message deleted for you") }
+    }
+
+    private fun showAttachSheet() {
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_attach, null)
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        dialog.setContentView(view)
+        view.findViewById<android.widget.LinearLayout>(R.id.optionGallery).setOnClickListener {
+            dialog.dismiss()
+            galleryLauncher.launch("image/*")
+        }
+        view.findViewById<android.widget.LinearLayout>(R.id.optionDocument).setOnClickListener {
+            dialog.dismiss()
+            documentLauncher.launch("*/*")
+        }
+        dialog.show()
+    }
+
+    private fun handlePickedFile(uri: android.net.Uri, type: String) {
+        pendingAttachmentUri = uri
+        pendingAttachmentType = type
+        pendingAttachmentName = getFileName(uri)
+
+        val ivThumb = findViewById<ImageView>(R.id.ivPreviewThumb)
+        findViewById<TextView>(R.id.tvPreviewName).text = pendingAttachmentName
+
+        if (type == "image") {
+            ivThumb.visibility = android.view.View.VISIBLE
+            com.bumptech.glide.Glide.with(this).load(uri).into(ivThumb)
+        } else {
+            ivThumb.visibility = android.view.View.GONE
+        }
+
+        attachPreviewBar.alpha = 0f
+        attachPreviewBar.visibility = android.view.View.VISIBLE
+        attachPreviewBar.animate().alpha(1f).setDuration(200).start()
+    }
+
+    private fun cancelAttachment() {
+        pendingAttachmentUri = null
+        pendingAttachmentType = ""
+        pendingAttachmentName = ""
+        attachPreviewBar.animate().alpha(0f).setDuration(150)
+            .withEndAction { attachPreviewBar.visibility = android.view.View.GONE }.start()
+    }
+
+    private fun getFileName(uri: android.net.Uri): String {
+        var name = "file"
+        contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            val idx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (idx != -1 && cursor.moveToFirst()) name = cursor.getString(idx)
+        }
+        return name
+    }
+
+    private fun compressImage(uri: android.net.Uri): java.io.File {
+        val inputStream = contentResolver.openInputStream(uri)
+        val original = android.graphics.BitmapFactory.decodeStream(inputStream)
+        inputStream?.close()
+
+        val maxDim = 1080
+        val ratio = minOf(maxDim.toFloat() / original.width, maxDim.toFloat() / original.height, 1f)
+        val scaled = android.graphics.Bitmap.createScaledBitmap(
+            original, (original.width * ratio).toInt(), (original.height * ratio).toInt(), true
+        )
+
+        val file = java.io.File(cacheDir, "compressed_${System.currentTimeMillis()}.jpg")
+        java.io.FileOutputStream(file).use { out ->
+            scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, out)
+        }
+        return file
+    }
+
+    private fun uploadAndSendAttachment() {
+        val uri = pendingAttachmentUri ?: return
+
+        android.widget.Toast.makeText(this, "Uploading...", android.widget.Toast.LENGTH_SHORT).show()
+
+        lifecycleScope.launch {
+            try {
+                val tokenResult = auth.currentUser?.getIdToken(false)?.await()
+                val token = "Bearer " + (tokenResult?.token ?: "")
+
+                val fileToUpload: java.io.File = if (pendingAttachmentType == "image") {
+                    compressImage(uri)
+                } else {
+                    val temp = java.io.File(cacheDir, pendingAttachmentName)
+                    contentResolver.openInputStream(uri)?.use { input ->
+                        temp.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    temp
+                }
+
+                val mediaType = (if (pendingAttachmentType == "image") "image/jpeg" else "application/octet-stream")
+                    .toMediaTypeOrNull()
+                val requestFile = fileToUpload.asRequestBody(mediaType)
+                val filePart = okhttp3.MultipartBody.Part.createFormData("file", pendingAttachmentName, requestFile)
+                val appIdBody = applicationId.toRequestBody("text/plain".toMediaTypeOrNull())
+
+                val response = com.example.jobmatrix.network.RetrofitClient.api
+                    .uploadChatAttachment(token, filePart, appIdBody)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val body = response.body()!!
+                    sendAttachmentMessage(body.key, body.url, pendingAttachmentType, body.fileName, body.fileSize)
+                    cancelAttachment()
+                } else {
+                    android.widget.Toast.makeText(this@ChatActivity, "Upload failed", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("JM_CHAT", "Attachment upload failed", e)
+                android.widget.Toast.makeText(this@ChatActivity, "Upload failed", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun sendAttachmentMessage(key: String, url: String, type: String, name: String, size: Long) {
+        val myUid = auth.currentUser?.uid ?: return
+        val role = if (myUid == studentId) "Student" else "Employer"
+
+        val messageData = hashMapOf(
+            "senderId" to myUid,
+            "senderRole" to role,
+            "text" to "",
+            "timestamp" to System.currentTimeMillis(),
+            "attachmentKey" to key,
+            "attachmentUrl" to url,
+            "attachmentType" to type,
+            "attachmentName" to name,
+            "attachmentSize" to size
+        )
+
+        db.collection("chats").document(applicationId).collection("messages").add(messageData)
+        db.collection("chats").document(applicationId)
+            .update(mapOf("lastMessage" to (if (type == "image") "📷 Photo" else "📎 $name"), "lastMessageAt" to System.currentTimeMillis()))
+
+        if (role == "Employer") createStudentNotification(if (type == "image") "📷 Photo" else "📎 $name")
+        else createEmployerNotification(if (type == "image") "📷 Photo" else "📎 $name")
+    }
+
+    private fun openAttachment(message: com.example.jobmatrix.model.ChatMessage) {
+        if (message.attachmentType == "image") {
+            val intent = android.content.Intent(this, ImagePreviewActivity::class.java)
+            intent.putExtra("imageUrl", message.attachmentUrl)
+            startActivity(intent)
+            return
+        }
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+        intent.setDataAndType(android.net.Uri.parse(message.attachmentUrl), "*/*")
+        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        try { startActivity(intent) } catch (e: Exception) {
+            android.widget.Toast.makeText(this, "No app to open this file", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 }

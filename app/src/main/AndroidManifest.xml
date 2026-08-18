@@ -162,6 +162,8 @@
 
         <activity android:name="com.example.jobmatrix.student.SavedJobsActivity" />
 
+        <activity android:name="com.example.jobmatrix.chat.ImagePreviewActivity" android:exported="false" />
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"

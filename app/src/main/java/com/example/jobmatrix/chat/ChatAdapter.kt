@@ -13,7 +13,8 @@ class ChatAdapter(
     private val items: MutableList<ChatListItem>,
     private val currentUid: String,
     private val onLongPress: (com.example.jobmatrix.model.ChatMessage) -> Unit,
-    private val onQuoteClick: (String) -> Unit
+    private val onQuoteClick: (String) -> Unit,
+    private val onAttachmentClick: (com.example.jobmatrix.model.ChatMessage) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -70,25 +71,65 @@ class ChatAdapter(
             holder.itemView.findViewById<TextView>(R.id.tvQuoteSender).text = message.replyToSender
             holder.itemView.findViewById<TextView>(R.id.tvQuoteText).text = message.replyToText
             quoteContainer.setOnClickListener { onQuoteClick(message.replyToId) }
-
         } else {
             quoteContainer.visibility = View.GONE
         }
 
+        val ivImage = holder.itemView.findViewById<android.widget.ImageView>(R.id.ivAttachmentImage)
+        val fileContainer = holder.itemView.findViewById<android.widget.LinearLayout>(R.id.fileAttachmentContainer)
+
+        if (!message.isDeleted && message.attachmentType == "image") {
+            ivImage.visibility = View.VISIBLE
+            fileContainer.visibility = View.GONE
+            com.bumptech.glide.Glide.with(holder.itemView.context)
+                .load(message.attachmentUrl)
+                .placeholder(R.drawable.bg_file_attachment)
+                .error(R.drawable.bg_file_attachment)
+                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                    override fun onLoadFailed(
+                        e: com.bumptech.glide.load.engine.GlideException?,
+                        model: Any?,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        android.util.Log.e("JM_CHAT", "Glide failed: ${e?.message}")
+                        return false
+                    }
+                    override fun onResourceReady(
+                        resource: android.graphics.drawable.Drawable,
+                        model: Any,
+                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                        dataSource: com.bumptech.glide.load.DataSource,
+                        isFirstResource: Boolean
+                    ): Boolean {
+                        return false
+                    }
+                })
+                .into(ivImage)
+            ivImage.setOnClickListener { onAttachmentClick(message) }
+        } else if (!message.isDeleted && message.attachmentType == "file") {
+            ivImage.visibility = View.GONE
+            fileContainer.visibility = View.VISIBLE
+            holder.itemView.findViewById<TextView>(R.id.tvAttachmentName).text = message.attachmentName
+            holder.itemView.findViewById<TextView>(R.id.tvAttachmentSize).text =
+                String.format("%.1f MB", message.attachmentSize / 1024.0 / 1024.0)
+            fileContainer.setOnClickListener { onAttachmentClick(message) }
+        } else {
+            ivImage.visibility = View.GONE
+            fileContainer.visibility = View.GONE
+        }
+
+        tvText.visibility = if (message.text.isBlank() && message.attachmentType.isNotEmpty()) View.GONE else View.VISIBLE
 
         if (message.senderId == currentUid) {
             val ivTick = holder.itemView.findViewById<android.widget.ImageView>(R.id.ivReadStatus)
-
             if (message.isDeleted) {
                 ivTick.visibility = View.GONE
-
             } else {
                 ivTick.visibility = View.VISIBLE
-
                 if (message.isRead) {
                     ivTick.setImageResource(R.drawable.ic_tick_double)
                     ivTick.setColorFilter(android.graphics.Color.parseColor("#4FC3F7"))
-
                 } else {
                     ivTick.setImageResource(R.drawable.ic_tick_single)
                     ivTick.clearColorFilter()
@@ -112,6 +153,5 @@ class ChatAdapter(
             true
         }
     }
-
     override fun getItemCount(): Int = items.size
 }
