@@ -113,6 +113,14 @@
         android:background="@color/color_bg_screen"
         android:padding="10dp">
 
+        <ImageView
+            android:id="@+id/btnAttach"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_attach"
+            app:tint="@color/color_text_secondary" />
+
         <EditText
             android:id="@+id/etMessage"
             android:layout_width="0dp"
@@ -211,6 +219,43 @@
 
         <ImageView
             android:id="@+id/btnCancelReply"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_back"
+            app:tint="@color/color_text_secondary" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachPreviewBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/color_bg_screen"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivPreviewThumb"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/bg_file_attachment"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvPreviewName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/color_text_primary"
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="middle" />
+
+        <ImageView
+            android:id="@+id/btnCancelAttach"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_back"

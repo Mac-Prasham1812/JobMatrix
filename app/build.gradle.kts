@@ -65,7 +65,9 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging-ktx")
     implementation ("me.leolin:ShortcutBadger:1.1.22@aar")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
 
 
 }

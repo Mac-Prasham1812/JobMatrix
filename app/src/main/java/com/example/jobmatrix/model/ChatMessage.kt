@@ -12,5 +12,10 @@ data class ChatMessage(
     val replyToId: String = "",
     val replyToText: String = "",
     val replyToSender: String = "",
-    val deletedFor: List<String> = emptyList()
+    val deletedFor: List<String> = emptyList(),
+    val attachmentKey: String = "",
+    val attachmentUrl: String = "",
+    val attachmentType: String = "", // "image" or "file"
+    val attachmentName: String = "",
+    val attachmentSize: Long = 0L
 )
