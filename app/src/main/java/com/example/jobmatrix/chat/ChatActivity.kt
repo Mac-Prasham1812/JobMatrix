@@ -64,6 +64,17 @@ class ChatActivity : AppCompatActivity() {
         uri?.let { handlePickedFile(it, "file") }
     }
 
+    private var cameraImageUri: android.net.Uri? = null
+
+    private val cameraLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.TakePicture()) { success ->
+        if (success && cameraImageUri != null) {
+            handlePickedFile(cameraImageUri!!, "image")
+        }
+    }
+    private val cameraPermissionLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) launchCamera() else android.widget.Toast.makeText(this, "Camera permission required", android.widget.Toast.LENGTH_SHORT).show()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
@@ -831,6 +842,11 @@ class ChatActivity : AppCompatActivity() {
             dialog.dismiss()
             documentLauncher.launch("*/*")
         }
+
+        view.findViewById<android.widget.LinearLayout>(R.id.optionCamera).setOnClickListener {
+            dialog.dismiss()
+            openCamera()
+        }
         dialog.show()
     }
 
@@ -969,5 +985,19 @@ class ChatActivity : AppCompatActivity() {
         try { startActivity(intent) } catch (e: Exception) {
             android.widget.Toast.makeText(this, "No app to open this file", android.widget.Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun openCamera() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            launchCamera()
+        } else {
+            cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun launchCamera() {
+        val file = java.io.File(cacheDir, "camera_${System.currentTimeMillis()}.jpg")
+        cameraImageUri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        cameraLauncher.launch(cameraImageUri!!)
     }
 }
