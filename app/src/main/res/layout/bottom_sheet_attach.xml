@@ -1,19 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/color_surface"
-    android:padding="20dp">
+    android:paddingTop="8dp"
+    android:paddingBottom="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/color_text_secondary"
+        android:alpha="0.7" />
+
+    <LinearLayout
+        android:id="@+id/optionCamera"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Attach"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/color_text_primary"
-        android:layout_marginBottom="16dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
+        android:background="@drawable/ripple_text"
+        android:clickable="true"
+        android:focusable="true">
+
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_icon_circle">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_camera"
+                app:tint="@color/color_accent" />
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Camera"
+            android:textColor="@color/color_text_primary"
+            android:textSize="15sp" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/optionGallery"
@@ -21,23 +56,29 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="14dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
         android:background="@drawable/ripple_text"
         android:clickable="true"
         android:focusable="true">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_chat_empty"
-            app:tint="@color/color_accent"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_icon_circle">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_gallery"
+                app:tint="@color/color_accent" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="Photo / Gallery"
+            android:text="Photos"
             android:textColor="@color/color_text_primary"
             android:textSize="15sp" />
     </LinearLayout>
@@ -48,23 +89,29 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="14dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
         android:background="@drawable/ripple_text"
         android:clickable="true"
         android:focusable="true">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_file"
-            app:tint="@color/color_accent"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_icon_circle">
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_file"
+                app:tint="@color/color_accent" />
+        </FrameLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="Document"
+            android:text="Files"
             android:textColor="@color/color_text_primary"
             android:textSize="15sp" />
     </LinearLayout>
