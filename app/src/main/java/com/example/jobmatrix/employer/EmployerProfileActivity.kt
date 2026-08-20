@@ -52,6 +52,7 @@ class EmployerProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(com.jobmatrix.app.R.id.btnLogout).setOnClickListener {
+            com.example.jobmatrix.presence.PresenceManager.goOffline()
             auth.signOut()
             val intent = Intent(this, LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
