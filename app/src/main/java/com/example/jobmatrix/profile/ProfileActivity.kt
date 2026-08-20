@@ -73,6 +73,7 @@ class ProfileActivity : AppCompatActivity() {
             )
         }
         btnLogout.setOnClickListener {
+            com.example.jobmatrix.presence.PresenceManager.goOffline()
             auth.signOut()
             GoogleSignIn.getClient(this, com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN).signOut()
             val intent = Intent(this, LoginActivity::class.java)

@@ -56,6 +56,7 @@ class ChatActivity : AppCompatActivity() {
     private var pendingAttachmentType = ""
     private var pendingAttachmentName = ""
     private lateinit var attachPreviewBar: android.widget.LinearLayout
+    private var presenceListener: ListenerRegistration? = null
 
     private val galleryLauncher = registerForActivityResult(androidx.activity.result.contract.ActivityResultContracts.GetContent()) { uri ->
         uri?.let { handlePickedFile(it, "image") }
@@ -152,8 +153,46 @@ class ChatActivity : AppCompatActivity() {
                         ensureChatDoc(companyName, jobTitle) {
                             loadMessages()
                         }
+                        listenPresence()
                     }
             }
+    }
+
+    private fun listenPresence() {
+        val myUid = auth.currentUser?.uid ?: return
+        val otherUid = if (myUid == studentId) employerId else studentId
+        if (otherUid.isBlank()) return
+
+        presenceListener = db.collection("users").document(otherUid)
+            .addSnapshotListener { doc, _ ->
+                if (doc == null || !doc.exists()) return@addSnapshotListener
+                val isOnline = doc.getBoolean("isOnline") ?: false
+                val lastSeen = doc.getLong("lastSeen") ?: 0L
+                updatePresenceUI(isOnline, lastSeen)
+            }
+    }
+
+    private fun updatePresenceUI(isOnline: Boolean, lastSeen: Long) {
+        val subtitle = findViewById<TextView>(R.id.tvChatSubtitle)
+        val dot = findViewById<android.view.View>(R.id.dotOnline)
+        dot.visibility = if (isOnline) android.view.View.VISIBLE else android.view.View.GONE
+        if (isOnline) {
+            subtitle.text = "Online"
+        } else if (lastSeen > 0) {
+            subtitle.text = "Last seen ${formatLastSeen(lastSeen)}"
+        }
+    }
+
+    private fun formatLastSeen(ts: Long): String {
+        val diff = System.currentTimeMillis() - ts
+        val min = diff / 60000
+        return when {
+            min < 1 -> "just now"
+            min < 60 -> "${min}m ago"
+            min < 1440 -> "${min / 60}h ago"
+            min < 2880 -> "yesterday"
+            else -> android.text.format.DateFormat.format("dd MMM", ts).toString()
+        }
     }
 
     private fun loadMessages() {
@@ -585,6 +624,8 @@ class ChatActivity : AppCompatActivity() {
         setTyping(false)
         chatDocListener?.remove()
         chatDocListener = null
+        presenceListener?.remove()
+        presenceListener = null
 
         messagesListener?.remove()
         messagesListener = null
@@ -717,8 +758,6 @@ class ChatActivity : AppCompatActivity() {
                 val subtitle = findViewById<TextView>(R.id.tvChatSubtitle)
                 if (isOtherTyping) {
                     subtitle.text = "Typing..."
-                } else {
-                    subtitle.text = doc.getString("jobTitle") ?: ""
                 }
             }
     }
