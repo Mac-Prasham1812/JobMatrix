@@ -109,7 +109,7 @@ class ChatActivity : AppCompatActivity() {
         recyclerView.itemAnimator?.changeDuration = 250
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "",
+        adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "", applicationId,
             { message -> showEditDeleteDialog(message) },
             { replyId -> scrollToMessage(replyId) },
             { message -> openAttachment(message) }
@@ -1012,17 +1012,29 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun openAttachment(message: com.example.jobmatrix.model.ChatMessage) {
-        if (message.attachmentType == "image") {
-            val intent = android.content.Intent(this, ImagePreviewActivity::class.java)
-            intent.putExtra("imageUrl", message.attachmentUrl)
-            startActivity(intent)
-            return
-        }
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-        intent.setDataAndType(android.net.Uri.parse(message.attachmentUrl), "*/*")
-        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-        try { startActivity(intent) } catch (e: Exception) {
-            android.widget.Toast.makeText(this, "No app to open this file", android.widget.Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            try {
+                val token = "Bearer " + (auth.currentUser?.getIdToken(false)?.await()?.token ?: "")
+                val response = com.example.jobmatrix.network.RetrofitClient.api
+                    .getChatAttachmentUrl(token, message.attachmentKey)
+                val freshUrl = if (response.isSuccessful) response.body()?.url ?: message.attachmentUrl else message.attachmentUrl
+
+                if (message.attachmentType == "image") {
+                    val intent = android.content.Intent(this@ChatActivity, ImagePreviewActivity::class.java)
+                    intent.putExtra("imageUrl", freshUrl)
+                    startActivity(intent)
+                    return@launch
+                }
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+                intent.setDataAndType(android.net.Uri.parse(freshUrl), "*/*")
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                try { startActivity(intent) } catch (e: Exception) {
+                    android.widget.Toast.makeText(this@ChatActivity, "No app to open this file", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("JM_CHAT", "openAttachment refresh failed", e)
+                android.widget.Toast.makeText(this@ChatActivity, "Failed to open attachment", android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

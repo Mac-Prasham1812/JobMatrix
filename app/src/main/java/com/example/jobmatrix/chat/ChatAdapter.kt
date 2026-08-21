@@ -8,10 +8,12 @@ import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.jobmatrix.app.R
+import kotlinx.coroutines.launch
 
 class ChatAdapter(
     private val items: MutableList<ChatListItem>,
     private val currentUid: String,
+    private val applicationId: String,
     private val onLongPress: (com.example.jobmatrix.model.ChatMessage) -> Unit,
     private val onQuoteClick: (String) -> Unit,
     private val onAttachmentClick: (com.example.jobmatrix.model.ChatMessage) -> Unit
@@ -79,12 +81,19 @@ class ChatAdapter(
         val fileContainer = holder.itemView.findViewById<android.widget.LinearLayout>(R.id.fileAttachmentContainer)
 
         if (!message.isDeleted && message.attachmentType == "image") {
-            ivImage.visibility = View.VISIBLE
+            val shimmer = holder.itemView.findViewById<com.facebook.shimmer.ShimmerFrameLayout>(R.id.shimmerAttachment)
+            shimmer.visibility = View.VISIBLE
+            shimmer.startShimmer()
+            ivImage.visibility = View.GONE
             fileContainer.visibility = View.GONE
             com.bumptech.glide.Glide.with(holder.itemView.context)
                 .load(message.attachmentUrl)
+                .signature(com.bumptech.glide.signature.ObjectKey(message.attachmentKey))
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(300))
                 .placeholder(R.drawable.bg_file_attachment)
                 .error(R.drawable.bg_file_attachment)
+                .transform(com.bumptech.glide.load.resource.bitmap.CenterCrop(), com.bumptech.glide.load.resource.bitmap.RoundedCorners(24))
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                     override fun onLoadFailed(
                         e: com.bumptech.glide.load.engine.GlideException?,
@@ -92,8 +101,10 @@ class ChatAdapter(
                         target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
                         isFirstResource: Boolean
                     ): Boolean {
-                        android.util.Log.e("JM_CHAT", "Glide failed: ${e?.message}")
-                        return false
+                        android.util.Log.e("JM_CHAT", "Glide failed, refreshing URL: ${e?.message}")
+                        shimmer.stopShimmer(); shimmer.visibility = View.GONE; ivImage.visibility = View.VISIBLE
+                        refreshAndReload(holder.itemView.context, message, ivImage, applicationId)
+                        return true
                     }
                     override fun onResourceReady(
                         resource: android.graphics.drawable.Drawable,
@@ -102,6 +113,7 @@ class ChatAdapter(
                         dataSource: com.bumptech.glide.load.DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
+                        shimmer.stopShimmer(); shimmer.visibility = View.GONE; ivImage.visibility = View.VISIBLE
                         return false
                     }
                 })
@@ -114,6 +126,7 @@ class ChatAdapter(
             holder.itemView.findViewById<TextView>(R.id.tvAttachmentSize).text =
                 String.format("%.1f MB", message.attachmentSize / 1024.0 / 1024.0)
             fileContainer.setOnClickListener { onAttachmentClick(message) }
+
         } else {
             ivImage.visibility = View.GONE
             fileContainer.visibility = View.GONE
@@ -151,6 +164,31 @@ class ChatAdapter(
                 onLongPress(message)
             }
             true
+        }
+    }
+
+    private fun refreshAndReload(context: android.content.Context, message: com.example.jobmatrix.model.ChatMessage, ivImage: android.widget.ImageView, applicationId: String) {
+        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+        auth.currentUser?.getIdToken(false)?.addOnSuccessListener { result ->
+            val token = "Bearer " + result.token
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                try {
+                    val response = com.example.jobmatrix.network.RetrofitClient.api
+                        .getChatAttachmentUrl(token, message.attachmentKey)
+                    if (response.isSuccessful && response.body() != null) {
+                        val freshUrl = response.body()!!.url
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            com.bumptech.glide.Glide.with(context).load(freshUrl).into(ivImage)
+                        }
+                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            .collection("chats").document(applicationId)
+                            .collection("messages").document(message.messageId)
+                            .update("attachmentUrl", freshUrl)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("JM_CHAT", "Refresh URL failed", e)
+                }
+            }
         }
     }
     override fun getItemCount(): Int = items.size
