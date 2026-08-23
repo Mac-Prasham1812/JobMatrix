@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -68,6 +69,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
 
 
 }
