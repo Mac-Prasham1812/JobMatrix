@@ -9,6 +9,7 @@ import android.view.ScaleGestureDetector
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.jobmatrix.app.R
+import kotlinx.coroutines.launch
 
 class ImagePreviewActivity : AppCompatActivity() {
 
@@ -28,10 +29,33 @@ class ImagePreviewActivity : AppCompatActivity() {
         overridePendingTransition(android.R.anim.fade_in, 0)
 
         val url = intent.getStringExtra("imageUrl") ?: ""
+        val key = intent.getStringExtra("imageKey") ?: ""
         ivImage = findViewById(R.id.ivFullImage)
         ivImage.alpha = 0f
 
-        com.bumptech.glide.Glide.with(this).load(url).into(ivImage)
+        com.bumptech.glide.Glide.with(this)
+            .load(url)
+            .signature(com.bumptech.glide.signature.ObjectKey(key))
+            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+            .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                override fun onLoadFailed(
+                    e: com.bumptech.glide.load.engine.GlideException?,
+                    model: Any?,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    refreshFullImage(key)
+                    return true
+                }
+                override fun onResourceReady(
+                    resource: android.graphics.drawable.Drawable,
+                    model: Any,
+                    target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
+                    dataSource: com.bumptech.glide.load.DataSource,
+                    isFirstResource: Boolean
+                ): Boolean = false
+            })
+            .into(ivImage)
         ivImage.animate().alpha(1f).setDuration(250).start()
 
         scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -111,5 +135,25 @@ class ImagePreviewActivity : AppCompatActivity() {
                 }
             }
         }.start()
+    }
+
+    private fun refreshFullImage(key: String) {
+        val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+        auth.currentUser?.getIdToken(false)?.addOnSuccessListener { result ->
+            val token = "Bearer " + result.token
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                try {
+                    val response = com.example.jobmatrix.network.RetrofitClient.api.getChatAttachmentUrl(token, key)
+                    if (response.isSuccessful && response.body() != null) {
+                        val freshUrl = response.body()!!.url
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            com.bumptech.glide.Glide.with(this@ImagePreviewActivity).load(freshUrl).into(ivImage)
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("JM_CHAT", "Preview refresh failed", e)
+                }
+            }
+        }
     }
 }

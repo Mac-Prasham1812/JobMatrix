@@ -83,8 +83,6 @@
             android:textSize="15sp" />
     </LinearLayout>
 
-
-
     <LinearLayout
         android:id="@+id/optionDocument"
         android:layout_width="match_parent"

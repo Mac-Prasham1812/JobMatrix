@@ -890,6 +890,12 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun handlePickedFile(uri: android.net.Uri, type: String) {
+        val fileSize = contentResolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: 0L
+        val maxSize = 100 * 1024 * 1024
+        if (fileSize > maxSize) {
+            android.widget.Toast.makeText(this, "File too large (max 100MB)", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         pendingAttachmentUri = uri
         pendingAttachmentType = type
         pendingAttachmentName = getFileName(uri)
@@ -964,8 +970,11 @@ class ChatActivity : AppCompatActivity() {
                     temp
                 }
 
-                val mediaType = (if (pendingAttachmentType == "image") "image/jpeg" else "application/octet-stream")
-                    .toMediaTypeOrNull()
+                val mediaType = (when (pendingAttachmentType) {
+                    "image" -> "image/jpeg"
+                    "video" -> "video/mp4"
+                    else -> "application/octet-stream"
+                }).toMediaTypeOrNull()
                 val requestFile = fileToUpload.asRequestBody(mediaType)
                 val filePart = okhttp3.MultipartBody.Part.createFormData("file", pendingAttachmentName, requestFile)
                 val appIdBody = applicationId.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -1004,14 +1013,26 @@ class ChatActivity : AppCompatActivity() {
         )
 
         db.collection("chats").document(applicationId).collection("messages").add(messageData)
+        val previewText = when(type) {
+            "image" -> "📷 Photo"
+            "video" -> "🎥 Video"
+            else -> "📎 $name"
+        }
         db.collection("chats").document(applicationId)
-            .update(mapOf("lastMessage" to (if (type == "image") "📷 Photo" else "📎 $name"), "lastMessageAt" to System.currentTimeMillis()))
+            .update(mapOf("lastMessage" to previewText, "lastMessageAt" to System.currentTimeMillis()))
 
-        if (role == "Employer") createStudentNotification(if (type == "image") "📷 Photo" else "📎 $name")
-        else createEmployerNotification(if (type == "image") "📷 Photo" else "📎 $name")
+        if (role == "Employer") createStudentNotification(previewText)
+        else createEmployerNotification(previewText)
     }
 
     private fun openAttachment(message: com.example.jobmatrix.model.ChatMessage) {
+        if (message.attachmentType == "image") {
+            val intent = android.content.Intent(this@ChatActivity, ImagePreviewActivity::class.java)
+            intent.putExtra("imageUrl", message.attachmentUrl)
+            intent.putExtra("imageKey", message.attachmentKey)
+            startActivity(intent)
+            return
+        }
         lifecycleScope.launch {
             try {
                 val token = "Bearer " + (auth.currentUser?.getIdToken(false)?.await()?.token ?: "")
@@ -1019,12 +1040,6 @@ class ChatActivity : AppCompatActivity() {
                     .getChatAttachmentUrl(token, message.attachmentKey)
                 val freshUrl = if (response.isSuccessful) response.body()?.url ?: message.attachmentUrl else message.attachmentUrl
 
-                if (message.attachmentType == "image") {
-                    val intent = android.content.Intent(this@ChatActivity, ImagePreviewActivity::class.java)
-                    intent.putExtra("imageUrl", freshUrl)
-                    startActivity(intent)
-                    return@launch
-                }
                 val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
                 intent.setDataAndType(android.net.Uri.parse(freshUrl), "*/*")
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
