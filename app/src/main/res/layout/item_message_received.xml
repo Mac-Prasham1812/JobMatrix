@@ -26,6 +26,14 @@
             android:layout_height="match_parent"
             android:background="@color/color_accent" />
 
+        <ImageView
+            android:id="@+id/ivQuoteThumb"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/bg_file_attachment"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

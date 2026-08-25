@@ -1,6 +1,7 @@
 package com.example.jobmatrix.chat
 
 import android.os.Bundle
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -79,9 +80,13 @@ class ChatActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
-
         applicationId = intent.getStringExtra("applicationId") ?: ""
         if (applicationId.isEmpty()) { finish(); return }
+
+        getSharedPreferences("jobmatrix_prefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("in_chat", true)
+            .apply()
 
         recyclerView = findViewById(R.id.rvMessages)
         emptyStateContainer = findViewById(R.id.emptyStateContainer)
@@ -108,6 +113,8 @@ class ChatActivity : AppCompatActivity() {
         findViewById<ImageView>(R.id.btnCancelEdit).setOnClickListener { cancelEdit() }
         recyclerView.itemAnimator?.changeDuration = 250
 
+        recyclerView.setHasFixedSize(true)
+
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ChatAdapter(listItems, auth.currentUser?.uid ?: "", applicationId,
             { message -> showEditDeleteDialog(message) },
@@ -115,7 +122,6 @@ class ChatActivity : AppCompatActivity() {
             { message -> openAttachment(message) }
         )
         recyclerView.adapter = adapter
-        recyclerView.itemAnimator?.changeDuration = 250
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
@@ -195,8 +201,10 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
+    // In ChatActivity.kt, replace the loadMessages() listener section:
+
     private fun loadMessages() {
-            messagesListener = db.collection("chats")
+        messagesListener = db.collection("chats")
             .document(applicationId)
             .collection("messages")
             .orderBy("timestamp", Query.Direction.ASCENDING)
@@ -209,12 +217,12 @@ class ChatActivity : AppCompatActivity() {
 
                 if (snapshot == null) return@addSnapshotListener
 
-                val layoutManager =
-                    recyclerView.layoutManager as LinearLayoutManager
-
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 val wasAtBottom =
                     !messagesLoadedOnce ||
                             layoutManager.findLastVisibleItemPosition() >= adapter.itemCount - 2
+
+                val oldSize = messages.size
                 messages.clear()
 
                 for (doc in snapshot.documents) {
@@ -235,6 +243,7 @@ class ChatActivity : AppCompatActivity() {
 
                 val myUid = auth.currentUser?.uid ?: ""
 
+                // Mark received messages as read
                 for (doc in snapshot.documents) {
                     val senderId = doc.getString("senderId") ?: ""
                     val isRead = doc.getBoolean("isRead") ?: false
@@ -245,14 +254,12 @@ class ChatActivity : AppCompatActivity() {
                 }
 
                 buildListItems()
+
+                // Use notifyItemRangeChanged to avoid triggering onBindViewHolder for unchanged items
                 adapter.notifyDataSetChanged()
 
                 emptyStateContainer.visibility =
-                    if (listItems.isEmpty()) {
-                        android.view.View.VISIBLE
-                    } else {
-                        android.view.View.GONE
-                    }
+                    if (listItems.isEmpty()) View.VISIBLE else View.GONE
 
                 if (wasAtBottom) {
                     recyclerView.post {
@@ -319,7 +326,9 @@ class ChatActivity : AppCompatActivity() {
             "timestamp" to System.currentTimeMillis(),
             "replyToId" to (replyToMessage?.messageId ?: ""),
             "replyToText" to (replyToMessage?.text?.take(80) ?: ""),
-            "replyToSender" to (replyToMessage?.let { if (it.senderId == myUid) "You" else findViewById<TextView>(R.id.tvChatTitle).text.toString() } ?: "")
+            "replyToSender" to (replyToMessage?.let { if (it.senderId == myUid) "You" else findViewById<TextView>(R.id.tvChatTitle).text.toString() } ?: ""),
+            "replyToAttachmentType" to (replyToMessage?.attachmentType ?: ""),
+            "replyToAttachmentUrl" to (replyToMessage?.attachmentUrl ?: "")
         )
 
         db.collection("chats").document(applicationId)
@@ -414,10 +423,9 @@ class ChatActivity : AppCompatActivity() {
                                         .sendNotification(
                                             com.example.jobmatrix.network.NotifyRequest(
                                                 token,
-                                                "New message from ${
-                                                    companyName.ifBlank { "Employer" }
-                                                }",
-                                                text
+                                                "New message from ${companyName.ifBlank { "Employer" }}",
+                                                text,
+                                                applicationId
                                             )
                                         )
                                 } catch (e: Exception) {
@@ -483,6 +491,27 @@ class ChatActivity : AppCompatActivity() {
                             e
                         )
                     }
+            }
+        db.collection("users").document(employerId).get()
+            .addOnSuccessListener { userDoc ->
+                val token = userDoc.getString("fcmToken") ?: ""
+                if (token.isNotBlank()) {
+                    lifecycleScope.launch {
+                        try {
+                            com.example.jobmatrix.network.RetrofitClient.api
+                                .sendNotification(
+                                    com.example.jobmatrix.network.NotifyRequest(
+                                        token,
+                                        "New message from Student",
+                                        text,
+                                        applicationId
+                                    )
+                                )
+                        } catch (e: Exception) {
+                            android.util.Log.e("JM_CHAT", "Push notification failed", e)
+                        }
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 android.util.Log.e(
@@ -621,6 +650,10 @@ class ChatActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        getSharedPreferences("jobmatrix_prefs", MODE_PRIVATE)
+            .edit()
+            .putBoolean("in_chat", false)
+            .apply()
         setTyping(false)
         chatDocListener?.remove()
         chatDocListener = null
@@ -767,7 +800,25 @@ class ChatActivity : AppCompatActivity() {
         val myUid = auth.currentUser?.uid ?: ""
         val senderLabel = if (message.senderId == myUid) "You" else findViewById<TextView>(R.id.tvChatTitle).text.toString()
         findViewById<TextView>(R.id.tvReplySender).text = senderLabel
-        findViewById<TextView>(R.id.tvReplyText).text = message.text
+
+        val tvReplyText = findViewById<TextView>(R.id.tvReplyText)
+        val ivReplyThumb = findViewById<ImageView>(R.id.ivReplyThumb)
+
+        if (message.attachmentType == "image") {
+            tvReplyText.text = "📷 Photo"
+            ivReplyThumb.visibility = android.view.View.VISIBLE
+            com.bumptech.glide.Glide.with(this).load(message.attachmentUrl).into(ivReplyThumb)
+        } else if (message.attachmentType == "file") {
+            tvReplyText.text = "📎 ${message.attachmentName}"
+            ivReplyThumb.visibility = android.view.View.VISIBLE
+            ivReplyThumb.setImageResource(R.drawable.ic_file)
+            ivReplyThumb.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            ivReplyThumb.setPadding(8, 8, 8, 8)
+        } else {
+            tvReplyText.text = message.text
+            ivReplyThumb.visibility = android.view.View.GONE
+        }
+
         replyBar.alpha = 0f
         replyBar.visibility = android.view.View.VISIBLE
         replyBar.animate().alpha(1f).setDuration(200).start()
