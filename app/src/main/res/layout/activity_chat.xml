@@ -207,6 +207,15 @@
             android:layout_height="30dp"
             android:background="@color/color_accent" />
 
+        <ImageView
+            android:id="@+id/ivReplyThumb"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="8dp"
+            android:scaleType="centerCrop"
+            android:background="@drawable/bg_file_attachment"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"

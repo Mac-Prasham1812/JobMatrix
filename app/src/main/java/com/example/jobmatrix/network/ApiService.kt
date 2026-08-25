@@ -55,7 +55,8 @@ data class ResumeUrlResponse(
 data class NotifyRequest(
     val token: String,
     val title: String,
-    val body: String
+    val body: String,
+    val applicationId: String = ""
 )
 
 data class ChatUploadResponse(

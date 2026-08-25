@@ -1,6 +1,7 @@
 package com.example.jobmatrix
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -30,39 +31,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-
-        val title = remoteMessage.data["title"]
-            ?: remoteMessage.notification?.title
-            ?: "JobMatrix"
-
-        val body = remoteMessage.data["body"]
-            ?: remoteMessage.notification?.body
-            ?: "You have a new notification"
-
-        // 1. Show tray notification
-        showNotification(title, body)
+        val title = remoteMessage.data["title"] ?: remoteMessage.notification?.title ?: "JobMatrix"
+        val body = remoteMessage.data["body"] ?: remoteMessage.notification?.body ?: "You have a new notification"
+        val applicationId = remoteMessage.data["applicationId"] ?: ""
+        showNotification(title, body, applicationId)
         updateBadgeCount()
-
-        // 2. Send event inside app so open screen can update instantly
         val intent = Intent("JOBMATRIX_NEW_NOTIFICATION")
         intent.putExtra("title", title)
         intent.putExtra("body", body)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
-    private fun showNotification(title: String, body: String) {
+    @SuppressLint("MissingPermission")
+    private fun showNotification(title: String, body: String, applicationId: String) {
         createNotificationChannel()
-
-        val openIntent = Intent(this, StudentDashboardActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            openIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val isChatOpen = getSharedPreferences("jobmatrix_prefs", MODE_PRIVATE).getBoolean("in_chat", false)
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher_logo)
@@ -71,14 +54,24 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), builder.build())
+        if (!isChatOpen) {
+            val openIntent = if (applicationId.isNotBlank()) {
+                Intent(this, com.example.jobmatrix.chat.ChatActivity::class.java).apply {
+                    putExtra("applicationId", applicationId)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+            } else {
+                Intent(this, StudentDashboardActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+            }
+            val pendingIntent = PendingIntent.getActivity(this, 0, openIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            builder.setContentIntent(pendingIntent)
         }
+
+        NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), builder.build())
     }
 
     private fun createNotificationChannel() {

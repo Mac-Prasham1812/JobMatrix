@@ -17,5 +17,7 @@ data class ChatMessage(
     val attachmentUrl: String = "",
     val attachmentType: String = "", // "image" or "file"
     val attachmentName: String = "",
-    val attachmentSize: Long = 0L
+    val attachmentSize: Long = 0L,
+    val replyToAttachmentType: String = "",
+    val replyToAttachmentUrl: String = ""
 )
