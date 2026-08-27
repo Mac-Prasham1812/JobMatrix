@@ -36,6 +36,17 @@
             android:textStyle="bold"
             android:textColor="@color/color_text_primary" />
 
+        <ImageView
+            android:id="@+id/ivAddJob"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_add_white"
+            app:tint="@color/color_accent"
+            android:background="@drawable/ripple_circle"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
@@ -158,26 +169,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/fabAddJob"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            app:cardBackgroundColor="@color/color_accent"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/bottomBar"
-            android:layout_marginTop="-28dp"
-            tools:ignore="NotSibling">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="16dp"
-                android:src="@drawable/ic_add_white"
-                app:tint="@android:color/white" />
-        </androidx.cardview.widget.CardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -46,6 +46,7 @@ class StudentDashboardActivity : AppCompatActivity() {
     private lateinit var tvNotificationBadge: TextView
     private var notificationListener: com.google.firebase.firestore.ListenerRegistration? = null
     private var lastNotificationCount = -1
+    private lateinit var navChats: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +81,11 @@ class StudentDashboardActivity : AppCompatActivity() {
         listenUnreadNotifications()
         ivSettings = findViewById(R.id.ivSettings)
         ivSavedJobs = findViewById(R.id.ivSavedJobs)
+        navChats = findViewById(R.id.navChats)
 
         setActiveNav(navHome)
+
+
 
         // Greeting
         tvGreeting = findViewById(R.id.tvGreeting)
@@ -137,6 +141,11 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         ivSavedJobs.setOnClickListener {
             startActivity(Intent(this, SavedJobsActivity::class.java))
+        }
+
+        val navChats = findViewById<android.widget.LinearLayout>(R.id.navChats)
+        navChats.setOnClickListener {
+            startActivity(Intent(this, com.example.jobmatrix.chat.ChatListActivity::class.java))
         }
     }
 
@@ -281,10 +290,8 @@ class StudentDashboardActivity : AppCompatActivity() {
         loadJobs()
     }
     private fun setActiveNav(selected: LinearLayout) {
-        val navItems = listOf(navHome, navSearch, ivNotification, navProfile)
-        for (item in navItems) {
-            item.isSelected = false
-        }
+        val navItems = listOf(navHome, navSearch, ivNotification, navChats, navProfile)
+        for (item in navItems) item.isSelected = false
         selected.isSelected = true
     }
 

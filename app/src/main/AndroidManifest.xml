@@ -170,6 +170,10 @@
             android:name="com.example.jobmatrix.chat.ImagePreviewActivity"
             android:exported="false" />
 
+        <activity
+            android:name="com.example.jobmatrix.chat.ChatListActivity"
+            android:exported="false" />
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
