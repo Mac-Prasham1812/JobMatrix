@@ -81,6 +81,8 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
         applicationId = intent.getStringExtra("applicationId") ?: ""
+
+        android.util.Log.d("JM_CHAT", "onCreate applicationId=${intent.getStringExtra("applicationId")}")
         if (applicationId.isEmpty()) { finish(); return }
 
         getSharedPreferences("jobmatrix_prefs", MODE_PRIVATE)
@@ -133,6 +135,7 @@ class ChatActivity : AppCompatActivity() {
     private fun resolveParticipants() {
         db.collection("applications").document(applicationId).get()
             .addOnSuccessListener { appDoc ->
+                android.util.Log.d("JM_CHAT", "appDoc exists=${appDoc.exists()} studentId=${appDoc.getString("studentId")}") // ADD HERE
                 studentId = appDoc.getString("studentId") ?: ""
                 val jobId = appDoc.getString("jobId") ?: ""
                 val jobTitle = appDoc.getString("jobTitle") ?: ""
@@ -451,10 +454,8 @@ class ChatActivity : AppCompatActivity() {
     private fun createEmployerNotification(text: String) {
         db.collection("applications").document(applicationId).get()
             .addOnSuccessListener { appDoc ->
-
                 val jobTitle = appDoc.getString("jobTitle") ?: ""
                 val companyName = appDoc.getString("companyName") ?: ""
-
                 val notificationId = "${applicationId}_employer_message"
 
                 val notification = hashMapOf(
@@ -470,55 +471,31 @@ class ChatActivity : AppCompatActivity() {
                     "isRead" to false
                 )
 
-                android.util.Log.d("JM_CHAT", "Writing employer notif: employerId=$employerId studentId=$studentId recipientId=$employerId")
-
                 db.collection("notifications")
                     .document(notificationId)
-                    .set(
-                        notification,
-                        com.google.firebase.firestore.SetOptions.merge()
-                    )
-                    .addOnSuccessListener {
-                        android.util.Log.d(
-                            "JM_CHAT",
-                            "Employer notification created: $notificationId"
-                        )
-                    }
-                    .addOnFailureListener { e ->
-                        android.util.Log.e(
-                            "JM_CHAT",
-                            "Employer notification failed",
-                            e
-                        )
-                    }
-            }
-        db.collection("users").document(employerId).get()
-            .addOnSuccessListener { userDoc ->
-                val token = userDoc.getString("fcmToken") ?: ""
-                if (token.isNotBlank()) {
-                    lifecycleScope.launch {
-                        try {
-                            com.example.jobmatrix.network.RetrofitClient.api
-                                .sendNotification(
-                                    com.example.jobmatrix.network.NotifyRequest(
-                                        token,
-                                        "New message from Student",
-                                        text,
-                                        applicationId
-                                    )
-                                )
-                        } catch (e: Exception) {
-                            android.util.Log.e("JM_CHAT", "Push notification failed", e)
+                    .set(notification, com.google.firebase.firestore.SetOptions.merge())
+
+                db.collection("users").document(employerId).get()
+                    .addOnSuccessListener { userDoc ->
+                        val token = userDoc.getString("fcmToken") ?: ""
+                        if (token.isNotBlank()) {
+                            lifecycleScope.launch {
+                                try {
+                                    com.example.jobmatrix.network.RetrofitClient.api
+                                        .sendNotification(
+                                            com.example.jobmatrix.network.NotifyRequest(
+                                                token,
+                                                "New message from Student",
+                                                text,
+                                                applicationId
+                                            )
+                                        )
+                                } catch (e: Exception) {
+                                    android.util.Log.e("JM_CHAT", "Push notification failed", e)
+                                }
+                            }
                         }
                     }
-                }
-            }
-            .addOnFailureListener { e ->
-                android.util.Log.e(
-                    "JM_CHAT",
-                    "Application fetch failed",
-                    e
-                )
             }
     }
 

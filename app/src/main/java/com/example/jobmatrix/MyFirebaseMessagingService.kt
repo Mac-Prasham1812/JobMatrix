@@ -17,6 +17,7 @@ import com.example.jobmatrix.student.StudentDashboardActivity
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.jobmatrix.app.R
+import com.example.jobmatrix.chat.ChatActivity
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -45,7 +46,22 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     @SuppressLint("MissingPermission")
     private fun showNotification(title: String, body: String, applicationId: String) {
         createNotificationChannel()
-        val isChatOpen = getSharedPreferences("jobmatrix_prefs", MODE_PRIVATE).getBoolean("in_chat", false)
+
+        val openIntent = if (applicationId.isNotBlank()) {
+            Intent(this, ChatActivity::class.java).apply {
+                putExtra("applicationId", applicationId)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        } else {
+            Intent(this, StudentDashboardActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this, applicationId.hashCode(), openIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher_logo)
@@ -54,22 +70,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-
-        if (!isChatOpen) {
-            val openIntent = if (applicationId.isNotBlank()) {
-                Intent(this, com.example.jobmatrix.chat.ChatActivity::class.java).apply {
-                    putExtra("applicationId", applicationId)
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }
-            } else {
-                Intent(this, StudentDashboardActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                }
-            }
-            val pendingIntent = PendingIntent.getActivity(this, 0, openIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            builder.setContentIntent(pendingIntent)
-        }
+            .setContentIntent(pendingIntent)
 
         NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), builder.build())
     }

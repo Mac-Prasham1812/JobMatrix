@@ -63,8 +63,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
     }
 
     private fun setActiveNav(activeId: Int) {
-        val navItems =
-            listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
+        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navChats, R.id.navApplications, R.id.navProfile)
         for (id in navItems) {
             findViewById<LinearLayout>(id).isSelected = (id == activeId)
         }
@@ -105,9 +104,9 @@ class EmployerDashboardActivity : AppCompatActivity() {
             loadEmployerJobs()
         }
 
-        val fabAddJob = findViewById<androidx.cardview.widget.CardView>(R.id.fabAddJob)
-        fabAddJob.setOnClickListener {
-            startActivity(Intent(this, AddJobActivity::class.java))
+        findViewById<LinearLayout>(R.id.navChats).setOnClickListener {
+            setActiveNav(R.id.navChats)
+            startActivity(Intent(this, com.example.jobmatrix.chat.ChatListActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.navApplications).setOnClickListener {

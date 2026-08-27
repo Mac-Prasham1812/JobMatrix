@@ -57,8 +57,12 @@ class EmployerMyJobsActivity : AppCompatActivity() {
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
             finish()
         }
-        findViewById<CardView>(R.id.fabAddJob).setOnClickListener {
+        findViewById<android.widget.ImageView>(R.id.ivAddJob).setOnClickListener {
             startActivity(Intent(this, AddJobActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.navChats).setOnClickListener {
+            startActivity(Intent(this, com.example.jobmatrix.chat.ChatListActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.navDashboard).setOnClickListener {
@@ -94,7 +98,7 @@ class EmployerMyJobsActivity : AppCompatActivity() {
 
 
     private fun setActiveNav(activeId: Int) {
-        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navApplications, R.id.navProfile)
+        val navItems = listOf(R.id.navDashboard, R.id.navMyJobs, R.id.navChats, R.id.navApplications, R.id.navProfile)
         for (id in navItems) {
             findViewById<LinearLayout>(id).isSelected = (id == activeId)
         }
