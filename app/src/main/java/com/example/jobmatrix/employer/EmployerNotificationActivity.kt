@@ -33,12 +33,24 @@ class EmployerNotificationActivity : AppCompatActivity() {
 
     private val tabLabels = listOf("All", "Message", "Shortlisted", "Rejected")
     private var selectedFilter = "All"
+    private lateinit var emptyState: android.view.View
+    private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_notification)
 
         recyclerView = findViewById(R.id.rvNotifications)
+        emptyState = findViewById(R.id.emptyState)
+
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setColorSchemeResources(R.color.color_accent)
+        swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.color_surface)
+        swipeRefresh.setOnRefreshListener {
+            loadNotifications()
+            syncBadgeCount()
+        }
+
         notificationTabs = findViewById(R.id.notificationTabs)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -195,8 +207,13 @@ class EmployerNotificationActivity : AppCompatActivity() {
                 }
             }
 
+        recyclerView.alpha = 0f
         adapter.resetAnimation()
         adapter.notifyDataSetChanged()
+        recyclerView.animate().alpha(1f).setDuration(250).start()
+        swipeRefresh.isRefreshing = false
+        emptyState.visibility = if (visibleNotifications.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        recyclerView.visibility = if (visibleNotifications.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
     }
 
     private fun getBucket(timestamp: Long): String {
