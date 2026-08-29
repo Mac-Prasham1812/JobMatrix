@@ -24,6 +24,8 @@ class ChatListActivity : AppCompatActivity() {
     private var chatsListener: ListenerRegistration? = null
     private lateinit var emptyState: View
     private lateinit var rvShimmer: RecyclerView
+    private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    private lateinit var recyclerView: RecyclerView
 
     private val avatarColors = listOf(
         R.color.avatar_1, R.color.avatar_2, R.color.avatar_3,
@@ -36,20 +38,26 @@ class ChatListActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat_list)
 
         emptyState = findViewById(R.id.emptyState)
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            loadChats(auth.currentUser?.uid ?: return@setOnRefreshListener)
+        }
+        swipeRefresh.setColorSchemeResources(R.color.color_accent)
+        swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.color_surface)
         rvShimmer = findViewById(R.id.rvShimmer)
         rvShimmer.layoutManager = LinearLayoutManager(this)
         rvShimmer.adapter = com.example.jobmatrix.student.ShimmerAdapter()
         findViewById<android.widget.ImageView>(R.id.ivBack).setOnClickListener { finish() }
 
-        val rv = findViewById<RecyclerView>(R.id.rvChats)
-        rv.layoutManager = LinearLayoutManager(this)
+        recyclerView = findViewById(R.id.rvChats)
+        recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ChatListAdapter(items) { item ->
             startActivity(
                 Intent(this, ChatActivity::class.java)
                     .putExtra("applicationId", item.applicationId)
             )
         }
-        rv.adapter = adapter
+        recyclerView.adapter = adapter
 
         listenChats()
     }
@@ -129,12 +137,16 @@ class ChatListActivity : AppCompatActivity() {
                 result.sortByDescending { it.lastMessageAt }
 
                 rvShimmer.visibility = View.GONE
+                recyclerView.alpha = 0f
                 adapter.updateItems(result)
+                recyclerView.animate().alpha(1f).setDuration(250).start()
                 emptyState.visibility = if (result.isEmpty()) View.VISIBLE else View.GONE
+                swipeRefresh.isRefreshing = false
 
             } catch (e: Exception) {
                 android.util.Log.e("JM_CHATLIST", "Load failed", e)
                 rvShimmer.visibility = View.GONE
+                swipeRefresh.isRefreshing = false
             }
         }
     }

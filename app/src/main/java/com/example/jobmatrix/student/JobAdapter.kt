@@ -41,10 +41,10 @@ class JobAdapter(private var jobList: List<JobModel>) :
         holder.tvLocation.text = job.location
 
         // Avatar initial + colored badge
-        holder.tvCompanyInitial.text = getInitials(job.company)
-        val bgDrawable = holder.tvCompanyInitial.background.mutate() as android.graphics.drawable.GradientDrawable
         val color = holder.badgeColors[Math.abs(job.company.hashCode()) % holder.badgeColors.size]
-        bgDrawable.setColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, color))
+        val newBg = androidx.core.content.ContextCompat.getDrawable(holder.itemView.context, R.drawable.bg_avatar_circle)!!.mutate() as android.graphics.drawable.GradientDrawable
+        newBg.setColor(androidx.core.content.ContextCompat.getColor(holder.itemView.context, color))
+        holder.tvCompanyInitial.background = newBg
 
         // Match score (assumes JobModel has a matchScore field; using placeholder if not)
         holder.tvMatchScore.text = "${job.matchScore}% match"
