@@ -40,6 +40,8 @@ class JobAdapter(private var jobList: List<JobModel>) :
         holder.tvSalary.text = job.salary
         holder.tvLocation.text = job.location
 
+        holder.tvCompanyInitial.text = getInitials(job.company)
+
         // Avatar initial + colored badge
         val color = holder.badgeColors[Math.abs(job.company.hashCode()) % holder.badgeColors.size]
         val newBg = androidx.core.content.ContextCompat.getDrawable(holder.itemView.context, R.drawable.bg_avatar_circle)!!.mutate() as android.graphics.drawable.GradientDrawable
@@ -101,11 +103,23 @@ class JobAdapter(private var jobList: List<JobModel>) :
     }
 
     private fun getInitials(company: String): String {
-        val words = company.trim().split(" ").filter { it.isNotEmpty() }
-        return if (words.size >= 2) (words[0].first().toString() + words[1].first().toString()).uppercase()
-        else company.take(2).uppercase()
-    }
+        val trimmed = company.trim()
+        val words = trimmed.split(" ").filter { it.isNotEmpty() }
 
+        if (words.size >= 2) {
+            return (words[0].first().toString() + words[1].first().toString()).uppercase()
+        }
+
+        // Single word — check for camelCase (e.g. "ByteXen" -> B, X)
+        val word = words.firstOrNull() ?: return "?"
+        val capitals = word.filterIndexed { index, c -> index == 0 || c.isUpperCase() }
+
+        return if (capitals.length >= 2) {
+            capitals.take(2).uppercase()
+        } else {
+            word.take(2).uppercase()
+        }
+    }
     override fun getItemCount(): Int = jobList.size
 
     fun updateList(newList: List<JobModel>) {

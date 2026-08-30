@@ -71,8 +71,14 @@ class ApplicationAdapter(private var list: List<ApplicationModel>) :
         }
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(ctx, JobDetailsActivity::class.java)
-            intent.putExtra("jobId", app.jobId)
+            val intent = Intent(ctx, ApplicationTimelineActivity::class.java)
+            intent.putExtra("jobTitle", app.jobTitle)
+            intent.putExtra("companyName", app.companyName)
+            intent.putExtra("status", app.status)
+            intent.putExtra("appliedAt", app.appliedAt)
+            intent.putExtra("inReviewAt", app.inReviewAt)
+            intent.putExtra("shortlistedAt", app.shortlistedAt)
+            intent.putExtra("rejectedAt", app.rejectedAt)
             ctx.startActivity(intent)
         }
     }

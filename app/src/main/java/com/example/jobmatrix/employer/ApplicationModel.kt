@@ -9,10 +9,10 @@ data class ApplicationModel(
     val resumeLink: String = "",
     val status: String = "Applied",
     val appliedAt: Long = 0L,
+    val inReviewAt: Long = 0L,
+    val shortlistedAt: Long = 0L,
+    val rejectedAt: Long = 0L,
     val hasNotification: Boolean = false,
     val isRead: Boolean = false,
     val notificationMessage: String = ""
 )
-
-
-

@@ -5,6 +5,11 @@
         <item>Employer</item>
     </string-array>
 
+    <string name="status_msg_shortlisted">Congratulations! You\'ve been shortlisted</string>
+    <string name="status_msg_rejected">Application not selected this time</string>
+    <string name="status_msg_review">Your application is under review</string>
+    <string name="status_msg_applied">Application submitted successfully</string>
+
 
 
 </resources>
