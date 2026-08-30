@@ -76,4 +76,13 @@
 
     <color name="color_online_dot">#22C55E</color>
 
+    <color name="status_shortlisted_bg">#DCFCE7</color>
+    <color name="status_shortlisted_fg">#16A34A</color>
+    <color name="status_rejected_bg">#FEE2E2</color>
+    <color name="status_rejected_fg">#DC2626</color>
+    <color name="status_review_bg">#FEF3C7</color>
+    <color name="status_review_fg">#D97706</color>
+    <color name="status_applied_bg">#DBEAFE</color>
+    <color name="status_applied_fg">#2563EB</color>
+
 </resources>

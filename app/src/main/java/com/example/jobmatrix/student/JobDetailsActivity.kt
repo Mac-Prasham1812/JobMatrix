@@ -33,6 +33,8 @@ class JobDetailsActivity : AppCompatActivity() {
     private var currentJob: JobModel? = null
     private var passedMatchScore: Int = 0
     private var isJobSaved = false
+    private var existingApplicationId: String = ""
+    private var existingApplication: com.example.jobmatrix.model.ApplicationModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +105,7 @@ class JobDetailsActivity : AppCompatActivity() {
                     currentJob = job
                     bindJob(job)
                     animateContent()
+                    checkExistingApplication(jobId)
                 }
             }
             .addOnFailureListener {
@@ -285,6 +288,40 @@ class JobDetailsActivity : AppCompatActivity() {
             duration = Toast.LENGTH_SHORT
             view = layout
             show()
+        }
+    }
+
+    private fun checkExistingApplication(jobId: String) {
+        val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("applications")
+            .whereEqualTo("studentId", uid)
+            .whereEqualTo("jobId", jobId)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val doc = snapshot.documents.firstOrNull()
+                if (doc != null) {
+                    existingApplicationId = doc.id
+                    existingApplication = doc.toObject(com.example.jobmatrix.model.ApplicationModel::class.java)
+                        ?.copy(applicationId = doc.id)
+                    showAppliedState()
+                }
+            }
+    }
+
+    private fun showAppliedState() {
+        val app = existingApplication ?: return
+        btnApply.text = "View Application Status"
+        btnApply.setOnClickListener {
+            val intent = Intent(this, com.example.jobmatrix.student.ApplicationTimelineActivity::class.java)
+            intent.putExtra("jobTitle", app.jobTitle)
+            intent.putExtra("companyName", app.companyName)
+            intent.putExtra("status", app.status)
+            intent.putExtra("appliedAt", app.appliedAt)
+            intent.putExtra("inReviewAt", app.inReviewAt)
+            intent.putExtra("shortlistedAt", app.shortlistedAt)
+            intent.putExtra("rejectedAt", app.rejectedAt)
+            startActivity(intent)
         }
     }
 }

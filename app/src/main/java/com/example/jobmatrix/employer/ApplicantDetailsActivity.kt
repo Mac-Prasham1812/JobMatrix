@@ -185,8 +185,20 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             message = "Your application for $jobTitle at $companyName was not selected."
         }
 
+        val timestampField = when (newStatus) {
+            "In Review" -> "inReviewAt"
+            "Shortlisted" -> "shortlistedAt"
+            "Rejected" -> "rejectedAt"
+            else -> null
+        }
+
+        val updates = mutableMapOf<String, Any>("status" to newStatus)
+        if (timestampField != null) {
+            updates[timestampField] = System.currentTimeMillis()
+        }
+
         db.collection("applications").document(applicationId)
-            .update(mapOf("status" to newStatus))
+            .update(updates)
             .addOnSuccessListener {
                 setStatusUi(newStatus)
                 Toast.makeText(this, "Status updated & student notified", Toast.LENGTH_SHORT).show()
