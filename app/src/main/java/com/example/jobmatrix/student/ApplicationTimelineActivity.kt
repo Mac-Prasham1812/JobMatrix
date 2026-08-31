@@ -38,6 +38,12 @@ class ApplicationTimelineActivity : AppCompatActivity() {
 
         setupStatusBanner(status)
 
+        val banner = findViewById<androidx.cardview.widget.CardView>(R.id.statusBanner)
+        banner.scaleX = 0.92f
+        banner.scaleY = 0.92f
+        banner.alpha = 0f
+        banner.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(350).start()
+
         val steps = mutableListOf<Triple<String, Long, Boolean>>()
         steps.add(Triple("Applied", appliedAt, true))
 
@@ -55,6 +61,9 @@ class ApplicationTimelineActivity : AppCompatActivity() {
 
         steps.forEachIndexed { index, (title, timestamp, done) ->
             val stepView = inflater.inflate(R.layout.item_timeline_step, container, false)
+            val currentBadge = stepView.findViewById<TextView>(R.id.tvCurrentStepBadge)
+            currentBadge.visibility = if (index == lastDoneIndex && status != "Shortlisted" && status != "Rejected")
+                android.view.View.VISIBLE else android.view.View.GONE
             stepView.findViewById<TextView>(R.id.tvStepTitle).text = title
             stepView.findViewById<TextView>(R.id.tvStepDate).text =
                 if (done && timestamp > 0) DateFormat.format("dd MMM yyyy, hh:mm a", timestamp).toString()
@@ -78,7 +87,9 @@ class ApplicationTimelineActivity : AppCompatActivity() {
             icon.setImageResource(
                 when {
                     title == "Rejected" && done -> R.drawable.ic_close
-                    done -> R.drawable.ic_check
+                    title == "Shortlisted" && done -> R.drawable.ic_check
+                    title == "In Review" && done -> R.drawable.ic_eye
+                    title == "Applied" && done -> R.drawable.ic_document
                     else -> R.drawable.ic_document
                 }
             )
@@ -90,17 +101,6 @@ class ApplicationTimelineActivity : AppCompatActivity() {
                     .setStartDelay((index * 120).toLong()).setDuration(300).start()
             }
 
-            // Pulse animation on the current/latest active step
-            if (index == lastDoneIndex) {
-                val pulse = android.animation.ObjectAnimator.ofFloat(dot, "scaleX", 1f, 1.15f, 1f)
-                val pulseY = android.animation.ObjectAnimator.ofFloat(dot, "scaleY", 1f, 1.15f, 1f)
-                pulse.repeatCount = android.animation.ObjectAnimator.INFINITE
-                pulseY.repeatCount = android.animation.ObjectAnimator.INFINITE
-                pulse.duration = 1200
-                pulseY.duration = 1200
-                pulse.start()
-                pulseY.start()
-            }
 
             if (index == steps.size - 1) {
                 line.visibility = android.view.View.GONE
@@ -119,12 +119,20 @@ class ApplicationTimelineActivity : AppCompatActivity() {
                 )
             }
         }
+
+        val jobId = intent.getStringExtra("jobId") ?: ""
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.btnViewJobDetails).setOnClickListener {
+            startActivity(
+                Intent(this, JobDetailsActivity::class.java)
+                    .putExtra("jobId", jobId)
+            )
+        }
     }
 
     private data class StatusStyle(
-        val bgColor: Int,
         val fgColor: Int,
         val message: String,
+        val subtext: String,
         val iconRes: Int
     )
 
@@ -132,37 +140,39 @@ class ApplicationTimelineActivity : AppCompatActivity() {
         val banner = findViewById<androidx.cardview.widget.CardView>(R.id.statusBanner)
         val icon = findViewById<ImageView>(R.id.ivStatusIcon)
         val text = findViewById<TextView>(R.id.tvStatusBannerText)
+        val subtext = findViewById<TextView>(R.id.tvStatusSubtext)
 
         val style = when (status) {
             "Shortlisted" -> StatusStyle(
-                ContextCompat.getColor(this, R.color.status_shortlisted_bg),
                 ContextCompat.getColor(this, R.color.status_shortlisted_fg),
                 getString(R.string.status_msg_shortlisted),
+                getString(R.string.status_sub_shortlisted),
                 R.drawable.ic_check
             )
             "Rejected" -> StatusStyle(
-                ContextCompat.getColor(this, R.color.status_rejected_bg),
                 ContextCompat.getColor(this, R.color.status_rejected_fg),
                 getString(R.string.status_msg_rejected),
+                getString(R.string.status_sub_rejected),
                 R.drawable.ic_close
             )
             "In Review" -> StatusStyle(
-                ContextCompat.getColor(this, R.color.status_review_bg),
                 ContextCompat.getColor(this, R.color.status_review_fg),
                 getString(R.string.status_msg_review),
+                getString(R.string.status_sub_review),
                 R.drawable.ic_eye
             )
             else -> StatusStyle(
-                ContextCompat.getColor(this, R.color.status_applied_bg),
                 ContextCompat.getColor(this, R.color.status_applied_fg),
                 getString(R.string.status_msg_applied),
+                getString(R.string.status_sub_applied),
                 R.drawable.ic_document
             )
         }
 
-        banner.setCardBackgroundColor(style.bgColor)
+        banner.setCardBackgroundColor(ContextCompat.getColor(this, R.color.color_surface))
         text.setTextColor(style.fgColor)
         text.text = style.message
+        subtext.text = style.subtext
         icon.setImageResource(style.iconRes)
         icon.clearColorFilter()
         icon.setColorFilter(android.graphics.Color.WHITE)

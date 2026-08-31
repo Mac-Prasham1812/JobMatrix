@@ -10,7 +10,10 @@
     <string name="status_msg_review">Your application is under review</string>
     <string name="status_msg_applied">Application submitted successfully</string>
 
-
+    <string name="status_sub_shortlisted">The hiring team was impressed. They\'ll reach out with next steps soon.</string>
+    <string name="status_sub_rejected">Thanks for applying. Keep exploring other opportunities that match your skills.</string>
+    <string name="status_sub_review">Sit tight — the employer is reviewing your profile.</string>
+    <string name="status_sub_applied">Your application has been sent to the employer.</string>
 
 </resources>
 
