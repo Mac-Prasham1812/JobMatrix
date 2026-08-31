@@ -97,42 +97,57 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                app:cardCornerRadius="18dp"
+                app:cardElevation="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
+                    android:orientation="vertical"
                     android:padding="16dp">
 
-                    <FrameLayout
-                        android:layout_width="40dp"
-                        android:layout_height="40dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
 
-                        <View
-                            android:id="@+id/statusIconBg"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/bg_avatar_circle" />
+                        <FrameLayout
+                            android:layout_width="36dp"
+                            android:layout_height="36dp">
 
-                        <ImageView
-                            android:id="@+id/ivStatusIcon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="center"
-                            app:tint="@android:color/white" />
-                    </FrameLayout>
+                            <View
+                                android:id="@+id/statusIconBg"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:background="@drawable/bg_avatar_circle" />
+
+                            <ImageView
+                                android:id="@+id/ivStatusIcon"
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:layout_gravity="center"
+                                app:tint="@android:color/white" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/tvStatusBannerText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvStatusBannerText"
-                        android:layout_width="0dp"
+                        android:id="@+id/tvStatusSubtext"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="12dp"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
+                        android:layout_marginTop="8dp"
+                        android:textSize="12sp"
+                        android:textColor="@color/color_text_secondary" />
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -143,6 +158,18 @@
                 android:orientation="vertical"
                 android:layout_marginTop="24dp"
                 android:paddingStart="4dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewJobDetails"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="16dp"
+                android:text="View Job Details"
+                android:textAllCaps="false"
+                android:textColor="@color/color_accent"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                app:cornerRadius="14dp"
+                app:strokeColor="@color/color_accent" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnMessageEmployer"

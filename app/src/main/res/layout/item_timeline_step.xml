@@ -13,26 +13,26 @@
 
         <FrameLayout
             android:id="@+id/dotContainer"
-            android:layout_width="36dp"
-            android:layout_height="36dp">
+            android:layout_width="28dp"
+            android:layout_height="28dp">
 
             <View
                 android:id="@+id/dotStep"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:background="@drawable/bg_avatar_circle" />
 
             <ImageView
                 android:id="@+id/ivStepIcon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
                 android:layout_gravity="center"
                 app:tint="@android:color/white" />
         </FrameLayout>
 
         <View
             android:id="@+id/lineStep"
-            android:layout_width="3dp"
+            android:layout_width="2dp"
             android:layout_height="50dp"
             android:background="@color/color_divider" />
 
@@ -43,9 +43,9 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="12dp"
-        android:layout_marginBottom="12dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="2dp"
         app:cardBackgroundColor="@color/color_surface">
 
         <LinearLayout
@@ -54,13 +54,34 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <TextView
-                android:id="@+id/tvStepTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_text_primary" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvStepTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_text_primary" />
+
+                <TextView
+                    android:id="@+id/tvCurrentStepBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Step"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_accent"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvStepDate"

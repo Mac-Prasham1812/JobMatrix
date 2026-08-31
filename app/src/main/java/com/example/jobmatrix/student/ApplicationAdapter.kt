@@ -79,6 +79,7 @@ class ApplicationAdapter(private var list: List<ApplicationModel>) :
             intent.putExtra("inReviewAt", app.inReviewAt)
             intent.putExtra("shortlistedAt", app.shortlistedAt)
             intent.putExtra("rejectedAt", app.rejectedAt)
+            intent.putExtra("jobId", app.jobId)
             ctx.startActivity(intent)
         }
     }
