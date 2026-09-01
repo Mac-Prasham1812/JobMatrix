@@ -15,6 +15,8 @@ import com.example.jobmatrix.model.JobModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
+import android.widget.LinearLayout
+import kotlinx.coroutines.launch
 
 class EmployerApplicationsActivity : AppCompatActivity() {
 
@@ -34,6 +36,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
     private var selectedJobFilter: String? = null
     private var sortNewestFirst = true
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employer_applications)
@@ -57,6 +60,31 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             startActivity(i)
         }
         recyclerView.adapter = adapter
+
+        val selectionToolbar = findViewById<LinearLayout>(R.id.selectionToolbar)
+        val tvSelectedCount = findViewById<TextView>(R.id.tvSelectedCount)
+
+        adapter.onSelectionChanged = { count ->
+            tvSelectedCount.text = "$count selected"
+            if (count > 0 && selectionToolbar.visibility != View.VISIBLE) {
+                selectionToolbar.visibility = View.VISIBLE
+                selectionToolbar.alpha = 0f
+                selectionToolbar.translationY = -20f
+                selectionToolbar.animate().alpha(1f).translationY(0f).setDuration(200).start()
+            } else if (count == 0) {
+                selectionToolbar.animate().alpha(0f).translationY(-20f).setDuration(150)
+                    .withEndAction { selectionToolbar.visibility = View.GONE }.start()
+            }
+        }
+
+        findViewById<ImageView>(R.id.btnCancelSelection).setOnClickListener {
+            adapter.exitSelectionMode()
+            selectionToolbar.visibility = View.GONE
+        }
+
+        findViewById<TextView>(R.id.btnBulkInReview).setOnClickListener { bulkUpdateStatus("In Review") }
+        findViewById<TextView>(R.id.btnBulkShortlist).setOnClickListener { bulkUpdateStatus("Shortlisted") }
+        findViewById<TextView>(R.id.btnBulkReject).setOnClickListener { bulkUpdateStatus("Rejected") }
 
         tabAll = findViewById(R.id.tabAll)
         tabApplied = findViewById(R.id.tabApplied)
@@ -102,6 +130,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         applyFilter()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun applyFilter() {
         val filtered = allData.filter {
             (currentFilter == "All" || it.app.status.equals(currentFilter, ignoreCase = true)) &&
@@ -116,6 +145,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         updateTabCounts()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateTabCounts() {
         tabAll.text = "All (${allData.size})"
         tabApplied.text = "Applied (${allData.count { it.app.status.equals("Applied", true) }})"
@@ -212,5 +242,88 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             applyFilter(); dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun bulkUpdateStatus(newStatus: String) {
+        val selectedIds = adapter.getSelectedApplicationIds()
+        if (selectedIds.isEmpty()) return
+
+        android.app.AlertDialog.Builder(this)
+            .setTitle("$newStatus ${selectedIds.size} applicant(s)?")
+            .setPositiveButton("Confirm") { _, _ ->
+                val timestampField = when (newStatus) {
+                    "In Review" -> "inReviewAt"
+                    "Shortlisted" -> "shortlistedAt"
+                    "Rejected" -> "rejectedAt"
+                    else -> null
+                }
+
+                val batch = db.batch()
+                val affectedApps = allData.filter { selectedIds.contains(it.app.applicationId) }
+
+                for (item in affectedApps) {
+                    val updates = mutableMapOf<String, Any>("status" to newStatus)
+                    if (timestampField != null) updates[timestampField] = System.currentTimeMillis()
+                    batch.update(
+                        db.collection("applications").document(item.app.applicationId),
+                        updates
+                    )
+                }
+
+                batch.commit()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Updated $newStatus for ${affectedApps.size} applicant(s)", Toast.LENGTH_SHORT).show()
+                        for (item in affectedApps) {
+                            sendBulkNotification(item, newStatus)
+                        }
+                        adapter.exitSelectionMode()
+                        findViewById<LinearLayout>(R.id.selectionToolbar).visibility = View.GONE
+                        loadData(intent.getStringExtra("jobId"))
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Bulk update failed", Toast.LENGTH_SHORT).show()
+                    }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun sendBulkNotification(item: AppWithJob, newStatus: String) {
+        val jobTitle = item.job?.title ?: item.app.jobTitle
+        val companyName = item.job?.company ?: ""
+        val message = when (newStatus) {
+            "Shortlisted" -> "You have been shortlisted for $jobTitle at $companyName."
+            "In Review" -> "Your application for $jobTitle at $companyName is under review."
+            else -> "Your application for $jobTitle at $companyName was not selected."
+        }
+
+        val notif = hashMapOf(
+            "studentId" to item.app.studentId,
+            "recipientId" to item.app.studentId,
+            "applicationId" to item.app.applicationId,
+            "jobTitle" to jobTitle,
+            "companyName" to companyName,
+            "message" to message,
+            "type" to newStatus,
+            "createdAt" to System.currentTimeMillis(),
+            "isRead" to false
+        )
+        db.collection("notifications").add(notif)
+
+        db.collection("users").document(item.app.studentId).get()
+            .addOnSuccessListener { doc ->
+                val token = doc.getString("fcmToken") ?: ""
+                if (token.isNotBlank()) {
+                    kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                        try {
+                            com.example.jobmatrix.network.RetrofitClient.api.sendNotification(
+                                com.example.jobmatrix.network.NotifyRequest(token, "JobMatrix", message)
+                            )
+                        } catch (e: Exception) {
+                            android.util.Log.e("JM_BULK", "Push failed", e)
+                        }
+                    }
+                }
+            }
     }
 }

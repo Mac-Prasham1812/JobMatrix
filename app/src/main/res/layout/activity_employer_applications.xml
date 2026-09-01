@@ -38,6 +38,62 @@
             app:tint="@color/color_text_primary"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/selectionToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/color_surface"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvSelectedCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 selected"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/color_text_primary" />
+
+        <TextView
+            android:id="@+id/btnBulkInReview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="In Review"
+            android:textSize="12sp"
+            android:textColor="#F59E0B"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/btnBulkShortlist"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Shortlist"
+            android:textSize="12sp"
+            android:textColor="@color/badge_green"
+            android:padding="8dp" />
+
+        <TextView
+            android:id="@+id/btnBulkReject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reject"
+            android:textSize="12sp"
+            android:textColor="@color/job_delete_red"
+            android:padding="8dp" />
+
+        <ImageView
+            android:id="@+id/btnCancelSelection"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_close"
+            app:tint="@color/color_text_secondary" />
+
+    </LinearLayout>
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

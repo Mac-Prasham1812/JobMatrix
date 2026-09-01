@@ -56,7 +56,8 @@ data class NotifyRequest(
     val token: String,
     val title: String,
     val body: String,
-    val applicationId: String = ""
+    val applicationId: String = "",
+    val type: String = ""
 )
 
 data class ChatUploadResponse(
