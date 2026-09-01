@@ -1,15 +1,16 @@
 package com.example.jobmatrix.employer
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.ApplicationModel
 import com.example.jobmatrix.model.JobModel
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
-import java.util.concurrent.TimeUnit
 
 data class AppWithJob(val app: ApplicationModel, val job: JobModel?)
 
@@ -21,6 +22,12 @@ class EmployerApplicationAdapter(
     private val db = FirebaseFirestore.getInstance()
     private val studentCache = HashMap<String, Triple<String, String, String>>()
 
+    var selectionMode = false
+        private set
+    private val selectedIds = mutableSetOf<String>()
+
+    var onSelectionChanged: ((Int) -> Unit)? = null
+
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvStudentName: TextView = view.findViewById(R.id.tvStudentName)
         val tvStudentEmail: TextView = view.findViewById(R.id.tvStudentEmail)
@@ -30,6 +37,7 @@ class EmployerApplicationAdapter(
         val tvLocation: TextView = view.findViewById(R.id.tvLocation)
         val tvAppliedDate: TextView = view.findViewById(R.id.tvAppliedDate)
         val tvProfile: TextView = view.findViewById(R.id.tvProfile)
+        val checkbox: CheckBox = view.findViewById(R.id.checkboxSelect)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -38,6 +46,7 @@ class EmployerApplicationAdapter(
         return VH(view)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = list[position]
         val app = item.app
@@ -78,8 +87,52 @@ class EmployerApplicationAdapter(
                 }
         }
 
-        holder.itemView.setOnClickListener { onItemClick(item) }
+        if (selectionMode && holder.checkbox.visibility != View.VISIBLE) {
+            holder.checkbox.visibility = View.VISIBLE
+            holder.checkbox.alpha = 0f
+            holder.checkbox.scaleX = 0.7f
+            holder.checkbox.scaleY = 0.7f
+            holder.checkbox.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).start()
+        } else if (!selectionMode) {
+            holder.checkbox.visibility = View.GONE
+        }
+        holder.checkbox.setOnCheckedChangeListener(null)
+        holder.checkbox.isChecked = selectedIds.contains(app.applicationId)
+        holder.checkbox.setOnCheckedChangeListener { _, checked ->
+            if (checked) selectedIds.add(app.applicationId) else selectedIds.remove(app.applicationId)
+            onSelectionChanged?.invoke(selectedIds.size)
+        }
+
+        holder.itemView.setOnClickListener {
+            if (selectionMode) {
+                holder.checkbox.isChecked = !holder.checkbox.isChecked
+            } else {
+                onItemClick(item)
+            }
+        }
+        holder.itemView.setOnLongClickListener {
+            if (!selectionMode) {
+                holder.itemView.animate().scaleX(0.96f).scaleY(0.96f).setDuration(80)
+                    .withEndAction {
+                        holder.itemView.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                    }.start()
+                selectionMode = true
+                selectedIds.add(app.applicationId)
+                onSelectionChanged?.invoke(selectedIds.size)
+                notifyDataSetChanged()
+            }
+            true
+        }
     }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun exitSelectionMode() {
+        selectionMode = false
+        selectedIds.clear()
+        notifyDataSetChanged()
+    }
+
+    fun getSelectedApplicationIds(): List<String> = selectedIds.toList()
 
     private fun setStudentData(holder: VH, name: String, email: String, experience: String) {
         holder.tvStudentName.text = name
@@ -88,16 +141,6 @@ class EmployerApplicationAdapter(
         holder.tvProfile.text = getInitials(name)
         holder.tvProfile.background.mutate().setTint(avatarColor(holder.itemView.context, name))
     }
-
-//    private fun timeAgo(time: Long): String {
-//        val diff = System.currentTimeMillis() - time
-//        val days = TimeUnit.MILLISECONDS.toDays(diff)
-//        return when {
-//            days <= 0L -> "today"
-//            days == 1L -> "1 day ago"
-//            else -> "$days days ago"
-//        }
-//    }
 
     private fun getInitials(name: String): String {
         val p = name.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
@@ -110,16 +153,9 @@ class EmployerApplicationAdapter(
 
     private fun avatarColor(context: android.content.Context, seed: String): Int {
         val palette = listOf(
-            R.color.avatar_1,
-            R.color.avatar_2,
-            R.color.avatar_3,
-            R.color.avatar_4,
-            R.color.avatar_5,
-            R.color.avatar_6,
-            R.color.avatar_7,
-            R.color.avatar_8,
-            R.color.avatar_9,
-            R.color.avatar_10
+            R.color.avatar_1, R.color.avatar_2, R.color.avatar_3, R.color.avatar_4,
+            R.color.avatar_5, R.color.avatar_6, R.color.avatar_7, R.color.avatar_8,
+            R.color.avatar_9, R.color.avatar_10
         )
         val idx = (seed.hashCode() and 0x7fffffff) % palette.size
         return androidx.core.content.ContextCompat.getColor(context, palette[idx])

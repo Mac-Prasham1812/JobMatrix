@@ -35,7 +35,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val title = remoteMessage.data["title"] ?: remoteMessage.notification?.title ?: "JobMatrix"
         val body = remoteMessage.data["body"] ?: remoteMessage.notification?.body ?: "You have a new notification"
         val applicationId = remoteMessage.data["applicationId"] ?: ""
-        showNotification(title, body, applicationId)
+        val type = remoteMessage.data["type"] ?: ""
+        showNotification(title, body, applicationId, type)
         updateBadgeCount()
         val intent = Intent("JOBMATRIX_NEW_NOTIFICATION")
         intent.putExtra("title", title)
@@ -44,10 +45,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun showNotification(title: String, body: String, applicationId: String) {
+    private fun showNotification(title: String, body: String, applicationId: String, type: String) {
         createNotificationChannel()
 
-        val openIntent = if (applicationId.isNotBlank()) {
+        val openIntent = if (type == "JobMatch" && applicationId.isNotBlank()) {
+            Intent(this, com.example.jobmatrix.student.JobDetailsActivity::class.java).apply {
+                putExtra("jobId", applicationId)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        } else if (applicationId.isNotBlank()) {
             Intent(this, ChatActivity::class.java).apply {
                 putExtra("applicationId", applicationId)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

@@ -15,6 +15,7 @@ import com.jobmatrix.app.R
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.launch
 
 class AddJobActivity : AppCompatActivity() {
 
@@ -163,6 +164,7 @@ class AddJobActivity : AppCompatActivity() {
                 .set(jobMap)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Job Posted Successfully", Toast.LENGTH_SHORT).show()
+                    notifyMatchingStudents(jobId, title, company, skillsList)
                     finish()
                 }
                 .addOnFailureListener {
@@ -214,5 +216,66 @@ class AddJobActivity : AppCompatActivity() {
 
         dialog.setContentView(view)
         dialog.show()
+    }
+
+    private fun notifyMatchingStudents(
+        jobId: String,
+        jobTitle: String,
+        companyName: String,
+        jobSkills: List<String>
+    ) {
+        val jobSkillsLower = jobSkills.map { it.trim().lowercase() }
+
+        db.collection("users")
+            .whereEqualTo("role", "Student")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                for (doc in snapshot.documents) {
+                    val studentSkills = (doc.get("skills") as? List<*>)
+                        ?.mapNotNull { it?.toString()?.trim()?.lowercase() } ?: emptyList()
+
+                    val hasMatch = jobSkillsLower.any { studentSkills.contains(it) }
+                    if (!hasMatch) continue
+
+                    val studentId = doc.id
+                    val message = "New job matches your skills: $jobTitle at $companyName"
+
+                    val notif = hashMapOf(
+                        "studentId" to studentId,
+                        "recipientId" to studentId,
+                        "jobId" to jobId,
+                        "jobTitle" to jobTitle,
+                        "companyName" to companyName,
+                        "message" to message,
+                        "type" to "JobMatch",
+                        "createdAt" to System.currentTimeMillis(),
+                        "isRead" to false
+                    )
+
+                    db.collection("notifications").add(notif)
+
+                    val token = doc.getString("fcmToken") ?: ""
+                    if (token.isNotBlank()) {
+                        com.example.jobmatrix.network.RetrofitClient.api
+                            .let { api ->
+                                kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                                    try {
+                                        api.sendNotification(
+                                            com.example.jobmatrix.network.NotifyRequest(
+                                                token,
+                                                "New Job Match!",
+                                                message,
+                                                jobId,
+                                                "JobMatch"
+                                            )
+                                        )
+                                    } catch (e: Exception) {
+                                        android.util.Log.e("JM_JOBALERT", "Push failed", e)
+                                    }
+                                }
+                            }
+                    }
+                }
+            }
     }
 }
