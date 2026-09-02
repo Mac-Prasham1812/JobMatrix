@@ -65,7 +65,12 @@
             android:text="In Review"
             android:textSize="12sp"
             android:textColor="#F59E0B"
-            android:padding="8dp" />
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_chip_warning"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/btnBulkShortlist"
@@ -74,7 +79,12 @@
             android:text="Shortlist"
             android:textSize="12sp"
             android:textColor="@color/badge_green"
-            android:padding="8dp" />
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_chip_success"
+            android:clickable="true"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/btnBulkReject"
@@ -83,7 +93,12 @@
             android:text="Reject"
             android:textSize="12sp"
             android:textColor="@color/job_delete_red"
-            android:padding="8dp" />
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_chip_reject"
+            android:clickable="true"
+            android:focusable="true" />
 
         <ImageView
             android:id="@+id/btnCancelSelection"
