@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="8dp"
+    android:paddingBottom="20dp"
+    android:background="@color/color_surface">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_sheet_handle"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="12dp"
+        android:text="Change Status"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/color_text_secondary"/>
+
+    <LinearLayout
+        android:id="@+id/rowInReview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
+        android:background="?attr/selectableItemBackground">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/dot_status_in_review"/>
+
+        <TextView
+            android:id="@+id/tvRowInReview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:text="In Review"
+            android:textSize="15sp"
+            android:textColor="@color/color_text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivCheckInReview"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone"
+            app:tint="#F59E0B"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowShortlist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
+        android:background="?attr/selectableItemBackground">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/dot_status_shortlisted"/>
+
+        <TextView
+            android:id="@+id/tvRowShortlist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:text="Shortlisted"
+            android:textSize="15sp"
+            android:textColor="@color/color_text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivCheckShortlist"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone"
+            app:tint="@color/badge_green"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowReject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
+        android:background="?attr/selectableItemBackground">
+
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/dot_status_rejected"/>
+
+        <TextView
+            android:id="@+id/tvRowReject"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:text="Rejected"
+            android:textSize="15sp"
+            android:textColor="@color/color_text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivCheckReject"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_check"
+            android:visibility="gone"
+            app:tint="@color/job_delete_red"/>
+    </LinearLayout>
+
+</LinearLayout>

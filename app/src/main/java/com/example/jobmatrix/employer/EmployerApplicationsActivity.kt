@@ -46,19 +46,23 @@ class EmployerApplicationsActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.rvApplications)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = EmployerApplicationAdapter(displayedData) { item ->
-            val i = Intent(this, ApplicantDetailsActivity::class.java)
-            i.putExtra("applicationId", item.app.applicationId)
-            i.putExtra("studentId", item.app.studentId)
-            i.putExtra("jobTitle", item.job?.title ?: item.app.jobTitle)
-            i.putExtra("companyName", item.job?.company ?: "")
-            i.putExtra("status", item.app.status)
-            i.putExtra("resumeLink", item.app.resumeLink)
-            i.putExtra("appliedAt", item.app.appliedAt)
-            i.putExtra("jobLocation", item.job?.location ?: "")
-            i.putStringArrayListExtra("jobSkills", ArrayList(item.job?.skills ?: emptyList()))
-            startActivity(i)
-        }
+        adapter = EmployerApplicationAdapter(
+            list = displayedData,
+            onItemClick = { item ->
+                val i = Intent(this, ApplicantDetailsActivity::class.java)
+                i.putExtra("applicationId", item.app.applicationId)
+                i.putExtra("studentId", item.app.studentId)
+                i.putExtra("jobTitle", item.job?.title ?: item.app.jobTitle)
+                i.putExtra("companyName", item.job?.company ?: "")
+                i.putExtra("status", item.app.status)
+                i.putExtra("resumeLink", item.app.resumeLink)
+                i.putExtra("appliedAt", item.app.appliedAt)
+                i.putExtra("jobLocation", item.job?.location ?: "")
+                i.putStringArrayListExtra("jobSkills", ArrayList(item.job?.skills ?: emptyList()))
+                startActivity(i)
+            },
+            onStatusPillClick = { item -> showChangeStatusSheet(item) }
+        )
         recyclerView.adapter = adapter
 
         val selectionToolbar = findViewById<LinearLayout>(R.id.selectionToolbar)
@@ -242,6 +246,68 @@ class EmployerApplicationsActivity : AppCompatActivity() {
             applyFilter(); dialog.dismiss()
         }
         dialog.show()
+    }
+
+    /**
+     * Bottom sheet triggered by tapping a single applicant's status pill.
+     * Current status row is disabled (greyed + check shown) so it can't be re-selected as a no-op.
+     */
+    private fun showChangeStatusSheet(item: AppWithJob) {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.dialog_change_status, null)
+        dialog.setContentView(view)
+
+        val rowInReview = view.findViewById<LinearLayout>(R.id.rowInReview)
+        val rowShortlist = view.findViewById<LinearLayout>(R.id.rowShortlist)
+        val rowReject = view.findViewById<LinearLayout>(R.id.rowReject)
+        val ivCheckInReview = view.findViewById<ImageView>(R.id.ivCheckInReview)
+        val ivCheckShortlist = view.findViewById<ImageView>(R.id.ivCheckShortlist)
+        val ivCheckReject = view.findViewById<ImageView>(R.id.ivCheckReject)
+
+        val rows = mapOf(
+            "In Review" to (rowInReview to ivCheckInReview),
+            "Shortlisted" to (rowShortlist to ivCheckShortlist),
+            "Rejected" to (rowReject to ivCheckReject)
+        )
+
+        for ((status, pair) in rows) {
+            val (row, check) = pair
+            val isCurrent = item.app.status.equals(status, ignoreCase = true)
+            check.visibility = if (isCurrent) View.VISIBLE else View.GONE
+            row.isEnabled = !isCurrent
+            row.alpha = if (isCurrent) 0.5f else 1f
+            if (!isCurrent) {
+                row.setOnClickListener {
+                    dialog.dismiss()
+                    changeStatus(item, status)
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    /** Single-applicant status change, mirrors bulkUpdateStatus but for one item, no confirmation dialog needed. */
+    private fun changeStatus(item: AppWithJob, newStatus: String) {
+        val timestampField = when (newStatus) {
+            "In Review" -> "inReviewAt"
+            "Shortlisted" -> "shortlistedAt"
+            "Rejected" -> "rejectedAt"
+            else -> null
+        }
+        val updates = mutableMapOf<String, Any>("status" to newStatus)
+        if (timestampField != null) updates[timestampField] = System.currentTimeMillis()
+
+        db.collection("applications").document(item.app.applicationId)
+            .update(updates)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Status updated to $newStatus", Toast.LENGTH_SHORT).show()
+                sendBulkNotification(item, newStatus)
+                loadData(intent.getStringExtra("jobId"))
+            }
+            .addOnFailureListener {
+                Toast.makeText(this, "Update failed", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun bulkUpdateStatus(newStatus: String) {

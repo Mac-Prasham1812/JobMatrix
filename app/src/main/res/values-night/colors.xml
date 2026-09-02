@@ -77,4 +77,6 @@
     <color name="status_review_fg">#FBBF24</color>
     <color name="status_applied_bg">#1E293B</color>
     <color name="status_applied_fg">#60A5FA</color>
+
+    <color name="color_accent_translucent">#332563EB</color>
 </resources>

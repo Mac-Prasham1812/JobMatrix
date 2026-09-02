@@ -4,8 +4,9 @@ import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jobmatrix.model.ApplicationModel
 import com.example.jobmatrix.model.JobModel
@@ -16,7 +17,8 @@ data class AppWithJob(val app: ApplicationModel, val job: JobModel?)
 
 class EmployerApplicationAdapter(
     private val list: List<AppWithJob>,
-    private val onItemClick: (AppWithJob) -> Unit
+    private val onItemClick: (AppWithJob) -> Unit,
+    private val onStatusPillClick: (AppWithJob) -> Unit
 ) : RecyclerView.Adapter<EmployerApplicationAdapter.VH>() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -29,6 +31,7 @@ class EmployerApplicationAdapter(
     var onSelectionChanged: ((Int) -> Unit)? = null
 
     inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val card: com.google.android.material.card.MaterialCardView = view.findViewById(R.id.cardRoot)
         val tvStudentName: TextView = view.findViewById(R.id.tvStudentName)
         val tvStudentEmail: TextView = view.findViewById(R.id.tvStudentEmail)
         val tvJobTitle: TextView = view.findViewById(R.id.tvJobTitle)
@@ -37,7 +40,7 @@ class EmployerApplicationAdapter(
         val tvLocation: TextView = view.findViewById(R.id.tvLocation)
         val tvAppliedDate: TextView = view.findViewById(R.id.tvAppliedDate)
         val tvProfile: TextView = view.findViewById(R.id.tvProfile)
-        val checkbox: CheckBox = view.findViewById(R.id.checkboxSelect)
+        val ivSelectedBadge: ImageView = view.findViewById(R.id.ivSelectedBadge)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -72,6 +75,9 @@ class EmployerApplicationAdapter(
             }
         }
         holder.tvStatus.text = app.status.replaceFirstChar { it.uppercase() }
+        holder.tvStatus.setOnClickListener {
+            if (!selectionMode) onStatusPillClick(item)
+        }
 
         val cached = studentCache[app.studentId]
         if (cached != null) {
@@ -87,25 +93,23 @@ class EmployerApplicationAdapter(
                 }
         }
 
-        if (selectionMode && holder.checkbox.visibility != View.VISIBLE) {
-            holder.checkbox.visibility = View.VISIBLE
-            holder.checkbox.alpha = 0f
-            holder.checkbox.scaleX = 0.7f
-            holder.checkbox.scaleY = 0.7f
-            holder.checkbox.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(180).start()
-        } else if (!selectionMode) {
-            holder.checkbox.visibility = View.GONE
-        }
-        holder.checkbox.setOnCheckedChangeListener(null)
-        holder.checkbox.isChecked = selectedIds.contains(app.applicationId)
-        holder.checkbox.setOnCheckedChangeListener { _, checked ->
-            if (checked) selectedIds.add(app.applicationId) else selectedIds.remove(app.applicationId)
-            onSelectionChanged?.invoke(selectedIds.size)
+        val isSelected = selectedIds.contains(app.applicationId)
+        holder.ivSelectedBadge.visibility = if (selectionMode) View.VISIBLE else View.GONE
+        holder.ivSelectedBadge.alpha = if (isSelected) 1f else 0f
+        holder.tvProfile.alpha = if (selectionMode && isSelected) 0.4f else 1f
+
+        val context = holder.itemView.context
+        if (isSelected) {
+            holder.card.setStrokeColor(ContextCompat.getColor(context, R.color.color_accent))
+            holder.card.strokeWidth = 4
+        } else {
+            holder.card.setStrokeColor(ContextCompat.getColor(context, R.color.color_divider))
+            holder.card.strokeWidth = 2
         }
 
         holder.itemView.setOnClickListener {
             if (selectionMode) {
-                holder.checkbox.isChecked = !holder.checkbox.isChecked
+                toggleSelection(app.applicationId, holder)
             } else {
                 onItemClick(item)
             }
@@ -123,6 +127,32 @@ class EmployerApplicationAdapter(
             }
             true
         }
+    }
+
+    private fun toggleSelection(applicationId: String, holder: VH) {
+        if (selectedIds.contains(applicationId)) {
+            selectedIds.remove(applicationId)
+        } else {
+            selectedIds.add(applicationId)
+        }
+
+        if (selectedIds.isEmpty()) {
+            exitSelectionMode()
+        } else {
+            holder.ivSelectedBadge.animate().alpha(1f).setDuration(120).start()
+            holder.tvProfile.animate().alpha(0.4f).setDuration(120).start()
+            val context = holder.itemView.context
+            val nowSelected = selectedIds.contains(applicationId)
+            holder.card.setStrokeColor(
+                ContextCompat.getColor(context, if (nowSelected) R.color.color_accent else R.color.color_divider)
+            )
+            holder.card.strokeWidth = if (nowSelected) 4 else 2
+            if (!nowSelected) {
+                holder.ivSelectedBadge.animate().alpha(0f).setDuration(120).start()
+                holder.tvProfile.animate().alpha(1f).setDuration(120).start()
+            }
+        }
+        onSelectionChanged?.invoke(selectedIds.size)
     }
 
     @SuppressLint("NotifyDataSetChanged")

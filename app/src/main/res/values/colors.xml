@@ -85,4 +85,6 @@
     <color name="status_applied_bg">#DBEAFE</color>
     <color name="status_applied_fg">#2563EB</color>
 
+    <color name="color_accent_translucent">#0D2563EB</color>
+
 </resources>
