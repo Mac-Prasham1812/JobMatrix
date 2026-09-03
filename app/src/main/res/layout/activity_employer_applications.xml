@@ -36,6 +36,14 @@
             android:layout_height="22dp"
             android:src="@drawable/ic_filter"
             app:tint="@color/color_text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivExport"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/ic_download"
+            app:tint="@color/color_text_primary"/>
     </LinearLayout>
 
     <LinearLayout

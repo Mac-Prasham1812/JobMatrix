@@ -191,5 +191,7 @@ class EmployerApplicationAdapter(
         return androidx.core.content.ContextCompat.getColor(context, palette[idx])
     }
 
+    fun getStudentCache(): Map<String, Triple<String, String, String>> = studentCache
+
     override fun getItemCount() = list.size
 }

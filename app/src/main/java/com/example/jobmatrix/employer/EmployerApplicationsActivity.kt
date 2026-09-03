@@ -2,6 +2,7 @@ package com.example.jobmatrix.employer
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -16,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.launch
 
 class EmployerApplicationsActivity : AppCompatActivity() {
@@ -36,6 +38,7 @@ class EmployerApplicationsActivity : AppCompatActivity() {
     private var selectedJobFilter: String? = null
     private var sortNewestFirst = true
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,6 +101,12 @@ class EmployerApplicationsActivity : AppCompatActivity() {
 
         findViewById<ImageView>(R.id.ivBack).setOnClickListener { finish() }
         findViewById<ImageView>(R.id.ivFilter).setOnClickListener { showFilterSheet() }
+
+        findViewById<ImageView>(R.id.ivExport).setOnClickListener { v ->
+            v.animate().scaleX(0.8f).scaleY(0.8f).setDuration(80)
+                .withEndAction { v.animate().scaleX(1f).scaleY(1f).setDuration(120).start() }.start()
+            exportToCsv()
+        }
 
         tabAll.setOnClickListener { setFilter("All") }
         tabApplied.setOnClickListener { setFilter("Applied") }
@@ -314,44 +323,57 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         val selectedIds = adapter.getSelectedApplicationIds()
         if (selectedIds.isEmpty()) return
 
-        android.app.AlertDialog.Builder(this)
-            .setTitle("$newStatus ${selectedIds.size} applicant(s)?")
-            .setPositiveButton("Confirm") { _, _ ->
-                val timestampField = when (newStatus) {
-                    "In Review" -> "inReviewAt"
-                    "Shortlisted" -> "shortlistedAt"
-                    "Rejected" -> "rejectedAt"
-                    else -> null
-                }
+        val dialog = android.app.Dialog(this)
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
+        val view = layoutInflater.inflate(R.layout.dialog_confirm_action, null)
+        dialog.setContentView(view)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-                val batch = db.batch()
-                val affectedApps = allData.filter { selectedIds.contains(it.app.applicationId) }
+        val color = when (newStatus) {
+            "In Review" -> android.graphics.Color.parseColor("#F59E0B")
+            "Shortlisted" -> resources.getColor(R.color.badge_green, theme)
+            else -> resources.getColor(R.color.job_delete_red, theme)
+        }
 
-                for (item in affectedApps) {
-                    val updates = mutableMapOf<String, Any>("status" to newStatus)
-                    if (timestampField != null) updates[timestampField] = System.currentTimeMillis()
-                    batch.update(
-                        db.collection("applications").document(item.app.applicationId),
-                        updates
-                    )
-                }
+        val label = if (selectedIds.size == 1) "applicant" else "applicants"
+        view.findViewById<TextView>(R.id.tvTitle).text = "$newStatus ${selectedIds.size} $label?"
+        view.findViewById<TextView>(R.id.tvMessage).text = "This will update their status and notify them."
+        val btnConfirm = view.findViewById<TextView>(R.id.btnConfirm)
+        btnConfirm.text = newStatus
+        btnConfirm.setTextColor(color)
 
-                batch.commit()
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "Updated $newStatus for ${affectedApps.size} applicant(s)", Toast.LENGTH_SHORT).show()
-                        for (item in affectedApps) {
-                            sendBulkNotification(item, newStatus)
-                        }
-                        adapter.exitSelectionMode()
-                        findViewById<LinearLayout>(R.id.selectionToolbar).visibility = View.GONE
-                        loadData(intent.getStringExtra("jobId"))
-                    }
-                    .addOnFailureListener {
-                        Toast.makeText(this, "Bulk update failed", Toast.LENGTH_SHORT).show()
-                    }
+        view.findViewById<TextView>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        btnConfirm.setOnClickListener {
+            dialog.dismiss()
+            val timestampField = when (newStatus) {
+                "In Review" -> "inReviewAt"
+                "Shortlisted" -> "shortlistedAt"
+                "Rejected" -> "rejectedAt"
+                else -> null
             }
-            .setNegativeButton("Cancel", null)
-            .show()
+            val batch = db.batch()
+            val affectedApps = allData.filter { selectedIds.contains(it.app.applicationId) }
+            for (item in affectedApps) {
+                val updates = mutableMapOf<String, Any>("status" to newStatus)
+                if (timestampField != null) updates[timestampField] = System.currentTimeMillis()
+                batch.update(db.collection("applications").document(item.app.applicationId), updates)
+            }
+            batch.commit()
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Updated $newStatus for ${affectedApps.size} applicant(s)", Toast.LENGTH_SHORT).show()
+                    for (item in affectedApps) sendBulkNotification(item, newStatus)
+                    adapter.exitSelectionMode()
+                    findViewById<LinearLayout>(R.id.selectionToolbar).visibility = View.GONE
+                    loadData(intent.getStringExtra("jobId"))
+                }
+                .addOnFailureListener {
+                    Toast.makeText(this, "Bulk update failed", Toast.LENGTH_SHORT).show()
+                }
+        }
+
+        dialog.show()
+        view.scaleX = 0.85f; view.scaleY = 0.85f; view.alpha = 0f
+        view.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(180).start()
     }
 
     private fun sendBulkNotification(item: AppWithJob, newStatus: String) {
@@ -391,5 +413,54 @@ class EmployerApplicationsActivity : AppCompatActivity() {
                     }
                 }
             }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun exportToCsv() {
+        if (displayedData.isEmpty()) {
+            showToast("No applicants to export")
+            return
+        }
+        val cache = adapter.getStudentCache()
+        val dateFormat = java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
+        val sb = StringBuilder("Name,Email,Job Title,Status,Applied On\n")
+        for (item in displayedData) {
+            val cached = cache[item.app.studentId]
+            val name = cached?.first ?: "Unknown"
+            val email = cached?.second ?: "N/A"
+            val jobTitle = item.job?.title ?: item.app.jobTitle
+            val date = dateFormat.format(java.util.Date(item.app.appliedAt))
+            sb.append("\"$name\",\"$email\",\"$jobTitle\",\"${item.app.status}\",\"$date\"\n")
+        }
+
+        val fileName = "Applicants_${currentFilter}_${System.currentTimeMillis()}.csv"
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "text/csv")
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+        }
+        val uri = contentResolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+        if (uri == null) {
+            showToast("Export failed")
+            return
+        }
+        contentResolver.openOutputStream(uri)?.use { it.write(sb.toString().toByteArray()) }
+        showToast("Saved to Downloads")
+
+        startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
+            type = "text/csv"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }, "Share CSV"))
+    }
+
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }
