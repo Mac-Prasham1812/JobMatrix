@@ -91,6 +91,37 @@ class ChatAdapter(
                 Glide.with(holder.itemView.context)
                     .load(message.replyToAttachmentUrl)
                     .transform(com.bumptech.glide.load.resource.bitmap.CenterCrop(), com.bumptech.glide.load.resource.bitmap.RoundedCorners(12))
+                    .listener(object : RequestListener<Drawable> {
+                        override fun onLoadFailed(
+                            e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean
+                        ): Boolean {
+                            val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+                            auth.currentUser?.getIdToken(false)?.addOnSuccessListener { result ->
+                                val token = "Bearer " + result.token
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    try {
+                                        val key = message.replyToAttachmentUrl.substringAfter(".com/").substringBefore("?")
+                                        val response = com.example.jobmatrix.network.RetrofitClient.api
+                                            .getChatAttachmentUrl(token, key)
+                                        if (response.isSuccessful && response.body() != null) {
+                                            withContext(Dispatchers.Main) {
+                                                Glide.with(holder.itemView.context)
+                                                    .load(response.body()!!.url)
+                                                    .transform(com.bumptech.glide.load.resource.bitmap.CenterCrop(), com.bumptech.glide.load.resource.bitmap.RoundedCorners(12))
+                                                    .into(ivQuoteThumb)
+                                            }
+                                        }
+                                    } catch (ex: Exception) {
+                                        android.util.Log.e("JM_CHAT", "Quote thumb refresh failed", ex)
+                                    }
+                                }
+                            }
+                            return true
+                        }
+                        override fun onResourceReady(
+                            resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean
+                        ): Boolean = false
+                    })
                     .into(ivQuoteThumb)
             } else if (message.replyToAttachmentType == "file") {
                 ivQuoteThumb.visibility = View.VISIBLE
