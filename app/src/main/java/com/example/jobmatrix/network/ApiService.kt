@@ -38,7 +38,7 @@ interface ApiService {
     @GET("chat-attachment/{key}")
     suspend fun getChatAttachmentUrl(
         @Header("Authorization") token: String,
-        @Path(value = "key", encoded = true) key: String
+        @Path("key") key: String
     ): Response<ResumeUrlResponse>
 
 }
