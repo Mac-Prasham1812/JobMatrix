@@ -68,6 +68,9 @@ class SettingsActivity : AppCompatActivity() {
             intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
             startActivity(intent)
         }
+        findViewById<LinearLayout>(R.id.rowJobAlerts).setOnClickListener {
+            startActivity(android.content.Intent(this, JobAlertSettingsActivity::class.java))
+        }
 
         rowAbout.setOnClickListener {
             Toast.makeText(this, "JobMatrix connects students and employers for job placements.", Toast.LENGTH_LONG).show()
