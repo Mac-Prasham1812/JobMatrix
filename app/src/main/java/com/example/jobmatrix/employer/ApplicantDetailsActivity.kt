@@ -274,34 +274,47 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             Toast.makeText(this, "Resume not available", Toast.LENGTH_SHORT).show()
             return
         }
+        val pb = findViewById<android.widget.ProgressBar>(R.id.pbResumeLoading)
+        val icon = findViewById<ImageView>(R.id.ivResumeIcon)
+        val row = findViewById<android.view.View>(R.id.rowResume)
+
+        row.isEnabled = false
+        icon.animate().alpha(0f).setDuration(150).withEndAction {
+            icon.visibility = android.view.View.GONE
+            pb.visibility = android.view.View.VISIBLE
+            pb.alpha = 0f
+            pb.animate().alpha(1f).setDuration(150).start()
+        }.start()
+
         lifecycleScope.launch {
             try {
                 val token = "Bearer ${getIdToken()}"
                 val response = RetrofitClient.api.getResumeUrl(token, resumeLink)
-                if (response.isSuccessful) {
-                    val url = response.body()?.url
-                    if (!url.isNullOrBlank()) {
+                val url = if (response.isSuccessful) response.body()?.url else null
+
+                android.util.Log.d("JM_RESUME_URL", "Full URL: $url")
+                if (!url.isNullOrBlank()) {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(Uri.parse(url), "application/pdf")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        startActivity(Intent.createChooser(intent, "Open Resume"))
+                    } catch (e: android.content.ActivityNotFoundException) {
                         startActivity(Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) })
-                    } else {
-                        Toast.makeText(
-                            this@ApplicantDetailsActivity,
-                            "Resume not available",
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 } else {
-                    Toast.makeText(
-                        this@ApplicantDetailsActivity,
-                        "Failed to load resume",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this@ApplicantDetailsActivity, "Resume not available", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(
-                    this@ApplicantDetailsActivity,
-                    "Error: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@ApplicantDetailsActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                row.isEnabled = true
+                pb.animate().alpha(0f).setDuration(150).withEndAction {
+                    pb.visibility = android.view.View.GONE
+                    icon.visibility = android.view.View.VISIBLE
+                    icon.animate().alpha(1f).setDuration(150).start()
+                }.start()
             }
         }
     }
