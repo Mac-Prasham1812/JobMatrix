@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.resume
@@ -352,26 +353,32 @@ class ApplyJobActivity : AppCompatActivity() {
     // via GET /resume/:key when needed).
     private suspend fun uploadToBackend(uri: Uri): String {
         val tempFile = File(cacheDir, "resume_${System.currentTimeMillis()}.pdf")
-
         contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
+            FileOutputStream(tempFile).use { output -> input.copyTo(output) }
         } ?: throw Exception("Could not read selected file")
 
+        val studentName = fetchStudentName()
+
         val requestFile = tempFile.asRequestBody("application/pdf".toMediaTypeOrNull())
-        val originalName = getFileName(uri) ?: "resume.pdf"
-        val body = MultipartBody.Part.createFormData("resume", originalName, requestFile)
+        val body = MultipartBody.Part.createFormData("resume", "resume.pdf", requestFile)
+        val nameBody = studentName.toRequestBody("text/plain".toMediaTypeOrNull())
         val token = "Bearer ${getIdToken()}"
 
-        val response = RetrofitClient.api.uploadResume(token, body)
+        val response = RetrofitClient.api.uploadResume(token, body, nameBody)
         tempFile.delete()
 
-        if (!response.isSuccessful) {
-            throw Exception("Upload failed (${response.code()})")
-        }
-
+        if (!response.isSuccessful) throw Exception("Upload failed (${response.code()})")
         return response.body()?.key ?: throw Exception("No key returned from server")
+    }
+
+    private suspend fun fetchStudentName(): String = suspendCancellableCoroutine { cont ->
+        val uid = auth.currentUser?.uid
+        if (uid == null) { cont.resume("Resume"); return@suspendCancellableCoroutine }
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                cont.resume(doc.getString("name")?.takeIf { it.isNotBlank() } ?: "Resume")
+            }
+            .addOnFailureListener { cont.resume("Resume") }
     }
 
     // NOTE: Firestore field name stays "resumeLink" for compatibility with

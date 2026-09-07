@@ -15,7 +15,8 @@ interface ApiService {
     @POST("upload-resume")
     suspend fun uploadResume(
         @Header("Authorization") token: String,
-        @Part resume: MultipartBody.Part
+        @Part resume: MultipartBody.Part,
+        @Part("studentName") studentName: okhttp3.RequestBody
     ): Response<UploadResponse>
 
     @GET("resume/{key}")
