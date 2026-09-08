@@ -9,6 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Part
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 
 interface ApiService {
     @Multipart
@@ -41,6 +42,25 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("key") key: String
     ): Response<ResumeUrlResponse>
+
+    @Multipart
+    @POST("upload-profile-photo")
+    suspend fun uploadProfilePhoto(
+        @Header("Authorization") token: String,
+        @Part photo: MultipartBody.Part
+    ): Response<UploadResponse>
+
+    @GET("profile-photo/{key}")
+    suspend fun getProfilePhotoUrl(
+        @Header("Authorization") token: String,
+        @Path("key") key: String
+    ): Response<ResumeUrlResponse>
+
+    @DELETE("profile-photo/{key}")
+    suspend fun deleteProfilePhoto(
+        @Header("Authorization") token: String,
+        @Path("key") key: String
+    ): Response<Map<String, Boolean>>
 
 }
 
