@@ -180,6 +180,10 @@
 
         <activity android:name="com.example.jobmatrix.settings.JobAlertSettingsActivity" />
 
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
