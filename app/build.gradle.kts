@@ -72,5 +72,6 @@ dependencies {
     kapt("com.github.bumptech.glide:compiler:4.16.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("com.github.yalantis:ucrop:2.2.10")
+    implementation("com.github.chrisbanes:PhotoView:2.3.0")
 
 }

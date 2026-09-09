@@ -1,5 +1,6 @@
 package com.example.jobmatrix.profile
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -58,7 +59,7 @@ class ProfileActivity : AppCompatActivity() {
             val resultUri = com.yalantis.ucrop.UCrop.getOutput(result.data!!)
             resultUri?.let { uploadPhoto(it) }
         } else if (result.resultCode == com.yalantis.ucrop.UCrop.RESULT_ERROR) {
-            Toast.makeText(this, "Crop failed", Toast.LENGTH_SHORT).show()
+            showToast("Crop failed")
         }
     }
 
@@ -98,8 +99,18 @@ class ProfileActivity : AppCompatActivity() {
 
         btnClose.setOnClickListener { finish() }
 
-        findViewById<View>(R.id.tvAvatarInitials).parent.let {
-            (it as View).setOnClickListener { showPhotoOptionsSheet() }
+        (findViewById<View>(R.id.tvAvatarInitials).parent as View).apply {
+            isClickable = true
+            isFocusable = true
+            foreground = androidx.core.content.ContextCompat.getDrawable(
+                this@ProfileActivity, R.drawable.bg_circle_ripple
+            )
+            setOnClickListener {
+                it.animate().scaleX(0.9f).scaleY(0.9f).setDuration(80)
+                    .withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(80).start() }
+                    .start()
+                showPhotoOptionsSheet()
+            }
         }
 
         findViewById<LinearLayout>(R.id.rowExperience).setOnClickListener { openExperienceSheet() }
@@ -165,7 +176,7 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener {
-                Toast.makeText(this, "Failed to load profile", Toast.LENGTH_SHORT).show()
+                showToast("Failed to load profile")
             }
     }
 
@@ -183,6 +194,7 @@ class ProfileActivity : AppCompatActivity() {
     private fun loadPhotoWithRefresh(url: String) {
         Glide.with(this)
             .load(url)
+            .circleCrop()
             .placeholder(R.drawable.bg_circle_blue)
             .error(R.drawable.bg_circle_blue)
             .listener(object : RequestListener<Drawable> {
@@ -211,7 +223,7 @@ class ProfileActivity : AppCompatActivity() {
                         .update("photoUrl", freshUrl)
                     kotlinx.coroutines.withContext(Dispatchers.Main) {
                         currentPhotoUrl = freshUrl
-                        Glide.with(this@ProfileActivity).load(freshUrl).into(ivProfilePhoto)
+                        Glide.with(this@ProfileActivity).load(freshUrl).circleCrop().into(ivProfilePhoto)
                     }
                 }
             } catch (e: Exception) {
@@ -255,7 +267,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun uploadPhoto(uri: Uri) {
-        Toast.makeText(this, "Uploading photo...", Toast.LENGTH_SHORT).show()
+        showToast("Uploading photo...")
         CoroutineScope(Dispatchers.Main).launch {
             try {
                 val compressed = compressImage(uri)
@@ -274,14 +286,14 @@ class ProfileActivity : AppCompatActivity() {
                             currentPhotoKey = body.key
                             currentPhotoUrl = body.url
                             showPhoto(body.url)
-                            Toast.makeText(this@ProfileActivity, "Photo updated", Toast.LENGTH_SHORT).show()
+                            showToast("Photo updated")
                         }
                 } else {
-                    Toast.makeText(this@ProfileActivity, "Upload failed", Toast.LENGTH_SHORT).show()
+                    showToast("Upload failed")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("JM_PROFILE", "Photo upload failed", e)
-                Toast.makeText(this@ProfileActivity, "Upload failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                showToast("Upload failed: ${e.message}")
             }
         }
     }
@@ -317,15 +329,16 @@ class ProfileActivity : AppCompatActivity() {
                         currentPhotoKey = null
                         currentPhotoUrl = null
                         showInitials()
-                        Toast.makeText(this@ProfileActivity, "Photo removed", Toast.LENGTH_SHORT).show()
+                        showToast("Photo removed")
                     }
             } catch (e: Exception) {
                 android.util.Log.e("JM_PROFILE", "Photo remove failed", e)
-                Toast.makeText(this@ProfileActivity, "Failed to remove photo", Toast.LENGTH_SHORT).show()
+                showToast("Failed to remove photo")
             }
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun loadPipelineCounts() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("applications").whereEqualTo("studentId", uid)
@@ -341,6 +354,7 @@ class ProfileActivity : AppCompatActivity() {
             }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun openExperienceSheet() {
         val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_selector, null)
@@ -388,7 +402,17 @@ class ProfileActivity : AppCompatActivity() {
         val uid = auth.currentUser?.uid ?: return
         db.collection("users").document(uid).update("experience", value)
             .addOnSuccessListener {
-                Toast.makeText(this, "Experience updated", Toast.LENGTH_SHORT).show()
+                showToast("Experience updated")
             }
+    }
+
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_SHORT
+            view = layout
+            show()
+        }
     }
 }

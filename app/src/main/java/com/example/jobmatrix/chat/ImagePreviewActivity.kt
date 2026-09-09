@@ -1,11 +1,8 @@
 package com.example.jobmatrix.chat
 
 import android.annotation.SuppressLint
-import android.graphics.Matrix
 import android.os.Bundle
 import android.os.Environment
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.jobmatrix.app.R
@@ -13,14 +10,13 @@ import kotlinx.coroutines.launch
 
 class ImagePreviewActivity : AppCompatActivity() {
 
-    private lateinit var ivImage: ImageView
-    private val matrix = Matrix()
-    private lateinit var scaleDetector: ScaleGestureDetector
-    private var scaleFactor = 1f
-    private var lastX = 0f
-    private var lastY = 0f
-    private var lastTouchY = 0f
-    private var startY = 0f
+    private lateinit var ivImage: com.github.chrisbanes.photoview.PhotoView
+    private val snapBackRunnable = Runnable {
+        if (ivImage.scale <= 1f && kotlin.math.abs(ivImage.translationY) <= 250) {
+            ivImage.animate().translationY(0f).alpha(1f).setDuration(200).start()
+        }
+    }
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +41,7 @@ class ImagePreviewActivity : AppCompatActivity() {
                     isFirstResource: Boolean
                 ): Boolean {
                     refreshFullImage(key)
-                    return true
+                    return false
                 }
                 override fun onResourceReady(
                     resource: android.graphics.drawable.Drawable,
@@ -58,43 +54,28 @@ class ImagePreviewActivity : AppCompatActivity() {
             .into(ivImage)
         ivImage.animate().alpha(1f).setDuration(250).start()
 
-        scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
-            override fun onScale(detector: ScaleGestureDetector): Boolean {
-                scaleFactor *= detector.scaleFactor
-                scaleFactor = scaleFactor.coerceIn(1f, 5f)
-                matrix.setScale(scaleFactor, scaleFactor, ivImage.width / 2f, ivImage.height / 2f)
-                ivImage.imageMatrix = matrix
-                return true
-            }
-        })
-
-        ivImage.setOnTouchListener { _, event ->
-            scaleDetector.onTouchEvent(event)
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    lastX = event.x; lastY = event.y
-                    startY = event.rawY; lastTouchY = event.rawY
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if (scaleFactor <= 1f) {
-                        val deltaY = event.rawY - lastTouchY
-                        ivImage.translationY += deltaY
-                        val progress = (kotlin.math.abs(event.rawY - startY) / 800f).coerceIn(0f, 1f)
-                        ivImage.alpha = 1f - progress * 0.6f
-                        lastTouchY = event.rawY
-                    }
-                }
-                MotionEvent.ACTION_UP -> {
-                    if (scaleFactor <= 1f && kotlin.math.abs(event.rawY - startY) > 250) {
-                        finish()
-                        overridePendingTransition(0, android.R.anim.fade_out)
-                    } else {
-                        ivImage.animate().translationY(0f).alpha(1f).setDuration(200).start()
-                    }
-                }
-            }
-            true
+        ivImage.setOnSingleFlingListener { _, _, _, velocityY ->
+            if (ivImage.scale <= 1f && velocityY > 3000) {
+                finish()
+                overridePendingTransition(0, android.R.anim.fade_out)
+                true
+            } else false
         }
+
+        ivImage.setOnViewDragListener { _, dy ->
+            if (ivImage.scale <= 1f) {
+                handler.removeCallbacks(snapBackRunnable)
+                ivImage.translationY += dy
+                val progress = (kotlin.math.abs(ivImage.translationY) / 800f).coerceIn(0f, 1f)
+                ivImage.alpha = 1f - progress * 0.6f
+                if (kotlin.math.abs(ivImage.translationY) > 250) {
+                    finish()
+                    overridePendingTransition(0, android.R.anim.fade_out)
+                }
+            }
+        }
+        handler.postDelayed(snapBackRunnable, 100)
+
 
         findViewById<ImageView>(R.id.btnClosePreview).setOnClickListener {
             finish()
