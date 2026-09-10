@@ -22,6 +22,13 @@
             android:textColor="@android:color/white"
             android:background="@drawable/bg_avatar_circle" />
 
+        <ImageView
+            android:id="@+id/ivAvatarPhoto"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
         <View
             android:id="@+id/dotOnline"
             android:layout_width="10dp"

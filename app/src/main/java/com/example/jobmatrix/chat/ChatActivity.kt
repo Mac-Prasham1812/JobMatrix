@@ -149,15 +149,25 @@ class ChatActivity : AppCompatActivity() {
 
                         val myUid = auth.currentUser?.uid ?: ""
                         myRole = if (myUid == studentId) "Student" else "Employer"
-                        if (myUid == studentId) {
-                            findViewById<TextView>(R.id.tvChatTitle).text = companyName
-                        } else {
-                            db.collection("users").document(studentId).get()
-                                .addOnSuccessListener { studentDoc ->
-                                    findViewById<TextView>(R.id.tvChatTitle).text =
-                                        studentDoc.getString("name") ?: "Student"
+                        val otherUid = if (myUid == studentId) employerId else studentId
+                        db.collection("users").document(otherUid).get()
+                            .addOnSuccessListener { otherDoc ->
+                                val displayName = if (myUid == studentId) companyName else (otherDoc.getString("name") ?: "Student")
+                                findViewById<TextView>(R.id.tvChatTitle).text = displayName
+
+                                val tvInit = findViewById<TextView>(R.id.tvHeaderAvatarInitials)
+                                val ivPhoto = findViewById<ImageView>(R.id.ivHeaderAvatarPhoto)
+                                val photoUrl = otherDoc.getString("photoUrl")
+                                if (!photoUrl.isNullOrBlank()) {
+                                    ivPhoto.visibility = View.VISIBLE
+                                    tvInit.visibility = View.INVISIBLE
+                                    com.bumptech.glide.Glide.with(this).load(photoUrl).circleCrop().into(ivPhoto)
+                                } else {
+                                    ivPhoto.visibility = View.GONE
+                                    tvInit.visibility = View.VISIBLE
+                                    tvInit.text = displayName.trim().split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.take(2).joinToString("")
                                 }
-                        }
+                            }
 
                         ensureChatDoc(companyName, jobTitle) {
                             loadMessages()

@@ -112,6 +112,7 @@ class ChatListActivity : AppCompatActivity() {
                     val userDoc = db.collection("users").document(otherUid).get().await()
                     val name = userDoc.getString("name") ?: "Unknown"
                     val isOnline = userDoc.getBoolean("isOnline") ?: false
+                    val photoUrl = userDoc.getString("photoUrl")
 
                     val initial = name.firstOrNull()?.uppercase() ?: "?"
                     val color = androidx.core.content.ContextCompat.getColor(
@@ -129,7 +130,8 @@ class ChatListActivity : AppCompatActivity() {
                             unreadCount = unreadByApp[doc.id] ?: 0,
                             isOnline = isOnline,
                             avatarInitial = initial,
-                            avatarColor = color
+                            avatarColor = color,
+                            avatarPhotoUrl = photoUrl,
                         )
                     )
                 }

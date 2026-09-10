@@ -46,6 +46,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
     private lateinit var tvResumeName: TextView
     private lateinit var tvLocation: TextView
     private lateinit var jobSkills: Set<String>
+    private lateinit var ivProfilePhoto: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,6 +72,7 @@ class ApplicantDetailsActivity : AppCompatActivity() {
         tvExperience = findViewById(R.id.tvExperience)
         chipSkills = findViewById(R.id.chipSkills)
         tvResumeName = findViewById(R.id.tvResumeName)
+        ivProfilePhoto = findViewById(R.id.ivProfilePhoto)
 
         findViewById<ImageView>(R.id.ivBack).setOnClickListener { finish() }
 
@@ -115,9 +117,17 @@ class ApplicantDetailsActivity : AppCompatActivity() {
             .addOnSuccessListener { doc ->
                 val name = doc.getString("name") ?: "Unknown"
                 tvName.text = name
-                findViewById<TextView>(R.id.tvProfile).apply {
-                    text = getInitials(name)
-                    background.mutate().setTint(avatarColor(name))
+                val photoUrl = doc.getString("photoUrl")
+                val tvProfile = findViewById<TextView>(R.id.tvProfile)
+                if (!photoUrl.isNullOrBlank()) {
+                    ivProfilePhoto.visibility = android.view.View.VISIBLE
+                    tvProfile.visibility = android.view.View.INVISIBLE
+                    com.bumptech.glide.Glide.with(this).load(photoUrl).circleCrop().into(ivProfilePhoto)
+                } else {
+                    ivProfilePhoto.visibility = android.view.View.GONE
+                    tvProfile.visibility = android.view.View.VISIBLE
+                    tvProfile.text = getInitials(name)
+                    tvProfile.background.mutate().setTint(avatarColor(name))
                 }
                 tvPhone.text =
                     doc.getString("phone")?.ifBlank { "Not available" } ?: "Not available"

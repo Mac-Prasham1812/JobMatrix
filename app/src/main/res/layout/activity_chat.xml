@@ -21,6 +21,30 @@
             android:src="@drawable/ic_back"
             app:tint="@color/color_text_primary" />
 
+        <FrameLayout
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_marginStart="10dp">
+
+            <TextView
+                android:id="@+id/tvHeaderAvatarInitials"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_circle_blue"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivHeaderAvatarPhoto"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_circle_blue"
+                android:visibility="gone" />
+        </FrameLayout>
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
