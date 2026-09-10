@@ -42,6 +42,13 @@
                     android:background="@drawable/bg_profile_circle"/>
 
                 <ImageView
+                    android:id="@+id/ivProfilePhoto"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <ImageView
                     android:id="@+id/ivSelectedBadge"
                     android:layout_width="18dp"
                     android:layout_height="18dp"

@@ -14,6 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.jobmatrix.app.R
 
 data class AppWithJob(val app: ApplicationModel, val job: JobModel?)
+data class StudentInfo(val name: String, val email: String, val experience: String, val photoUrl: String?)
 
 class EmployerApplicationAdapter(
     private val list: List<AppWithJob>,
@@ -22,7 +23,7 @@ class EmployerApplicationAdapter(
 ) : RecyclerView.Adapter<EmployerApplicationAdapter.VH>() {
 
     private val db = FirebaseFirestore.getInstance()
-    private val studentCache = HashMap<String, Triple<String, String, String>>()
+    private val studentCache = HashMap<String, StudentInfo>()
 
     var selectionMode = false
         private set
@@ -41,6 +42,7 @@ class EmployerApplicationAdapter(
         val tvAppliedDate: TextView = view.findViewById(R.id.tvAppliedDate)
         val tvProfile: TextView = view.findViewById(R.id.tvProfile)
         val ivSelectedBadge: ImageView = view.findViewById(R.id.ivSelectedBadge)
+        val ivProfilePhoto: ImageView = view.findViewById(R.id.ivProfilePhoto)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -81,15 +83,16 @@ class EmployerApplicationAdapter(
 
         val cached = studentCache[app.studentId]
         if (cached != null) {
-            setStudentData(holder, cached.first, cached.second, cached.third)
+            setStudentData(holder, cached.name, cached.email, cached.experience, cached.photoUrl)
         } else {
             db.collection("users").document(app.studentId).get()
                 .addOnSuccessListener { doc ->
                     val name = doc.getString("name") ?: "Unknown"
                     val email = doc.getString("email") ?: "Not available"
                     val experience = doc.getString("experience")?.ifBlank { "Fresher" } ?: "Fresher"
-                    studentCache[app.studentId] = Triple(name, email, experience)
-                    setStudentData(holder, name, email, experience)
+                    val photoUrl = doc.getString("photoUrl")
+                    studentCache[app.studentId] = StudentInfo(name, email, experience, photoUrl)
+                    setStudentData(holder, name, email, experience, photoUrl)
                 }
         }
 
@@ -164,12 +167,20 @@ class EmployerApplicationAdapter(
 
     fun getSelectedApplicationIds(): List<String> = selectedIds.toList()
 
-    private fun setStudentData(holder: VH, name: String, email: String, experience: String) {
+    private fun setStudentData(holder: VH, name: String, email: String, experience: String, photoUrl: String? = null) {
         holder.tvStudentName.text = name
         holder.tvStudentEmail.text = email
         holder.tvExperience.text = experience
-        holder.tvProfile.text = getInitials(name)
-        holder.tvProfile.background.mutate().setTint(avatarColor(holder.itemView.context, name))
+        if (!photoUrl.isNullOrBlank()) {
+            holder.ivProfilePhoto.visibility = View.VISIBLE
+            holder.tvProfile.visibility = View.INVISIBLE
+            com.bumptech.glide.Glide.with(holder.itemView.context).load(photoUrl).circleCrop().into(holder.ivProfilePhoto)
+        } else {
+            holder.ivProfilePhoto.visibility = View.GONE
+            holder.tvProfile.visibility = View.VISIBLE
+            holder.tvProfile.text = getInitials(name)
+            holder.tvProfile.background.mutate().setTint(avatarColor(holder.itemView.context, name))
+        }
     }
 
     private fun getInitials(name: String): String {
@@ -191,7 +202,7 @@ class EmployerApplicationAdapter(
         return androidx.core.content.ContextCompat.getColor(context, palette[idx])
     }
 
-    fun getStudentCache(): Map<String, Triple<String, String, String>> = studentCache
+    fun getStudentCache(): Map<String, StudentInfo> = studentCache
 
     override fun getItemCount() = list.size
 }

@@ -131,6 +131,9 @@ class StudentDashboardActivity : AppCompatActivity() {
         }
 
         navProfile.setOnClickListener {
+            it.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80)
+                .withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(100).start() }
+                .start()
             setActiveNav(navProfile)
             startActivity(Intent(this, ProfileActivity::class.java))
         }
@@ -236,6 +239,17 @@ class StudentDashboardActivity : AppCompatActivity() {
                 val name = document.getString("name")
                 if (!name.isNullOrEmpty()) {
                     tvUserName.text = name
+                }
+                val photoUrl = document.getString("photoUrl")
+                val ivDefault = findViewById<ImageView>(R.id.ivNavProfileDefault)
+                val ivPhoto = findViewById<ImageView>(R.id.ivNavProfilePhoto)
+                if (!photoUrl.isNullOrBlank()) {
+                    ivDefault.visibility = View.GONE
+                    ivPhoto.visibility = View.VISIBLE
+                    com.bumptech.glide.Glide.with(this).load(photoUrl).circleCrop().into(ivPhoto)
+                } else {
+                    ivDefault.visibility = View.VISIBLE
+                    ivPhoto.visibility = View.GONE
                 }
             }
     }

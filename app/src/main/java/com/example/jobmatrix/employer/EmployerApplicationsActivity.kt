@@ -426,8 +426,8 @@ class EmployerApplicationsActivity : AppCompatActivity() {
         val sb = StringBuilder("Name,Email,Job Title,Status,Applied On\n")
         for (item in displayedData) {
             val cached = cache[item.app.studentId]
-            val name = cached?.first ?: "Unknown"
-            val email = cached?.second ?: "N/A"
+            val name = cached?.name ?: "Unknown"
+            val email = cached?.email ?: "N/A"
             val jobTitle = item.job?.title ?: item.app.jobTitle
             val date = dateFormat.format(java.util.Date(item.app.appliedAt))
             sb.append("\"$name\",\"$email\",\"$jobTitle\",\"${item.app.status}\",\"$date\"\n")

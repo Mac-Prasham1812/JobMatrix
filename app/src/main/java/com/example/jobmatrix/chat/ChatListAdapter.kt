@@ -3,6 +3,7 @@ package com.example.jobmatrix.chat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.jobmatrix.app.R
@@ -16,7 +17,8 @@ data class ChatPreviewItem(
     val unreadCount: Int = 0,
     val isOnline: Boolean = false,
     val avatarInitial: String = "",
-    val avatarColor: Int = 0
+    val avatarColor: Int = 0,
+    val avatarPhotoUrl: String? = null,
 )
 
 class ChatListAdapter(
@@ -32,6 +34,7 @@ class ChatListAdapter(
         val tvTime: TextView = view.findViewById(R.id.tvTime)
         val tvUnreadBadge: TextView = view.findViewById(R.id.tvUnreadBadge)
         val dotOnline: View = view.findViewById(R.id.dotOnline)
+        val ivAvatarPhoto: ImageView = view.findViewById(R.id.ivAvatarPhoto)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -39,8 +42,19 @@ class ChatListAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = items[position]
-        holder.tvAvatar.text = item.avatarInitial
-        holder.tvAvatar.background.setTint(item.avatarColor)
+        if (!item.avatarPhotoUrl.isNullOrBlank()) {
+            holder.tvAvatar.visibility = View.INVISIBLE
+            holder.ivAvatarPhoto.visibility = View.VISIBLE
+            com.bumptech.glide.Glide.with(holder.itemView.context)
+                .load(item.avatarPhotoUrl)
+                .circleCrop()
+                .into(holder.ivAvatarPhoto)
+        } else {
+            holder.ivAvatarPhoto.visibility = View.GONE
+            holder.tvAvatar.visibility = View.VISIBLE
+            holder.tvAvatar.text = item.avatarInitial
+            holder.tvAvatar.background.setTint(item.avatarColor)
+        }
         holder.tvName.text = item.otherPersonName
         holder.tvJobTitle.text = item.jobTitle
         holder.tvLastMessage.text = item.lastMessage.ifBlank { "No messages yet" }
