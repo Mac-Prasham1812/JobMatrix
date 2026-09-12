@@ -93,6 +93,7 @@ class StudentDashboardActivity : AppCompatActivity() {
 
         setGreeting()
         loadUserName()
+        loadProfileCompleteness()
 
         // Header entrance animation
         val headerAnim = AnimationUtils.loadAnimation(this, R.anim.anim_header_entrance)
@@ -250,6 +251,53 @@ class StudentDashboardActivity : AppCompatActivity() {
                 } else {
                     ivDefault.visibility = View.VISIBLE
                     ivPhoto.visibility = View.GONE
+                }
+            }
+    }
+
+    private fun loadProfileCompleteness() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val skills = doc.get("skills") as? List<*>
+                val experience = doc.getString("experience")
+                val phone = doc.getString("phone")
+                val photoUrl = doc.getString("photoUrl")
+
+                var percent = 0
+                val missing = mutableListOf<Pair<String, Int>>()
+
+                if (!skills.isNullOrEmpty()) percent += 35 else missing.add("Add your skills" to 35)
+                if (!experience.isNullOrBlank()) percent += 25 else missing.add("Add your experience" to 25)
+                if (!phone.isNullOrBlank()) percent += 20 else missing.add("Add your phone number" to 20)
+                if (!photoUrl.isNullOrBlank()) percent += 20 else missing.add("Upload a profile photo" to 20)
+
+                val pb = findViewById<android.widget.ProgressBar>(R.id.pbCompleteness)
+                val tvPercent = findViewById<TextView>(R.id.tvCompletenessPercent)
+                val tvTip = findViewById<TextView>(R.id.tvCompletenessTip)
+                val card = findViewById<LinearLayout>(R.id.completenessCard)
+
+                android.animation.ValueAnimator.ofInt(0, percent).apply {
+                    duration = 600
+                    addUpdateListener { pb.progress = it.animatedValue as Int }
+                    start()
+                }
+                tvPercent.text = "$percent%"
+
+                val tierColor = when {
+                    percent >= 80 -> R.color.status_shortlisted_fg
+                    percent >= 40 -> R.color.status_review_fg
+                    else -> R.color.status_rejected_fg
+                }
+                (pb.progressDrawable as? android.graphics.drawable.LayerDrawable)
+                    ?.findDrawableByLayerId(android.R.id.progress)
+                    ?.setTint(androidx.core.content.ContextCompat.getColor(this, tierColor))
+
+                tvTip.text = if (missing.isEmpty()) "Your profile is complete"
+                else missing.maxByOrNull { it.second }!!.first + " to reach 100%"
+
+                card.setOnClickListener {
+                    startActivity(Intent(this, ProfileActivity::class.java))
                 }
             }
     }

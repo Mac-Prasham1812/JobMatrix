@@ -56,6 +56,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         setupRecycler()
         setupClicks()
         setEmployerName()
+        loadEmployerPhoto()
         listenBadgeCount()
         loadEmployerJobs()
         setActiveNav(R.id.navDashboard)
@@ -68,6 +69,24 @@ class EmployerDashboardActivity : AppCompatActivity() {
             findViewById<LinearLayout>(id).isSelected = (id == activeId)
         }
 
+    }
+
+    private fun loadEmployerPhoto() {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { doc ->
+                val photoUrl = doc.getString("photoUrl")
+                val ivDefault = findViewById<ImageView>(R.id.ivNavProfileDefault)
+                val ivPhoto = findViewById<ImageView>(R.id.ivNavProfilePhoto)
+                if (!photoUrl.isNullOrBlank()) {
+                    ivDefault.visibility = android.view.View.GONE
+                    ivPhoto.visibility = android.view.View.VISIBLE
+                    com.bumptech.glide.Glide.with(this).load(photoUrl).circleCrop().into(ivPhoto)
+                } else {
+                    ivDefault.visibility = android.view.View.VISIBLE
+                    ivPhoto.visibility = android.view.View.GONE
+                }
+            }
     }
 
     private fun initViews() {
@@ -115,6 +134,9 @@ class EmployerDashboardActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.navProfile).setOnClickListener {
+            it.animate().scaleX(0.85f).scaleY(0.85f).setDuration(80)
+                .withEndAction { it.animate().scaleX(1f).scaleY(1f).setDuration(100).start() }
+                .start()
             setActiveNav(R.id.navProfile)
             startActivity(Intent(this, EmployerProfileActivity::class.java))
         }
@@ -146,6 +168,7 @@ class EmployerDashboardActivity : AppCompatActivity() {
         val user = FirebaseAuth.getInstance().currentUser
         tvEmployerName.text = user?.displayName?.takeIf { it.isNotBlank() } ?: "Employer"
     }
+
 
     private fun loadEmployerJobs() {
         val employerId = FirebaseAuth.getInstance().currentUser?.uid ?: return

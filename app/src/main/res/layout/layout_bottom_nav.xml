@@ -139,12 +139,30 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <ImageView
+            <FrameLayout
                 android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/profile"
-                app:tint="@color/nav_icon_selector"
-                android:duplicateParentState="true" />
+                android:layout_height="30dp">
+
+                <ImageView
+                    android:id="@+id/ivNavProfileDefault"
+                    android:layout_width="35dp"
+                    android:layout_height="match_parent"
+                    android:duplicateParentState="true"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/profile"
+                    app:tint="@color/nav_icon_selector" />
+
+                <ImageView
+                    android:id="@+id/ivNavProfilePhoto"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/bg_nav_avatar_ring"
+                    android:padding="1dp"
+                    android:visibility="gone"
+                    android:duplicateParentState="true"/>
+            </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
