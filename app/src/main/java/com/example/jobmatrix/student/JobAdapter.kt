@@ -22,7 +22,11 @@ class JobAdapter(private var jobList: List<JobModel>) :
         val tvLocation: TextView = itemView.findViewById(R.id.tvLocation)
         val tvCompanyInitial: TextView = itemView.findViewById(R.id.tvCompanyInitial)
         val tvMatchScore: TextView = itemView.findViewById(R.id.tvMatchScore)
-        val badgeColors = listOf(R.color.badge_purple, R.color.badge_green, R.color.badge_teal, R.color.badge_orange)
+        val badgeColors = listOf(
+            R.color.avatar_1, R.color.avatar_2, R.color.avatar_3, R.color.avatar_4,
+            R.color.avatar_5, R.color.avatar_6, R.color.avatar_7, R.color.avatar_8,
+            R.color.avatar_9, R.color.avatar_10
+        )
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JobViewHolder {
