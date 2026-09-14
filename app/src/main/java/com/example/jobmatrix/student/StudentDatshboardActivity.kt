@@ -58,8 +58,10 @@ class StudentDashboardActivity : AppCompatActivity() {
                 .addOnSuccessListener { doc ->
                     val skills = doc.get("skills") as? List<*>
                     if (skills.isNullOrEmpty()) {
-                        startActivity(Intent(this, com.example.jobmatrix.profile.SkillsActivity::class.java)
-                            .putExtra("isFirstTime", true))
+                        startActivity(
+                            Intent(this, com.example.jobmatrix.profile.SkillsActivity::class.java)
+                                .putExtra("isFirstTime", true)
+                        )
                         finish()
                     }
                 }
@@ -84,7 +86,6 @@ class StudentDashboardActivity : AppCompatActivity() {
         navChats = findViewById(R.id.navChats)
 
         setActiveNav(navHome)
-
 
 
         // Greeting
@@ -247,7 +248,13 @@ class StudentDashboardActivity : AppCompatActivity() {
                 if (!photoUrl.isNullOrBlank()) {
                     ivDefault.visibility = View.GONE
                     ivPhoto.visibility = View.VISIBLE
-                    com.bumptech.glide.Glide.with(this).load(photoUrl).circleCrop().into(ivPhoto)
+
+                    com.bumptech.glide.Glide.with(this)
+                        .load(photoUrl)
+                        .circleCrop()
+                        .skipMemoryCache(true)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                        .into(ivPhoto)
                 } else {
                     ivDefault.visibility = View.VISIBLE
                     ivPhoto.visibility = View.GONE
@@ -257,31 +264,88 @@ class StudentDashboardActivity : AppCompatActivity() {
 
     private fun loadProfileCompleteness() {
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         db.collection("users").document(uid).get()
             .addOnSuccessListener { doc ->
+
+                data class CompletionStep(
+                    val title: String,
+                    val points: Int,
+                    val action: String
+                )
+
                 val skills = doc.get("skills") as? List<*>
                 val experience = doc.getString("experience")
                 val phone = doc.getString("phone")
                 val photoUrl = doc.getString("photoUrl")
 
                 var percent = 0
-                val missing = mutableListOf<Pair<String, Int>>()
+                val missingSteps = mutableListOf<CompletionStep>()
 
-                if (!skills.isNullOrEmpty()) percent += 35 else missing.add("Add your skills" to 35)
-                if (!experience.isNullOrBlank()) percent += 25 else missing.add("Add your experience" to 25)
-                if (!phone.isNullOrBlank()) percent += 20 else missing.add("Add your phone number" to 20)
-                if (!photoUrl.isNullOrBlank()) percent += 20 else missing.add("Upload a profile photo" to 20)
+                if (!skills.isNullOrEmpty()) {
+                    percent += 35
+                } else {
+                    missingSteps.add(
+                        CompletionStep(
+                            title = "Add your skills",
+                            points = 35,
+                            action = ProfileActivity.ACTION_SKILLS
+                        )
+                    )
+                }
+
+                if (!experience.isNullOrBlank()) {
+                    percent += 25
+                } else {
+                    missingSteps.add(
+                        CompletionStep(
+                            title = "Add your experience",
+                            points = 25,
+                            action = ProfileActivity.ACTION_EXPERIENCE
+                        )
+                    )
+                }
+
+                if (!phone.isNullOrBlank()) {
+                    percent += 20
+                } else {
+                    missingSteps.add(
+                        CompletionStep(
+                            title = "Add your phone number",
+                            points = 20,
+                            action = ProfileActivity.ACTION_PHONE
+                        )
+                    )
+                }
+
+                if (!photoUrl.isNullOrBlank()) {
+                    percent += 20
+                } else {
+                    missingSteps.add(
+                        CompletionStep(
+                            title = "Upload a profile photo",
+                            points = 20,
+                            action = ProfileActivity.ACTION_PHOTO
+                        )
+                    )
+                }
+
+                val nextStep = missingSteps.maxByOrNull { it.points }
 
                 val pb = findViewById<android.widget.ProgressBar>(R.id.pbCompleteness)
                 val tvPercent = findViewById<TextView>(R.id.tvCompletenessPercent)
+                val tvTitle = findViewById<TextView>(R.id.tvCompletenessTitle)
                 val tvTip = findViewById<TextView>(R.id.tvCompletenessTip)
                 val card = findViewById<LinearLayout>(R.id.completenessCard)
 
-                android.animation.ValueAnimator.ofInt(0, percent).apply {
-                    duration = 600
-                    addUpdateListener { pb.progress = it.animatedValue as Int }
+                android.animation.ValueAnimator.ofInt(pb.progress, percent).apply {
+                    duration = 500
+                    addUpdateListener {
+                        pb.progress = it.animatedValue as Int
+                    }
                     start()
                 }
+
                 tvPercent.text = "$percent%"
 
                 val tierColor = when {
@@ -289,15 +353,35 @@ class StudentDashboardActivity : AppCompatActivity() {
                     percent >= 40 -> R.color.status_review_fg
                     else -> R.color.status_rejected_fg
                 }
+
                 (pb.progressDrawable as? android.graphics.drawable.LayerDrawable)
                     ?.findDrawableByLayerId(android.R.id.progress)
-                    ?.setTint(androidx.core.content.ContextCompat.getColor(this, tierColor))
+                    ?.setTint(
+                        androidx.core.content.ContextCompat.getColor(this, tierColor)
+                    )
 
-                tvTip.text = if (missing.isEmpty()) "Your profile is complete"
-                else missing.maxByOrNull { it.second }!!.first + " to reach 100%"
+                if (nextStep == null) {
+                    tvTitle.text = "Profile complete"
+                    tvTip.text = "You are ready to apply with confidence"
+                    card.contentDescription = "Profile complete, 100 percent"
+                } else {
+                    tvTitle.text = "Complete your profile"
+                    tvTip.text = "${nextStep.title} · +${nextStep.points}%"
+                    card.contentDescription =
+                        "${nextStep.title}. Complete this step to gain ${nextStep.points} percent."
+                }
 
                 card.setOnClickListener {
-                    startActivity(Intent(this, ProfileActivity::class.java))
+                    val intent = Intent(this, ProfileActivity::class.java)
+
+                    if (nextStep != null) {
+                        intent.putExtra(
+                            ProfileActivity.EXTRA_PROFILE_ACTION,
+                            nextStep.action
+                        )
+                    }
+
+                    startActivity(intent)
                 }
             }
     }
@@ -349,8 +433,14 @@ class StudentDashboardActivity : AppCompatActivity() {
         }
 
         setActiveNav(navHome)
+
+        // Refresh data changed from ProfileActivity
+        loadUserName()
+        loadProfileCompleteness()
+        loadPipelineCounts()
         loadJobs()
     }
+
     private fun setActiveNav(selected: LinearLayout) {
         val navItems = listOf(navHome, navSearch, ivNotification, navChats, navProfile)
         for (item in navItems) item.isSelected = false
@@ -391,8 +481,10 @@ class StudentDashboardActivity : AppCompatActivity() {
             .withEndAction {
                 view.animate().scaleX(1f).scaleY(1f).setDuration(120)
                     .withEndAction {
-                        startActivity(Intent(this, MyApplicationsActivity::class.java)
-                            .putExtra("statusFilter", status))
+                        startActivity(
+                            Intent(this, MyApplicationsActivity::class.java)
+                                .putExtra("statusFilter", status)
+                        )
                         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                     }.start()
             }.start()
