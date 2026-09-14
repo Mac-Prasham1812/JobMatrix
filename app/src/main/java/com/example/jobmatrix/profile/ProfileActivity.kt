@@ -50,6 +50,17 @@ class ProfileActivity : AppCompatActivity() {
     private var currentPhotoUrl: String? = null
     private var currentPhotoKey: String? = null
 
+    private var currentPhone: String? = null
+
+    companion object {
+        const val EXTRA_PROFILE_ACTION = "profile_action"
+
+        const val ACTION_SKILLS = "skills"
+        const val ACTION_EXPERIENCE = "experience"
+        const val ACTION_PHONE = "phone"
+        const val ACTION_PHOTO = "photo"
+    }
+
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { launchCrop(it) }
     }
@@ -131,6 +142,10 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this, com.example.jobmatrix.settings.SettingsActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.rowPhone).setOnClickListener {
+            showPhoneInputSheet()
+        }
+
         findViewById<LinearLayout>(R.id.rowNotifications).setOnClickListener {
             startActivity(
                 Intent(
@@ -147,6 +162,9 @@ class ProfileActivity : AppCompatActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
+        }
+        if (savedInstanceState == null) {
+            handleDashboardAction()
         }
     }
 
@@ -168,6 +186,7 @@ class ProfileActivity : AppCompatActivity() {
 
                     currentPhotoKey = doc.getString("photoKey")
                     currentPhotoUrl = doc.getString("photoUrl")
+                    currentPhone = doc.getString("phone")
                     if (!currentPhotoUrl.isNullOrBlank()) {
                         showPhoto(currentPhotoUrl!!)
                     } else {
@@ -414,5 +433,74 @@ class ProfileActivity : AppCompatActivity() {
             view = layout
             show()
         }
+    }
+
+    private fun handleDashboardAction() {
+        when (intent.getStringExtra(EXTRA_PROFILE_ACTION)) {
+            ACTION_SKILLS -> {
+                startActivity(Intent(this, SkillsActivity::class.java))
+            }
+
+            ACTION_EXPERIENCE -> {
+                openExperienceSheet()
+            }
+
+            ACTION_PHONE -> {
+                showPhoneInputSheet()
+            }
+
+            ACTION_PHOTO -> {
+                pickImageLauncher.launch("image/*")
+            }
+        }
+    }
+
+    private fun showPhoneInputSheet() {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(this)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_phone_input, null)
+
+        val title = view.findViewById<TextView>(R.id.tvPhoneSheetTitle)
+        val etPhone = view.findViewById<android.widget.EditText>(R.id.etPhone)
+
+        val existingPhone = currentPhone.orEmpty()
+        title.text = if (existingPhone.isBlank()) {
+            "Add phone number"
+        } else {
+            "Update phone number"
+        }
+
+        etPhone.setText(existingPhone)
+        etPhone.setSelection(etPhone.text.length)
+
+        view.findViewById<View>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        view.findViewById<View>(R.id.btnSave).setOnClickListener {
+            val phone = etPhone.text.toString().trim()
+                .replace(Regex("[\\s()-]"), "")
+
+            if (!phone.matches(Regex("^\\+?[0-9]{7,15}$"))) {
+                etPhone.error = "Enter a valid phone number"
+                etPhone.requestFocus()
+                return@setOnClickListener
+            }
+
+            val uid = auth.currentUser?.uid ?: return@setOnClickListener
+
+            db.collection("users").document(uid)
+                .update("phone", phone)
+                .addOnSuccessListener {
+                    currentPhone = phone
+                    dialog.dismiss()
+                    showToast("Phone number updated")
+                }
+                .addOnFailureListener {
+                    showToast("Could not update phone number")
+                }
+        }
+
+        dialog.setContentView(view)
+        dialog.show()
     }
 }
