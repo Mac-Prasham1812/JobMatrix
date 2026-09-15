@@ -47,6 +47,7 @@ class StudentDashboardActivity : AppCompatActivity() {
     private var notificationListener: com.google.firebase.firestore.ListenerRegistration? = null
     private var lastNotificationCount = -1
     private lateinit var navChats: LinearLayout
+    private var completionAnimationShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -335,8 +336,10 @@ class StudentDashboardActivity : AppCompatActivity() {
                 val pb = findViewById<android.widget.ProgressBar>(R.id.pbCompleteness)
                 val tvPercent = findViewById<TextView>(R.id.tvCompletenessPercent)
                 val tvTitle = findViewById<TextView>(R.id.tvCompletenessTitle)
+                val tvMessage = findViewById<TextView>(R.id.tvCompletenessMessage)
                 val tvTip = findViewById<TextView>(R.id.tvCompletenessTip)
                 val card = findViewById<LinearLayout>(R.id.completenessCard)
+                val ivCompletionAction = findViewById<ImageView>(R.id.ivCompletenessAction)
 
                 android.animation.ValueAnimator.ofInt(pb.progress, percent).apply {
                     duration = 500
@@ -348,27 +351,94 @@ class StudentDashboardActivity : AppCompatActivity() {
 
                 tvPercent.text = "$percent%"
 
-                val tierColor = when {
-                    percent >= 80 -> R.color.status_shortlisted_fg
-                    percent >= 40 -> R.color.status_review_fg
+                val strength = when {
+                    percent == 100 -> "Complete"
+                    percent >= 70 -> "Strong"
+                    percent >= 40 -> "Growing"
+                    else -> "Basic"
+                }
+
+                val strengthColorRes = when (strength) {
+                    "Complete" -> R.color.status_shortlisted_fg
+                    "Strong" -> R.color.status_applied_fg
+                    "Growing" -> R.color.status_review_fg
                     else -> R.color.status_rejected_fg
                 }
 
+                val strengthMessage = when (strength) {
+                    "Complete" -> "Your profile is ready to apply."
+                    "Strong" -> "Almost recruiter-ready."
+                    "Growing" -> "You are making progress."
+                    else -> "Build your profile to unlock better matches."
+                }
+
+                val strengthColor = androidx.core.content.ContextCompat.getColor(
+                    this,
+                    strengthColorRes
+                )
+
                 (pb.progressDrawable as? android.graphics.drawable.LayerDrawable)
                     ?.findDrawableByLayerId(android.R.id.progress)
-                    ?.setTint(
-                        androidx.core.content.ContextCompat.getColor(this, tierColor)
-                    )
+                    ?.setTint(strengthColor)
+
+                tvPercent.setTextColor(strengthColor)
+                tvTitle.setTextColor(strengthColor)
+                tvTitle.text = "Profile strength: $strength"
+                tvMessage.text = strengthMessage
 
                 if (nextStep == null) {
-                    tvTitle.text = "Profile complete"
-                    tvTip.text = "You are ready to apply with confidence"
-                    card.contentDescription = "Profile complete, 100 percent"
-                } else {
-                    tvTitle.text = "Complete your profile"
-                    tvTip.text = "${nextStep.title} · +${nextStep.points}%"
+                    tvTip.visibility = View.GONE
+
                     card.contentDescription =
-                        "${nextStep.title}. Complete this step to gain ${nextStep.points} percent."
+                        "Profile strength complete. 100 percent. $strengthMessage"
+                } else {
+                    tvTip.visibility = View.VISIBLE
+                    tvTip.text = "Next: ${nextStep.title} · +${nextStep.points}%"
+
+                    card.contentDescription =
+                        "Profile strength $strength. $strengthMessage " +
+                                "Next step: ${nextStep.title}, worth ${nextStep.points} percent."
+                }
+
+                val isComplete = nextStep == null
+
+                val cardBackgroundColor = androidx.core.content.ContextCompat.getColor(
+                    this,
+                    if (isComplete) R.color.status_shortlisted_bg else R.color.color_surface
+                )
+
+                card.backgroundTintList =
+                    android.content.res.ColorStateList.valueOf(cardBackgroundColor)
+
+                if (isComplete) {
+                    ivCompletionAction.setImageResource(R.drawable.ic_check)
+                    ivCompletionAction.imageTintList =
+                        android.content.res.ColorStateList.valueOf(strengthColor)
+                    ivCompletionAction.contentDescription = "Profile complete"
+
+                    if (!completionAnimationShown) {
+                        completionAnimationShown = true
+
+                        card.scaleX = 0.96f
+                        card.scaleY = 0.96f
+                        card.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(280)
+                            .start()
+                    }
+                } else {
+                    ivCompletionAction.setImageResource(R.drawable.ic_chevron_right)
+
+                    val hintColor = androidx.core.content.ContextCompat.getColor(
+                        this,
+                        R.color.color_text_hint
+                    )
+
+                    ivCompletionAction.imageTintList =
+                        android.content.res.ColorStateList.valueOf(hintColor)
+
+                    ivCompletionAction.contentDescription = "Complete profile"
                 }
 
                 card.setOnClickListener {
