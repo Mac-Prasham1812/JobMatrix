@@ -118,6 +118,12 @@ class StudentDashboardActivity : AppCompatActivity() {
         loadPipelineCounts()
         setupPipelineClicks()
 
+        findViewById<View>(R.id.completenessCard).setOnClickListener {
+            startActivity(
+                Intent(this, ProfileChecklistActivity::class.java)
+            )
+        }
+
         // Navbar clicks
         navHome.setOnClickListener {
             setActiveNav(navHome)
@@ -338,7 +344,7 @@ class StudentDashboardActivity : AppCompatActivity() {
                 val tvTitle = findViewById<TextView>(R.id.tvCompletenessTitle)
                 val tvMessage = findViewById<TextView>(R.id.tvCompletenessMessage)
                 val tvTip = findViewById<TextView>(R.id.tvCompletenessTip)
-                val card = findViewById<LinearLayout>(R.id.completenessCard)
+                val card = findViewById<com.google.android.material.card.MaterialCardView>(R.id.completenessCard)
                 val ivCompletionAction = findViewById<ImageView>(R.id.ivCompletenessAction)
 
                 android.animation.ValueAnimator.ofInt(pb.progress, percent).apply {
@@ -402,13 +408,21 @@ class StudentDashboardActivity : AppCompatActivity() {
 
                 val isComplete = nextStep == null
 
-                val cardBackgroundColor = androidx.core.content.ContextCompat.getColor(
+                val surfaceColor = androidx.core.content.ContextCompat.getColor(
                     this,
-                    if (isComplete) R.color.status_shortlisted_bg else R.color.color_surface
+                    R.color.color_surface
                 )
 
-                card.backgroundTintList =
-                    android.content.res.ColorStateList.valueOf(cardBackgroundColor)
+                card.setCardBackgroundColor(surfaceColor)
+
+                if (isComplete) {
+                    val borderWidth = (2 * resources.displayMetrics.density).toInt()
+
+                    card.strokeWidth = borderWidth
+                    card.strokeColor = strengthColor
+                } else {
+                    card.strokeWidth = 0
+                }
 
                 if (isComplete) {
                     ivCompletionAction.setImageResource(R.drawable.ic_check)
@@ -441,18 +455,13 @@ class StudentDashboardActivity : AppCompatActivity() {
                     ivCompletionAction.contentDescription = "Complete profile"
                 }
 
-                card.setOnClickListener {
-                    val intent = Intent(this, ProfileActivity::class.java)
-
-                    if (nextStep != null) {
-                        intent.putExtra(
-                            ProfileActivity.EXTRA_PROFILE_ACTION,
-                            nextStep.action
-                        )
-                    }
-
-                    startActivity(intent)
-                }
+//                card.setOnClickListener {
+//                    card.setOnClickListener {
+//                        startActivity(
+//                            Intent(this, ProfileChecklistActivity::class.java)
+//                        )
+//                    }
+//                }
             }
     }
 

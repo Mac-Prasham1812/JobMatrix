@@ -3,21 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/color_bg_screen"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
     <!-- TOP HEADER -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="20dp"
-        android:paddingEnd="12dp"
         android:paddingTop="22dp"
-        android:paddingBottom="22dp"
-        android:gravity="center_vertical">
-<!--        android:background="@color/color_surface"-->
+        android:paddingEnd="12dp"
+        android:paddingBottom="22dp">
+        <!--        android:background="@color/color_surface"-->
 
         <LinearLayout
             android:layout_width="0dp"
@@ -30,135 +30,143 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Good Morning"
-                android:textSize="14sp"
-                android:textColor="@color/color_text_secondary"/>
+                android:textColor="@color/color_text_secondary"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:text="User"
-                android:textSize="21sp"
-                android:textStyle="bold"
                 android:textColor="@color/color_text_primary"
-                android:layout_marginTop="2dp"/>
+                android:textSize="21sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <ImageView
             android:id="@+id/ivSavedJobs"
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:padding="10dp"
-            android:src="@drawable/ic_bookmark"
-            app:tint="@color/color_text_secondary"
             android:background="@drawable/ripple_circle"
             android:clickable="true"
+            android:contentDescription="Saved Jobs"
             android:focusable="true"
-            android:contentDescription="Saved Jobs"/>
+            android:padding="10dp"
+            android:src="@drawable/ic_bookmark"
+            app:tint="@color/color_text_secondary" />
 
         <ImageView
             android:id="@+id/ivSettings"
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:padding="10dp"
-            android:src="@drawable/ic_settings"
-            app:tint="@color/color_text_secondary"
             android:background="@drawable/ripple_circle"
             android:clickable="true"
+            android:contentDescription="Settings"
             android:focusable="true"
-            android:contentDescription="Settings"/>
+            android:padding="10dp"
+            android:src="@drawable/ic_settings"
+            app:tint="@color/color_text_secondary" />
     </LinearLayout>
 
-    <LinearLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/completenessCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="4dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:background="@drawable/bg_completeness_card"
         android:clickable="true"
         android:focusable="true"
-        android:foreground="?attr/selectableItemBackground">
-
-        <FrameLayout
-            android:layout_width="44dp"
-            android:layout_height="44dp">
-
-            <ProgressBar
-                android:id="@+id/pbCompleteness"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:indeterminate="false"
-                android:max="100"
-                android:progress="65"
-                android:progressDrawable="@drawable/progress_ring_completeness"
-                android:rotation="-90" />
-
-            <TextView
-                android:id="@+id/tvCompletenessPercent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="65%"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_text_primary" />
-        </FrameLayout>
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@color/color_surface"
+        app:cardCornerRadius="14dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="12dp">
 
-            <TextView
-                android:id="@+id/tvCompletenessTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Complete your profile"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_text_primary" />
+            <FrameLayout
+                android:layout_width="44dp"
+                android:layout_height="44dp">
 
-            <TextView
-                android:id="@+id/tvCompletenessMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:textSize="10sp"
-                android:textColor="@color/color_text_secondary" />
+                <ProgressBar
+                    android:id="@+id/pbCompleteness"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="65"
+                    android:progressDrawable="@drawable/progress_ring_completeness"
+                    android:rotation="-90" />
 
-            <TextView
-                android:id="@+id/tvCompletenessTip"
-                android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/tvCompletenessPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="65%"
+                    android:textColor="@color/color_text_primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Add your phone number to reach 100%"
-                android:textSize="11sp"
-                android:textColor="@color/color_text_secondary" />
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvCompletenessTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Complete your profile"
+                    android:textColor="@color/color_text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCompletenessMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:textColor="@color/color_text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/tvCompletenessTip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Add your phone number to reach 100%"
+                    android:textColor="@color/color_text_secondary"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivCompletenessAction"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_chevron_right"
+                app:tint="@color/color_text_hint" />
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/ivCompletenessAction"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_chevron_right"
-            app:tint="@color/color_text_hint" />
-    </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Your application pipeline"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/color_text_primary"
         android:paddingStart="16dp"
-        android:paddingTop="16dp"/>
+        android:paddingTop="16dp"
+        android:text="Your application pipeline"
+        android:textColor="@color/color_text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 
     <!-- APPLICATION PIPELINE -->
     <LinearLayout
@@ -171,134 +179,134 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/bg_pipeline_card"
-            android:padding="12dp"
             android:layout_marginEnd="6dp"
-            android:gravity="center">
+            android:layout_weight="1"
+            android:background="@drawable/bg_pipeline_card"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:padding="7dp"
-                android:src="@drawable/ic_document"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_circle_blue"
-                android:layout_marginBottom="6dp"/>
+                android:padding="7dp"
+                android:src="@drawable/ic_document" />
 
             <TextView
                 android:id="@+id/tvAppliedCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
+                android:textColor="@color/color_accent"
                 android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_accent"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Applied"
-                android:textSize="12sp"
-                android:textColor="@color/color_text_secondary"/>
+                android:textColor="@color/color_text_secondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:background="@drawable/bg_pipeline_card"
-            android:padding="12dp"
             android:layout_marginEnd="6dp"
-            android:gravity="center">
+            android:layout_weight="1"
+            android:background="@drawable/bg_pipeline_card"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:padding="7dp"
-                android:src="@drawable/ic_eye"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_circle_orange"
-                android:layout_marginBottom="6dp"/>
+                android:padding="7dp"
+                android:src="@drawable/ic_eye" />
 
             <TextView
                 android:id="@+id/tvInReviewCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
+                android:textColor="#F59E0B"
                 android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#F59E0B"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="In Review"
-                android:textSize="12sp"
-                android:textColor="@color/color_text_secondary"/>
+                android:textColor="@color/color_text_secondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
             android:background="@drawable/bg_pipeline_card"
-            android:padding="12dp"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="12dp">
 
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:padding="7dp"
-                android:src="@drawable/ic_check"
+                android:layout_marginBottom="6dp"
                 android:background="@drawable/bg_circle_green"
-                android:layout_marginBottom="6dp"/>
+                android:padding="7dp"
+                android:src="@drawable/ic_check" />
 
             <TextView
                 android:id="@+id/tvShortlistedCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"
+                android:textColor="#16A34A"
                 android:textSize="22sp"
-                android:textStyle="bold"
-                android:textColor="#16A34A"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Shortlisted"
-                android:textSize="12sp"
-                android:textColor="@color/color_text_secondary"/>
+                android:textColor="@color/color_text_secondary"
+                android:textSize="12sp" />
         </LinearLayout>
 
     </LinearLayout>
 
-<!--    <LinearLayout-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:orientation="horizontal"-->
-<!--        android:paddingHorizontal="16dp"-->
-<!--        android:paddingTop="12dp"-->
-<!--        android:gravity="center_vertical">-->
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:orientation="horizontal"-->
+    <!--        android:paddingHorizontal="16dp"-->
+    <!--        android:paddingTop="12dp"-->
+    <!--        android:gravity="center_vertical">-->
 
-<!--        <TextView-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_weight="1"-->
-<!--            android:text="Matched for you"-->
-<!--            android:textSize="14sp"-->
-<!--            android:textStyle="bold"-->
-<!--            android:textColor="@color/color_text_primary"/>-->
+    <!--        <TextView-->
+    <!--            android:layout_width="0dp"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:layout_weight="1"-->
+    <!--            android:text="Matched for you"-->
+    <!--            android:textSize="14sp"-->
+    <!--            android:textStyle="bold"-->
+    <!--            android:textColor="@color/color_text_primary"/>-->
 
-<!--        <TextView-->
-<!--            android:id="@+id/tvViewAll"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="View all"-->
-<!--            android:textSize="13sp"-->
-<!--            android:textColor="@color/color_accent"/>-->
-<!--    </LinearLayout>-->
+    <!--        <TextView-->
+    <!--            android:id="@+id/tvViewAll"-->
+    <!--            android:layout_width="wrap_content"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:text="View all"-->
+    <!--            android:textSize="13sp"-->
+    <!--            android:textColor="@color/color_accent"/>-->
+    <!--    </LinearLayout>-->
 
     <!-- SHIMMER JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -307,8 +315,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="16dp"
-        android:visibility="visible"
-        android:saveEnabled="false"/>
+        android:saveEnabled="false"
+        android:visibility="visible" />
 
     <!-- JOB LIST -->
     <androidx.recyclerview.widget.RecyclerView
@@ -316,19 +324,19 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp"
         android:clipToPadding="false"
+        android:padding="16dp"
         android:paddingBottom="80dp"
-        android:visibility="gone"
-        android:saveEnabled="false"/>
+        android:saveEnabled="false"
+        android:visibility="gone" />
 
     <!-- BOTTOM NAVBAR -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="64dp"
-        android:orientation="horizontal"
         android:background="@color/color_surface"
         android:elevation="10dp"
+        android:orientation="horizontal"
         android:paddingBottom="8dp"
         android:weightSum="5">
 
@@ -337,24 +345,24 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:duplicateParentState="true"
                 android:src="@drawable/home"
-                app:tint="@color/nav_icon_selector"
-                android:duplicateParentState="true"/>
+                app:tint="@color/nav_icon_selector" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Home"
-                android:textSize="10sp"
-                android:textColor="@color/nav_icon_selector"
                 android:layout_marginTop="2dp"
-                android:duplicateParentState="true"/>
+                android:duplicateParentState="true"
+                android:text="Home"
+                android:textColor="@color/nav_icon_selector"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -362,24 +370,24 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <ImageView
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:duplicateParentState="true"
                 android:src="@drawable/search"
-                app:tint="@color/nav_icon_selector"
-                android:duplicateParentState="true"/>
+                app:tint="@color/nav_icon_selector" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search"
-                android:textSize="10sp"
-                android:textColor="@color/nav_icon_selector"
                 android:layout_marginTop="2dp"
-                android:duplicateParentState="true"/>
+                android:duplicateParentState="true"
+                android:text="Search"
+                android:textColor="@color/nav_icon_selector"
+                android:textSize="10sp" />
         </LinearLayout>
 
         <FrameLayout
@@ -391,23 +399,23 @@
                 android:id="@+id/ivNotification"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:gravity="center"
+                android:orientation="vertical">
 
                 <ImageView
                     android:layout_width="30dp"
                     android:layout_height="30dp"
+                    android:duplicateParentState="true"
                     android:src="@drawable/notification"
-                    app:tint="@color/nav_icon_selector"
-                    android:duplicateParentState="true"/>
+                    app:tint="@color/nav_icon_selector" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:duplicateParentState="true"
                     android:text="Notifications"
-                    android:textSize="10sp"
                     android:textColor="@color/nav_icon_selector"
-                    android:duplicateParentState="true"/>
+                    android:textSize="10sp" />
             </LinearLayout>
 
             <TextView
@@ -422,7 +430,7 @@
                 android:textColor="@android:color/white"
                 android:textSize="10sp"
                 android:textStyle="bold"
-                android:visibility="gone"/>
+                android:visibility="gone" />
         </FrameLayout>
 
         <LinearLayout
@@ -430,8 +438,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <FrameLayout
                 android:layout_width="30dp"
@@ -440,9 +448,9 @@
                 <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:duplicateParentState="true"
                     android:src="@drawable/ic_chat_empty"
-                    app:tint="@color/nav_icon_selector"
-                    android:duplicateParentState="true" />
+                    app:tint="@color/nav_icon_selector" />
 
                 <TextView
                     android:id="@+id/tvChatsBadge"
@@ -461,10 +469,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
+                android:duplicateParentState="true"
                 android:text="Chats"
-                android:textSize="10sp"
                 android:textColor="@color/nav_icon_selector"
-                android:duplicateParentState="true" />
+                android:textSize="10sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -472,8 +480,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="vertical">
 
             <FrameLayout
                 android:layout_width="30dp"
@@ -493,21 +501,21 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:layout_gravity="center"
-                    android:scaleType="centerCrop"
                     android:background="@drawable/bg_nav_avatar_ring"
+                    android:duplicateParentState="true"
                     android:padding="1.5dp"
-                    android:visibility="gone"
-                    android:duplicateParentState="true"/>
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
             </FrameLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textSize="10sp"
-                android:textColor="@color/nav_icon_selector"
                 android:layout_marginTop="2dp"
-                android:duplicateParentState="true"/>
+                android:duplicateParentState="true"
+                android:text="Profile"
+                android:textColor="@color/nav_icon_selector"
+                android:textSize="10sp" />
         </LinearLayout>
     </LinearLayout>
 

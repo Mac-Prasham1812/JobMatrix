@@ -184,6 +184,9 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <activity
+            android:name="com.example.jobmatrix.student.ProfileChecklistActivity"
+            android:exported="false" />
 
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
