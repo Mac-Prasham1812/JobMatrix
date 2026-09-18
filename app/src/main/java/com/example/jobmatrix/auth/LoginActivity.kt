@@ -48,12 +48,9 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            checkUserRole(currentUser.uid)
-            return
-        }
-
+        // FIX: setContentView now always runs first, so btnLogin and every other
+        // view referenced by resetUI()/showToast() exists in the hierarchy no matter
+        // which path we take below — including the auto-login (currentUser != null) path.
         setContentView(R.layout.activity_login)
 
         val etEmail = findViewById<TextInputEditText>(R.id.etEmail)
@@ -63,6 +60,14 @@ class LoginActivity : AppCompatActivity() {
         val tvEmployerRegisterLink = findViewById<TextView>(R.id.tvEmployerRegisterLink)
         val loginContainer = findViewById<LinearLayout>(R.id.loginContainer)
         val logoMark = findViewById<LinearLayout>(R.id.logoMark)
+
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            // Already signed in: keep the form hidden while we resolve role/status silently.
+            loginContainer.visibility = View.INVISIBLE
+            checkUserRole(currentUser.uid)
+            return
+        }
 
         findViewById<TextView>(R.id.tvForgotPassword).setOnClickListener {
             startActivity(Intent(this, ForgotPasswordActivity::class.java))
@@ -152,6 +157,15 @@ class LoginActivity : AppCompatActivity() {
                     return@addOnSuccessListener
                 }
 
+                // Blocks disabled accounts right after login, before any dashboard loads.
+                val isDisabled = doc.getBoolean("isDisabled") ?: false
+                if (isDisabled) {
+                    auth.signOut()
+                    showToast("Your account has been disabled. Contact support for help.")
+                    resetUI()
+                    return@addOnSuccessListener
+                }
+
                 val role = doc.getString("role")
 
                 com.google.firebase.messaging.FirebaseMessaging.getInstance().token
@@ -185,8 +199,11 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun resetUI() {
-        findViewById<Button>(R.id.btnLogin).isEnabled = true
-        findViewById<Button>(R.id.btnLogin).text = "LOGIN"
+        // FIX: views now always exist (setContentView runs unconditionally in onCreate),
+        // so this is safe to call from any path, including auto-login.
+        findViewById<LinearLayout>(R.id.loginContainer)?.visibility = View.VISIBLE
+        findViewById<Button>(R.id.btnLogin)?.isEnabled = true
+        findViewById<Button>(R.id.btnLogin)?.text = "LOGIN"
     }
 
     private fun showToast(message: String) {
