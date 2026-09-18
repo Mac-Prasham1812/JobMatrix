@@ -142,33 +142,58 @@ class AddJobActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val jobId = db.collection("jobs").document().id
+            // NEW: re-check verification/disabled status live before posting (mirrors Firestore rules server-side gate)
+            btnPostJob.isEnabled = false
+            db.collection("users").document(employerId).get()
+                .addOnSuccessListener { employerDoc ->
+                    val isDisabled = employerDoc.getBoolean("isDisabled") ?: false
+                    val isVerified = employerDoc.getBoolean("isVerified") ?: false
 
-            val jobMap = hashMapOf(
-                "jobId" to jobId,
-                "title" to title,
-                "company" to company,
-                "location" to location,
-                "category" to category,
-                "salary" to salary,
-                "experience" to experience,
-                "employerId" to employerId,
-                "companyOverview" to companyOverview,
-                "status" to "Active",
-                "createdAt" to System.currentTimeMillis(),
-                "skills" to skillsList
-            )
+                    if (isDisabled) {
+                        Toast.makeText(this, "Your account has been disabled. Contact support.", Toast.LENGTH_LONG).show()
+                        btnPostJob.isEnabled = true
+                        return@addOnSuccessListener
+                    }
 
-            db.collection("jobs")
-                .document(jobId)
-                .set(jobMap)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Job Posted Successfully", Toast.LENGTH_SHORT).show()
-                    notifyMatchingStudents(jobId, title, company, skillsList)
-                    finish()
+                    if (!isVerified) {
+                        Toast.makeText(this, "Your account is pending verification. You'll be able to post once an admin verifies your account.", Toast.LENGTH_LONG).show()
+                        btnPostJob.isEnabled = true
+                        return@addOnSuccessListener
+                    }
+
+                    val jobId = db.collection("jobs").document().id
+
+                    val jobMap = hashMapOf(
+                        "jobId" to jobId,
+                        "title" to title,
+                        "company" to company,
+                        "location" to location,
+                        "category" to category,
+                        "salary" to salary,
+                        "experience" to experience,
+                        "employerId" to employerId,
+                        "companyOverview" to companyOverview,
+                        "status" to "Active",
+                        "createdAt" to System.currentTimeMillis(),
+                        "skills" to skillsList
+                    )
+
+                    db.collection("jobs")
+                        .document(jobId)
+                        .set(jobMap)
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Job Posted Successfully", Toast.LENGTH_SHORT).show()
+                            notifyMatchingStudents(jobId, title, company, skillsList)
+                            finish()
+                        }
+                        .addOnFailureListener {
+                            btnPostJob.isEnabled = true
+                            Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                        }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                    btnPostJob.isEnabled = true
+                    Toast.makeText(this, "Could not verify account status. Try again.", Toast.LENGTH_SHORT).show()
                 }
         }
 
