@@ -41,6 +41,18 @@ class EmployerRegisterActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvGoogleRegister).text = "Continue with Google"
     }
 
+    private fun notifyAdmins(type: String, title: String, message: String, refId: String) {
+        val notif = hashMapOf(
+            "type" to type,
+            "title" to title,
+            "message" to message,
+            "refId" to refId,
+            "createdAt" to System.currentTimeMillis(),
+            "isRead" to false
+        )
+        db.collection("adminNotifications").add(notif)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -126,6 +138,7 @@ class EmployerRegisterActivity : AppCompatActivity() {
                             com.google.firebase.messaging.FirebaseMessaging.getInstance().token
                                 .addOnSuccessListener { t -> db.collection("users").document(uid).update("fcmToken", t) }
                             showToast("Registration successful")
+                            notifyAdmins("NewEmployer", "New Employer Signup", "$name registered as an employer", uid)
                             startActivity(Intent(this, EmployerDashboardActivity::class.java))
                             finish()
                         }
@@ -165,6 +178,7 @@ class EmployerRegisterActivity : AppCompatActivity() {
                         com.google.firebase.messaging.FirebaseMessaging.getInstance().token
                             .addOnSuccessListener { t -> db.collection("users").document(uid).update("fcmToken", t) }
                         showToast("Registration successful")
+                        notifyAdmins("NewEmployer", "New Employer Signup", "${result.user?.displayName ?: result.user?.email ?: "Unknown"} registered as an employer", uid)
                         startActivity(Intent(this, EmployerDashboardActivity::class.java))
                         finish()
                     }

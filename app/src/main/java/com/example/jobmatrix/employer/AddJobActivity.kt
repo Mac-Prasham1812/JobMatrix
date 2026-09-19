@@ -132,31 +132,32 @@ class AddJobActivity : AppCompatActivity() {
                 || category.isEmpty() || salary.isEmpty() || experience.isEmpty()
                 || companyOverview.isEmpty() || skillsList.isEmpty()
             ) {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                showToast("Please fill all fields")
                 return@setOnClickListener
             }
 
             val employerId = auth.currentUser?.uid
             if (employerId == null) {
-                Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+                showToast("User not logged in")
                 return@setOnClickListener
             }
 
             // NEW: re-check verification/disabled status live before posting (mirrors Firestore rules server-side gate)
             btnPostJob.isEnabled = false
+            android.util.Log.d("JM_DEBUG", "Current UID: ${auth.currentUser?.uid}")
             db.collection("users").document(employerId).get()
                 .addOnSuccessListener { employerDoc ->
                     val isDisabled = employerDoc.getBoolean("isDisabled") ?: false
                     val isVerified = employerDoc.getBoolean("isVerified") ?: false
 
                     if (isDisabled) {
-                        Toast.makeText(this, "Your account has been disabled. Contact support.", Toast.LENGTH_LONG).show()
+                        showToast("Your account has been disabled. Contact support.")
                         btnPostJob.isEnabled = true
                         return@addOnSuccessListener
                     }
 
                     if (!isVerified) {
-                        Toast.makeText(this, "Your account is pending verification. You'll be able to post once an admin verifies your account.", Toast.LENGTH_LONG).show()
+                        showToast("Your account is pending verification. You'll be able to post once an admin verifies your account.")
                         btnPostJob.isEnabled = true
                         return@addOnSuccessListener
                     }
@@ -182,18 +183,21 @@ class AddJobActivity : AppCompatActivity() {
                         .document(jobId)
                         .set(jobMap)
                         .addOnSuccessListener {
-                            Toast.makeText(this, "Job Posted Successfully", Toast.LENGTH_SHORT).show()
+                            showToast("Job Posted Successfully")
+                            notifyAdmins("NewJob", "New Job Posted", "$title at $company", jobId)
                             notifyMatchingStudents(jobId, title, company, skillsList)
                             finish()
                         }
-                        .addOnFailureListener {
+                        .addOnFailureListener { e ->
                             btnPostJob.isEnabled = true
-                            Toast.makeText(this, it.message, Toast.LENGTH_SHORT).show()
+                            android.util.Log.e("JM_DEBUG", "Job write failed", e)
+                            showToast(e.message ?: "Something went wrong")
                         }
                 }
-                .addOnFailureListener {
+                .addOnFailureListener { e ->
                     btnPostJob.isEnabled = true
-                    Toast.makeText(this, "Could not verify account status. Try again.", Toast.LENGTH_SHORT).show()
+                    android.util.Log.e("JM_DEBUG", "Employer doc read failed", e)
+                    showToast("Could not verify account status. Try again.")
                 }
         }
 
@@ -241,6 +245,27 @@ class AddJobActivity : AppCompatActivity() {
 
         dialog.setContentView(view)
         dialog.show()
+    }
+    private fun notifyAdmins(type: String, title: String, message: String, refId: String) {
+        val notif = hashMapOf(
+            "type" to type,
+            "title" to title,
+            "message" to message,
+            "refId" to refId,
+            "createdAt" to System.currentTimeMillis(),
+            "isRead" to false
+        )
+        db.collection("adminNotifications").add(notif)
+    }
+
+    private fun showToast(message: String) {
+        val layout = layoutInflater.inflate(R.layout.toast_custom, null)
+        layout.findViewById<TextView>(R.id.tvToastMessage).text = message
+        Toast(this).apply {
+            duration = Toast.LENGTH_LONG
+            view = layout
+            show()
+        }
     }
 
     private fun notifyMatchingStudents(
