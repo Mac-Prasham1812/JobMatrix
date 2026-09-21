@@ -148,7 +148,11 @@ class NotificationActivity : AppCompatActivity() {
                 allNotifications.clear()
 
                 for (document in snapshot.documents) {
-                    val notification = document.toObject(NotificationModel::class.java)
+                    val notification = try {
+                        document.toObject(NotificationModel::class.java)
+                    } catch (e: Exception) {
+                        null
+                    }
                     if (notification != null && !notification.type.equals("Applied", ignoreCase = true)) {
                         val fixedIsRead = document.getBoolean("isRead") ?: false
                         allNotifications.add(notification.copy(notificationId = document.id, isRead = fixedIsRead))
