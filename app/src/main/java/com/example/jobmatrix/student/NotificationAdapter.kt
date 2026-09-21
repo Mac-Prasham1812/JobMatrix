@@ -80,7 +80,11 @@ class NotificationAdapter(
         if (holder !is VH || entry !is NotificationListItem.Item) return
         val notification = entry.notification
 
-        val label = notification.companyName.ifBlank { notification.type }
+        val label = if (notification.type.equals("AdminMessage", ignoreCase = true)) {
+            "JobMatrix Support"
+        } else {
+            notification.companyName.ifBlank { notification.type }
+        }
 
         holder.tvTitle.text = label
         holder.tvMessage.text = notification.message
