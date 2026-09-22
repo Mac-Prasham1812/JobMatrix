@@ -482,7 +482,9 @@ class StudentDashboardActivity : AppCompatActivity() {
                     return@addSnapshotListener
                 }
 
-                val count = snapshot?.size() ?: 0
+                val count = snapshot?.documents?.count {
+                    !(it.getString("type")?.equals("Applied", ignoreCase = true) ?: false)
+                } ?: 0
 
                 tvNotificationBadge.text =
                     if (count > 9) "9+" else count.toString()

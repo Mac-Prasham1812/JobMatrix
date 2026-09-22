@@ -52,10 +52,11 @@ class ChatListActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.rvChats)
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = ChatListAdapter(items) { item ->
-            startActivity(
-                Intent(this, ChatActivity::class.java)
-                    .putExtra("applicationId", item.applicationId)
-            )
+            if (item.applicationId == "ADMIN_SUPPORT") {
+                startActivity(Intent(this, SupportChatActivity::class.java))
+            } else {
+                startActivity(Intent(this, ChatActivity::class.java).putExtra("applicationId", item.applicationId))
+            }
         }
         recyclerView.adapter = adapter
 
@@ -96,6 +97,14 @@ class ChatListActivity : AppCompatActivity() {
                     .groupBy { it.getString("applicationId") ?: "" }
                     .mapValues { it.value.size }
 
+                val adminSnap = db.collection("notifications")
+                    .whereEqualTo("recipientId", myUid)
+                    .whereEqualTo("type", "AdminMessage")
+                    .get().await()
+
+                val adminDocs = adminSnap.documents.sortedByDescending { it.getLong("createdAt") ?: 0L }
+                val adminUnread = adminDocs.count { it.getBoolean("isRead") != true }
+
                 val result = mutableListOf<ChatPreviewItem>()
 
                 for (doc in allDocs) {
@@ -132,6 +141,24 @@ class ChatListActivity : AppCompatActivity() {
                             avatarInitial = initial,
                             avatarColor = color,
                             avatarPhotoUrl = photoUrl,
+                        )
+                    )
+                }
+
+                if (adminDocs.isNotEmpty()) {
+                    val latest = adminDocs.first()
+                    result.add(
+                        0,
+                        ChatPreviewItem(
+                            applicationId = "ADMIN_SUPPORT",
+                            otherPersonName = "JobMatrix Support",
+                            jobTitle = "",
+                            lastMessage = latest.getString("message") ?: "",
+                            lastMessageAt = latest.getLong("createdAt") ?: 0L,
+                            unreadCount = adminUnread,
+                            isOnline = false,
+                            avatarInitial = "J",
+                            avatarColor = androidx.core.content.ContextCompat.getColor(this@ChatListActivity, R.color.color_accent)
                         )
                     )
                 }

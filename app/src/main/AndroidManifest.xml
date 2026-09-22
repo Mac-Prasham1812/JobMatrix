@@ -188,6 +188,8 @@
             android:name="com.example.jobmatrix.student.ProfileChecklistActivity"
             android:exported="false" />
 
+        <activity android:name="com.example.jobmatrix.chat.SupportChatActivity"/>
+
         <service
             android:name="com.example.jobmatrix.MyFirebaseMessagingService"
             android:exported="false"
