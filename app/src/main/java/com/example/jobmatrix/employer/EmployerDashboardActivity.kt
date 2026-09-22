@@ -303,7 +303,9 @@ class EmployerDashboardActivity : AppCompatActivity() {
             .whereEqualTo("recipientId", employerId)
             .whereEqualTo("isRead", false)
             .addSnapshotListener { snap, _ ->
-                val count = snap?.size() ?: 0
+                val count = snap?.documents?.count {
+                    !(it.getString("type")?.equals("Applied", ignoreCase = true) ?: false)
+                } ?: 0
                 if (count > 0) {
                     tvBellBadge.text = if (count > 9) "9+" else count.toString()
                     if (tvBellBadge.visibility != android.view.View.VISIBLE) {
